@@ -1,0 +1,17 @@
+version: "3.8"
+services:
+  clshub:
+    build: ./
+    environment:
+      - PYTHONPATH=/workspace:$PYTHONPATH
+    container_name: clshub
+    ipc: host
+    tty: true
+    volumes:
+      - ./:/workspace
+    working_dir: /workspace
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [ gpu ]

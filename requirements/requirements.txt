@@ -1,0 +1,6 @@
+albumentations
+imgaug
+mmcls==v1.0.0rc5
+mmcv==2..0.0rc4
+mmengine==0.6.0
+ujson
