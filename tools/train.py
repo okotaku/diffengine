@@ -67,12 +67,9 @@ def merge_args(cfg, args):
         cfg.optim_wrapper.setdefault('loss_scale', 'dynamic')
 
     # resume training
-    if args.resume == 'auto':
+    if args.resume:
         cfg.resume = True
         cfg.load_from = None
-    elif args.resume:
-        cfg.resume = True
-        cfg.load_from = args.resume
 
     if args.cfg_options is not None:
         cfg.merge_from_dict(args.cfg_options)
