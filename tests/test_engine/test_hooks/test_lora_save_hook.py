@@ -57,3 +57,23 @@ class TestLoRASaveHook(RunnerTestCase):
 
         for key in checkpoint['state_dict'].keys():
             assert key.startswith(tuple(['unet', 'text_encoder']))
+
+        # with text encoder
+        cfg = copy.deepcopy(self.epoch_based_cfg)
+        cfg.model.type = 'StableDiffusion'
+        cfg.model.lora_config = dict(rank=4)
+        cfg.model.finetune_text_encoder = True
+        runner = self.build_runner(cfg)
+        checkpoint = dict(
+            state_dict=StableDiffusion(
+                lora_config=dict(
+                    rank=4), finetune_text_encoder=True).state_dict())
+        hook = LoRASaveHook()
+        hook.before_save_checkpoint(runner, checkpoint)
+
+        assert Path(
+            osp.join(runner.work_dir, f'step{runner.iter}',
+                     'pytorch_lora_weights.bin')).exists
+
+        for key in checkpoint['state_dict'].keys():
+            assert key.startswith(tuple(['unet', 'text_encoder']))
