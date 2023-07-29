@@ -5,7 +5,6 @@ default_hooks = dict(
         interval=1,
         max_keep_ckpts=3,
     ), )
-custom_hooks = [dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4)]
 
 env_cfg = dict(
     cudnn_benchmark=False,
