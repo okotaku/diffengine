@@ -1,10 +1,10 @@
 version: "3.8"
 services:
-  clshub:
+  diffengine:
     build: ./
     environment:
       - PYTHONPATH=/workspace:$PYTHONPATH
-    container_name: clshub
+    container_name: diffengine
     ipc: host
     tty: true
     volumes:

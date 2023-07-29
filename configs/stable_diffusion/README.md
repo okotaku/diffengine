@@ -1,9 +1,13 @@
-# Environment setup
+# Stable Diffusion
 
-Clone repo
+[Stable Diffusion](https://github.com/CompVis/stable-diffusion)
+
+## Run train
+
+Set env variables
 
 ```
-$ git clone https://github.com/okotaku/diffengine
+$ export DATA_DIR=/path/to/data
 ```
 
 Start a docker container
@@ -11,8 +15,6 @@ Start a docker container
 ```
 $ docker compose up -d
 ```
-
-# Run training
 
 Run train
 
@@ -22,13 +24,3 @@ $ docker compose exec diffengine mim train diffengine configs/stable_diffusion/s
 # multi gpus
 $ docker compose exec diffengine mim train diffengine configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py --gpus 2 --launcher pytorch
 ```
-
-# Prepare configs
-
-For basic usage of configs, see [MMPreTrain: Learn about Configs](https://mmpretrain.readthedocs.io/en/latest/user_guides/config.html)
-
-# Usage
-
-# More details
-
-See [MMEngine Docs](https://mmengine.readthedocs.io/en/latest/)

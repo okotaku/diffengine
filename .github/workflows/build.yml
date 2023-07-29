@@ -20,4 +20,35 @@ jobs:
       - name: Check docstring coverage
         run: |
           pip install interrogate
-          interrogate -v --ignore-init-method --ignore-module --ignore-nested-functions --ignore-regex "__repr__" --fail-under 0 modules
+          interrogate -v --ignore-init-method --ignore-module --ignore-nested-functions --ignore-regex "__repr__" --fail-under 0 diffengine
+
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NVIDIA_DRIVER_CAPABILITIES: 'utility,compute'
+      DEBIAN_FRONTEND: noninteractive
+    container:
+      image: nvcr.io/nvidia/pytorch:23.07-py3
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install utils
+        run: pip install psutil
+      - name: Install system dependencies
+        run: |
+          apt-get update && apt-get install -y vim libgl-dev libglvnd-dev libgl1-mesa-dev
+          apt-get clean
+          rm -rf /var/lib/apt/lists/*
+      - name: Install diffengine dependencies
+        run: |
+          pip install setuptools
+          pip install --no-cache-dir openmim==0.3.9 && \
+          pip install -r requirements/requirements.txt
+          pip install -r requirements/tests.txt
+      - name: Build and install
+        run: rm -rf .eggs && pip install -e .
+      - name: Run unittests and generate coverage report
+        run: |
+          coverage run --branch --source=diffengine -m pytest tests/
+          coverage xml
+          coverage report -m

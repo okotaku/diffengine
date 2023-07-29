@@ -1,6 +1,5 @@
-albumentations
-imgaug
-mmcls==v1.0.0rc5
-mmcv==2..0.0rc4
-mmengine==0.6.0
+datasets
+diffusers==0.19.1
+mmengine==0.8.2
+transformers==4.31.0
 ujson

@@ -10,9 +10,7 @@ Please briefly describe what modification is made in this PR.
 
 ## Results (Optional)
 
-| Dataset | Model | Accuracy |
-| :-----: | :---: | :------: |
-|         |       |          |
+Please show results.
 
 ## Use cases (Optional)
 
