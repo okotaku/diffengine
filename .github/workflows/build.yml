@@ -23,22 +23,19 @@ jobs:
           interrogate -v --ignore-init-method --ignore-module --ignore-nested-functions --ignore-regex "__repr__" --fail-under 0 diffengine
 
   build:
-    runs-on: ubuntu-latest
-    env:
-      NVIDIA_DRIVER_CAPABILITIES: 'utility,compute'
-      DEBIAN_FRONTEND: noninteractive
+    runs-on: ubuntu-22.04
     container:
-      image: nvcr.io/nvidia/pytorch:23.07-py3
+      image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
+      options: --tty --ipc host
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Install utils
-        run: pip install psutil
+      - uses: actions/checkout@v3
+      - name: Upgrade pip
+        run: pip install pip --upgrade
       - name: Install system dependencies
         run: |
-          apt-get update && apt-get install -y vim libgl-dev libglvnd-dev libgl1-mesa-dev
-          apt-get clean
-          rm -rf /var/lib/apt/lists/*
+          apt-get update
+          apt-get install -y ffmpeg libsm6 libxext6 git ninja-build libglib2.0-0 libxrender-dev libc6 libc6-dev
       - name: Install diffengine dependencies
         run: |
           pip install setuptools
