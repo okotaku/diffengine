@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Dict, List, Optional, Union
 
 import numpy as np
@@ -10,6 +11,7 @@ from mmengine.optim import OptimWrapper
 from torch import nn
 from transformers import CLIPTextModel, CLIPTokenizer
 
+from diffengine.models.archs import set_unet_lora
 from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
@@ -33,10 +35,12 @@ class StableDiffusion(BaseModel):
         self,
         model: str = 'runwayml/stable-diffusion-v1-5',
         loss: dict = dict(type='L2Loss', loss_weight=1.0),
+        lora_config: Optional[dict] = None,
         noise_offset_weight: float = 0,
     ):
         super().__init__()
         self.model = model
+        self.lora_config = deepcopy(lora_config)
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
@@ -56,6 +60,13 @@ class StableDiffusion(BaseModel):
         self.unet = UNet2DConditionModel.from_pretrained(
             model, subfolder='unet')
         self.prepare_model()
+        self.set_lora()
+
+    def set_lora(self):
+        """Set LORA for model."""
+        if self.lora_config:
+            self.unet.requires_grad_(False)
+            set_unet_lora(self.unet, self.lora_config)
 
     def prepare_model(self):
         """Prepare model for training.

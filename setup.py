@@ -165,7 +165,8 @@ if __name__ == '__main__':
         long_description=readme(),
         long_description_content_type='text/markdown',
         keywords='computer vision, image classification',
-        packages=find_packages(exclude=('configs', 'tools', 'demo')),
+        packages=find_packages(
+            exclude=('configs', 'tools', 'demo', 'work_dirs')),
         include_package_data=True,
         url='',
         author='diffengine Contributors',
