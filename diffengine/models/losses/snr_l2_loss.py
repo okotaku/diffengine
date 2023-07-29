@@ -57,8 +57,9 @@ class SNRL2Loss(nn.Module):
         self.snr_gamma = snr_gamma
         self._loss_name = loss_name
 
-    def forward(self, pred: torch.Tensor, gt: torch.Tensor, timesteps: int,
-                alphas_cumprod: float) -> torch.Tensor:
+    def forward(self, pred: torch.Tensor, gt: torch.Tensor,
+                timesteps: torch.Tensor,
+                alphas_cumprod: torch.Tensor) -> torch.Tensor:
         snr = compute_snr(timesteps, alphas_cumprod)
         mse_loss_weights = (
             torch.stack([snr, self.snr_gamma * torch.ones_like(timesteps)],
