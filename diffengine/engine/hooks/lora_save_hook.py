@@ -27,19 +27,26 @@ class LoRASaveHook(Hook):
         if is_model_wrapper(model):
             model = model.module
         unet_lora_layers_to_save = unet_attn_processors_state_dict(model.unet)
-        # text_encoder_lora_layers_to_save = text_encoder_lora_state_dict(
-        #   model.text_encoder)
         ckpt_path = osp.join(runner.work_dir, f'step{runner.iter}')
-        LoraLoaderMixin.save_lora_weights(
-            ckpt_path,
-            unet_lora_layers=unet_lora_layers_to_save,
-            # text_encoder_lora_layers=text_encoder_lora_layers_to_save,
-        )
+        if hasattr(model,
+                   'finetune_text_encoder') and model.finetune_text_encoder:
+            text_encoder_lora_layers_to_save = text_encoder_lora_state_dict(
+                model.text_encoder)
+            LoraLoaderMixin.save_lora_weights(
+                ckpt_path,
+                unet_lora_layers=unet_lora_layers_to_save,
+                text_encoder_lora_layers=text_encoder_lora_layers_to_save,
+            )
+        else:
+            LoraLoaderMixin.save_lora_weights(
+                ckpt_path,
+                unet_lora_layers=unet_lora_layers_to_save,
+            )
 
         # not save no grad key
         new_ckpt = OrderedDict()
         sd_keys = checkpoint['state_dict'].keys()
         for k in sd_keys:
-            if '.processor.' in k:
+            if '.processor.' in k or 'lora_linear_layer' in k:
                 new_ckpt[k] = checkpoint['state_dict'][k]
         checkpoint['state_dict'] = new_ckpt
