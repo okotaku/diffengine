@@ -13,7 +13,7 @@ def readme():
 
 
 def get_version():
-    version_file = 'modules/version.py'
+    version_file = 'diffengine/version.py'
     with open(version_file, 'r', encoding='utf-8') as f:
         exec(compile(f.read(), version_file, 'exec'))
     return locals()['__version__']
@@ -117,7 +117,7 @@ def add_mim_extension():
 
     filenames = ['tools', 'configs', 'model-index.yml']
     repo_path = osp.dirname(__file__)
-    mim_path = osp.join(repo_path, 'modules', '.mim')
+    mim_path = osp.join(repo_path, 'diffengine', '.mim')
     os.makedirs(mim_path, exist_ok=True)
 
     for filename in filenames:
@@ -159,16 +159,16 @@ def add_mim_extension():
 if __name__ == '__main__':
     add_mim_extension()
     setup(
-        name='modules',
+        name='diffengine',
         version=get_version(),
-        description='modules',
+        description='diffengine',
         long_description=readme(),
         long_description_content_type='text/markdown',
         keywords='computer vision, image classification',
         packages=find_packages(exclude=('configs', 'tools', 'demo')),
         include_package_data=True,
         url='',
-        author='modules Contributors',
+        author='diffengine Contributors',
         author_email='',
         license='Apache License 2.0',
         install_requires=parse_requirements('requirements/requirements.txt'),

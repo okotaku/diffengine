@@ -1,17 +1,16 @@
-FROM nvcr.io/nvidia/pytorch:22.07-py3
+FROM nvcr.io/nvidia/pytorch:23.07-py3
 
 RUN apt update -y && apt install -y \
     git
 RUN apt-get update && apt-get install -y \
     vim \
     libgl1-mesa-dev
-ENV FORCE_CUDA="1"
 
 # Install python package.
-WORKDIR /modules
-COPY ./ /modules
+WORKDIR /diffengine
+COPY ./ /diffengine
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir openmim==0.3.6 && \
+    pip install --no-cache-dir openmim==0.3.9 && \
     pip install .
 
 # Language settings

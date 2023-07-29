@@ -153,6 +153,6 @@ artifacts/
 wandb/
 data/
 dump/
-clshub/.mim/
+diffengine/.mim/
 build/
 .dist_test/

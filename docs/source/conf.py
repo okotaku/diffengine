@@ -6,7 +6,7 @@
 
 # -- Path setup --------------------------------------------------------------
 
-# If extensions (or modules to document with autodoc) are in another directory,
+# If extensions (or diffengine to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
@@ -22,9 +22,9 @@ sys.path.insert(
 
 # -- Project information -----------------------------------------------------
 
-project = 'modules'
-copyright = '2023, modules'
-author = 'modules Contributors'
+project = 'diffengine'
+copyright = '2023, diffengine'
+author = 'diffengine Contributors'
 
 # The full version, including alpha/beta/rc tags
 release = '2023'

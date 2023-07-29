@@ -1,4 +1,4 @@
-Welcome to modules's documentation!
+Welcome to diffengine's documentation!
 =======================================
 
 .. toctree::
