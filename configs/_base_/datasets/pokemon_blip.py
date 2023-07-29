@@ -9,3 +9,5 @@ val_dataloader = None
 val_evaluator = None
 test_dataloader = val_dataloader
 test_evaluator = val_evaluator
+
+custom_hooks = [dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4)]
