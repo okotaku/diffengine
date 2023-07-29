@@ -2,14 +2,15 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 from diffusers import (AutoencoderKL, DDPMScheduler, StableDiffusionPipeline,
                        UNet2DConditionModel)
 from mmengine import print_log
 from mmengine.model import BaseModel
 from mmengine.optim import OptimWrapper
+from torch import nn
 from transformers import CLIPTextModel, CLIPTokenizer
 
+from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
@@ -20,6 +21,8 @@ class StableDiffusion(BaseModel):
     Args:
         model (str): pretrained model name of stable diffusion.
             Defaults to 'runwayml/stable-diffusion-v1-5'.
+        loss (dict): Config of loss. Defaults to
+            ``dict(type='L2Loss', loss_weight=1.0)``.
         noise_offset_weight (bool, optional):
             The weight of noise offset introduced in
             https://www.crosslabs.org/blog/diffusion-with-offset-noise
@@ -29,10 +32,15 @@ class StableDiffusion(BaseModel):
     def __init__(
         self,
         model: str = 'runwayml/stable-diffusion-v1-5',
+        loss: dict = dict(type='L2Loss', loss_weight=1.0),
         noise_offset_weight: float = 0,
     ):
         super().__init__()
         self.model = model
+
+        if not isinstance(loss, nn.Module):
+            loss = MODELS.build(loss)
+        self.loss_module = loss
 
         self.enable_noise_offset = noise_offset_weight > 0
         self.noise_offset_weight = noise_offset_weight
@@ -147,7 +155,12 @@ class StableDiffusion(BaseModel):
 
         loss_dict = dict()
         # calculate loss in FP32
-        loss_mse = F.mse_loss(model_pred.float(), gt.float())
+        if isinstance(self.loss_module, SNRL2Loss):
+            loss_mse = self.loss_module(model_pred.float(), gt.float(),
+                                        timesteps,
+                                        self.scheduler.alphas_cumprod)
+        else:
+            loss_mse = self.loss_module(model_pred.float(), gt.float())
         loss_dict['loss_mse'] = loss_mse
 
         parsed_loss, log_vars = self.parse_losses(loss_dict)
