@@ -1,4 +1,6 @@
 import copy
+import gc
+import os
 import os.path as osp
 from pathlib import Path
 
@@ -54,9 +56,14 @@ class TestLoRASaveHook(RunnerTestCase):
         assert Path(
             osp.join(runner.work_dir, f'step{runner.iter}',
                      'pytorch_lora_weights.bin')).exists
+        os.remove(
+            osp.join(runner.work_dir, f'step{runner.iter}',
+                     'pytorch_lora_weights.bin'))
 
         for key in checkpoint['state_dict'].keys():
             assert key.startswith(tuple(['unet', 'text_encoder']))
+        del runner, checkpoint
+        gc.collect()
 
     def test_before_save_checkpoint_text_encoder(self):
         # with text encoder
@@ -75,6 +82,11 @@ class TestLoRASaveHook(RunnerTestCase):
         assert Path(
             osp.join(runner.work_dir, f'step{runner.iter}',
                      'pytorch_lora_weights.bin')).exists
+        os.remove(
+            osp.join(runner.work_dir, f'step{runner.iter}',
+                     'pytorch_lora_weights.bin'))
 
         for key in checkpoint['state_dict'].keys():
             assert key.startswith(tuple(['unet', 'text_encoder']))
+        del runner, checkpoint
+        gc.collect()
