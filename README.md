@@ -23,7 +23,8 @@ Documentation: [docs](docs)
 Please refer to [get_started.md](docs/source/get_started.md) for get started.
 Other tutorials for:
 
-- [run train](docs/source/run.md)
+- [Run Stable Diffusion](docs/source/run_sd.md)
+- [Run Stable Diffusion XL](docs/source/run_sdxl.md)
 
 ## Contributing
 

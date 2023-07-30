@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 from mmengine.hooks import Hook
+from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
 
 
@@ -16,13 +17,18 @@ class SDCheckpointHook(Hook):
                 process.
             checkpoint (dict): Model's checkpoint.
         """
+        model = runner.model
+        if is_model_wrapper(model):
+            model = model.module
+
         new_ckpt = OrderedDict()
         sd_keys = checkpoint['state_dict'].keys()
         for k in sd_keys:
-            if k.startswith(tuple(['unet', 'text_encoder'])):
-                # if not finetune text_encoder, then not save
-                if k.startswith('text_encoder') and not checkpoint[
-                        'state_dict'][k].requires_grad:
-                    continue
+            if k.startswith('unet'):
                 new_ckpt[k] = checkpoint['state_dict'][k]
+            elif k.startswith('text_encoder'):
+                # if not finetune text_encoder, then not save
+                if hasattr(model, 'finetune_text_encoder'
+                           ) and model.finetune_text_encoder:
+                    new_ckpt[k] = checkpoint['state_dict'][k]
         checkpoint['state_dict'] = new_ckpt

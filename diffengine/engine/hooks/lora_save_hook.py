@@ -1,13 +1,14 @@
 import os.path as osp
 from collections import OrderedDict
 
-from diffusers.loaders import text_encoder_lora_state_dict  # noqa
-from diffusers.loaders import LoraLoaderMixin
+from diffusers import StableDiffusionXLPipeline
+from diffusers.loaders import LoraLoaderMixin, text_encoder_lora_state_dict
 from mmengine.hooks import Hook
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
 
 from diffengine.models.archs import unet_attn_processors_state_dict
+from diffengine.models.editors import StableDiffusionXL
 
 
 @HOOKS.register_module()
@@ -30,13 +31,24 @@ class LoRASaveHook(Hook):
         ckpt_path = osp.join(runner.work_dir, f'step{runner.iter}')
         if hasattr(model,
                    'finetune_text_encoder') and model.finetune_text_encoder:
-            text_encoder_lora_layers_to_save = text_encoder_lora_state_dict(
-                model.text_encoder)
-            LoraLoaderMixin.save_lora_weights(
-                ckpt_path,
-                unet_lora_layers=unet_lora_layers_to_save,
-                text_encoder_lora_layers=text_encoder_lora_layers_to_save,
-            )
+            if isinstance(model, StableDiffusionXL):
+                text_encoder_lora_layers = text_encoder_lora_state_dict(
+                    model.text_encoder_one)
+                text_encoder_2_lora_layers = text_encoder_lora_state_dict(
+                    model.text_encoder_two)
+                StableDiffusionXLPipeline.save_lora_weights(
+                    ckpt_path,
+                    unet_lora_layers=unet_lora_layers_to_save,
+                    text_encoder_lora_layers=text_encoder_lora_layers,
+                    text_encoder_2_lora_layers=text_encoder_2_lora_layers)
+            else:
+                text_encoder_lora_layers = text_encoder_lora_state_dict(
+                    model.text_encoder)
+                LoraLoaderMixin.save_lora_weights(
+                    ckpt_path,
+                    unet_lora_layers=unet_lora_layers_to_save,
+                    text_encoder_lora_layers=text_encoder_lora_layers,
+                )
         else:
             LoraLoaderMixin.save_lora_weights(
                 ckpt_path,

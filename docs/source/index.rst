@@ -9,9 +9,15 @@ Welcome to diffengine's documentation!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Quick Run
+   :caption: Run Stable Diffusion
 
-   run.md
+   run_sd.md
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Run Stable Diffusion XL
+
+   run_sdxl.md
 
 .. toctree::
    :maxdepth: 1

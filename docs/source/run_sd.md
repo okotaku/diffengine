@@ -1,3 +1,5 @@
+# Stable Diffusion fine-tuning
+
 # Environment setup
 
 Clone repo

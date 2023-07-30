@@ -2,9 +2,10 @@ from mmengine.registry import DATASETS as MMENGINE_DATASETS
 from mmengine.registry import FUNCTIONS as MMENGINE_FUNCTIONS
 from mmengine.registry import HOOKS as MMENGINE_HOOKS
 from mmengine.registry import MODELS as MMENGINE_MODELS
+from mmengine.registry import TRANSFORMS as MMENGINE_TRANSFORMS
 from mmengine.registry import Registry
 
-__all__ = ['MODELS', 'DATASETS', 'HOOKS', 'FUNCTIONS']
+__all__ = ['MODELS', 'DATASETS', 'HOOKS', 'FUNCTIONS', 'TRANSFORMS']
 
 DATASETS = Registry(
     'dataset',
@@ -25,4 +26,9 @@ FUNCTIONS = Registry(
     'function',
     parent=MMENGINE_FUNCTIONS,
     locations=['diffengine.datasets'],
+)
+TRANSFORMS = Registry(
+    'transform',
+    parent=MMENGINE_TRANSFORMS,
+    locations=['diffengine.datasets.transforms'],
 )
