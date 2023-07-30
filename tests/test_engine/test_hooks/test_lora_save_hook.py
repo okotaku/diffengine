@@ -58,6 +58,7 @@ class TestLoRASaveHook(RunnerTestCase):
         for key in checkpoint['state_dict'].keys():
             assert key.startswith(tuple(['unet', 'text_encoder']))
 
+    def test_before_save_checkpoint_text_encoder(self):
         # with text encoder
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = 'StableDiffusion'
