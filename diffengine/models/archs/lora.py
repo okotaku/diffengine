@@ -2,6 +2,8 @@ from typing import Dict
 
 import torch
 import torch.nn.functional as F
+# yapf: enable
+from diffusers.loaders import LoraLoaderMixin
 # yapf: disable
 from diffusers.models.attention_processor import (AttnAddedKVProcessor,
                                                   AttnAddedKVProcessor2_0,
@@ -9,7 +11,6 @@ from diffusers.models.attention_processor import (AttnAddedKVProcessor,
                                                   LoRAAttnProcessor,
                                                   LoRAAttnProcessor2_0,
                                                   SlicedAttnAddedKVProcessor)
-# yapf: enable
 from mmengine import print_log
 from torch import nn
 
@@ -61,8 +62,21 @@ def set_unet_lora(unet: nn.Module,
     unet.set_attn_processor(unet_lora_attn_procs)
 
 
+def set_text_encoder_lora(text_encoder: nn.Module, config: dict) -> nn.Module:
+    """Set LoRA for module.
+
+    Args:
+        text_encoder (nn.Module): The text_encoder to set LoRA.
+        config (dict): The config dict. example. dict(rank=4)
+        verbose (bool): Whether to print log. Defaults to True.
+    """
+    rank = config.get('rank', 4)
+    _ = LoraLoaderMixin._modify_text_encoder(
+        text_encoder, dtype=torch.float32, rank=rank)
+
+
 def unet_attn_processors_state_dict(unet) -> Dict[str, torch.tensor]:
-    r"""
+    """
     Returns:
         a state dict containing just the attention processor parameters.
     """

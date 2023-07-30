@@ -11,7 +11,7 @@ from mmengine.optim import OptimWrapper
 from torch import nn
 from transformers import CLIPTextModel, CLIPTokenizer
 
-from diffengine.models.archs import set_unet_lora
+from diffengine.models.archs import set_text_encoder_lora, set_unet_lora
 from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
@@ -25,6 +25,9 @@ class StableDiffusion(BaseModel):
             Defaults to 'runwayml/stable-diffusion-v1-5'.
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
+        lora_config (dict): The LoRA config dict. example. dict(rank=4)
+        finetune_text_encoder (bool, optional): Whether to fine-tune text
+            encoder. Defaults to False.
         noise_offset_weight (bool, optional):
             The weight of noise offset introduced in
             https://www.crosslabs.org/blog/diffusion-with-offset-noise
@@ -36,11 +39,13 @@ class StableDiffusion(BaseModel):
         model: str = 'runwayml/stable-diffusion-v1-5',
         loss: dict = dict(type='L2Loss', loss_weight=1.0),
         lora_config: Optional[dict] = None,
+        finetune_text_encoder: bool = False,
         noise_offset_weight: float = 0,
     ):
         super().__init__()
         self.model = model
         self.lora_config = deepcopy(lora_config)
+        self.finetune_text_encoder = finetune_text_encoder
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
@@ -64,7 +69,10 @@ class StableDiffusion(BaseModel):
 
     def set_lora(self):
         """Set LORA for model."""
-        if self.lora_config:
+        if self.lora_config is not None:
+            if self.finetune_text_encoder:
+                self.text_encoder.requires_grad_(False)
+                set_text_encoder_lora(self.text_encoder, self.lora_config)
             self.unet.requires_grad_(False)
             set_unet_lora(self.unet, self.lora_config)
 
@@ -75,8 +83,9 @@ class StableDiffusion(BaseModel):
         """
         self.vae.requires_grad_(False)
         print_log('Set VAE untrainable.', 'current')
-        self.text_encoder.requires_grad_(False)
-        print_log('Set Text Encoder untrainable.', 'current')
+        if not self.finetune_text_encoder:
+            self.text_encoder.requires_grad_(False)
+            print_log('Set Text Encoder untrainable.', 'current')
 
     @property
     def device(self):

@@ -18,6 +18,10 @@ class VisualizationHook(Hook):
         self.prompt = prompt
 
     def after_train_epoch(self, runner) -> None:
+        """
+        Args:
+            runner (Runner): The runner of the training process.
+        """
         images = runner.model.infer(self.prompt)
         for i, image in enumerate(images):
             runner.visualizer.add_image(

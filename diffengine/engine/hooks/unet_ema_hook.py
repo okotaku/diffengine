@@ -39,6 +39,7 @@ class UnetEMAHook(EMAHook):
 
         Args:
             runner (Runner): The runner of the testing process.
+            checkpoint (dict): Model's checkpoint.
         """
         from mmengine.runner.checkpoint import load_state_dict
         if 'ema_state_dict' in checkpoint and runner._resume:
