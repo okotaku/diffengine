@@ -1,5 +1,4 @@
 import copy
-import gc
 import os
 import os.path as osp
 from pathlib import Path
@@ -47,9 +46,12 @@ class TestLoRASaveHook(RunnerTestCase):
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = 'StableDiffusion'
         cfg.model.lora_config = dict(rank=4)
+        cfg.model.model = 'diffusers/tiny-stable-diffusion-torch'
         runner = self.build_runner(cfg)
         checkpoint = dict(
-            state_dict=StableDiffusion(lora_config=dict(rank=4)).state_dict())
+            state_dict=StableDiffusion(
+                model='diffusers/tiny-stable-diffusion-torch',
+                lora_config=dict(rank=4)).state_dict())
         hook = LoRASaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
@@ -62,8 +64,6 @@ class TestLoRASaveHook(RunnerTestCase):
 
         for key in checkpoint['state_dict'].keys():
             assert key.startswith(tuple(['unet', 'text_encoder']))
-        del runner, checkpoint
-        gc.collect()
 
     def test_before_save_checkpoint_text_encoder(self):
         # with text encoder
@@ -71,11 +71,13 @@ class TestLoRASaveHook(RunnerTestCase):
         cfg.model.type = 'StableDiffusion'
         cfg.model.lora_config = dict(rank=4)
         cfg.model.finetune_text_encoder = True
+        cfg.model.model = 'diffusers/tiny-stable-diffusion-torch'
         runner = self.build_runner(cfg)
         checkpoint = dict(
             state_dict=StableDiffusion(
-                lora_config=dict(
-                    rank=4), finetune_text_encoder=True).state_dict())
+                model='diffusers/tiny-stable-diffusion-torch',
+                lora_config=dict(rank=4),
+                finetune_text_encoder=True).state_dict())
         hook = LoRASaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
@@ -88,5 +90,3 @@ class TestLoRASaveHook(RunnerTestCase):
 
         for key in checkpoint['state_dict'].keys():
             assert key.startswith(tuple(['unet', 'text_encoder']))
-        del runner, checkpoint
-        gc.collect()

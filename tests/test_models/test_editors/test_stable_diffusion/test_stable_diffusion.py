@@ -11,7 +11,8 @@ from diffengine.models.losses import L2Loss
 class TestStableDiffusion(TestCase):
 
     def test_infer(self):
-        StableDiffuser = StableDiffusion('runwayml/stable-diffusion-v1-5')
+        StableDiffuser = StableDiffusion(
+            'diffusers/tiny-stable-diffusion-torch')
 
         # test infer
         result = StableDiffuser.infer(
@@ -27,7 +28,7 @@ class TestStableDiffusion(TestCase):
     def test_train_step(self):
         # test load with loss module
         StableDiffuser = StableDiffusion(
-            'runwayml/stable-diffusion-v1-5', loss=L2Loss())
+            'diffusers/tiny-stable-diffusion-torch', loss=L2Loss())
 
         # test train step
         data = dict(pixel_values=[torch.zeros((3, 64, 64))], text=['a dog'])
