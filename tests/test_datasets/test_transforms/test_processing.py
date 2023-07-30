@@ -1,4 +1,3 @@
-import os.path as osp
 from unittest import TestCase
 
 import numpy as np
@@ -21,7 +20,7 @@ class TestVisionTransformWrapper(TestCase):
             self.assertIn(t, TRANSFORMS)
 
     def test_transform(self):
-        img_path = osp.join(osp.dirname(__file__), 'tests/data/color.jpg')
+        img_path = 'tests/data/color.jpg'
         data = {'img': Image.open(img_path)}
 
         # test normal transform
@@ -90,7 +89,7 @@ class TestSaveImageShape(TestCase):
         self.assertIn('SaveImageShape', TRANSFORMS)
 
     def test_transform(self):
-        img_path = osp.join(osp.dirname(__file__), 'tests/data/color.jpg')
+        img_path = 'tests/data/color.jpg'
         data = {'img': Image.open(img_path)}
         ori_img_shape = [data['img'].height, data['img'].width]
 
@@ -106,7 +105,7 @@ class TestComputeTimeIds(TestCase):
         self.assertIn('ComputeTimeIds', TRANSFORMS)
 
     def test_transform(self):
-        img_path = osp.join(osp.dirname(__file__), 'tests/data/color.jpg')
+        img_path = 'tests/data/color.jpg'
         img = Image.open(img_path)
         data = {'img': img, 'ori_img_shape': [32, 32], 'crop_top_left': [0, 0]}
 
@@ -124,7 +123,7 @@ class TestRandomCropWithCropPoint(TestCase):
         self.assertIn('RandomCropWithCropPoint', TRANSFORMS)
 
     def test_transform(self):
-        img_path = osp.join(osp.dirname(__file__), 'tests/data/color.jpg')
+        img_path = 'tests/data/color.jpg'
         data = {'img': Image.open(img_path)}
 
         # test transform
@@ -149,7 +148,7 @@ class TestCenterCropWithCropPoint(TestCase):
         self.assertIn('CenterCropWithCropPoint', TRANSFORMS)
 
     def test_transform(self):
-        img_path = osp.join(osp.dirname(__file__), 'tests/data/color.jpg')
+        img_path = 'tests/data/color.jpg'
         data = {'img': Image.open(img_path)}
 
         # test transform
@@ -173,7 +172,7 @@ class TestRandomHorizontalFlipFixCropPoint(TestCase):
         self.assertIn('RandomHorizontalFlipFixCropPoint', TRANSFORMS)
 
     def test_transform(self):
-        img_path = osp.join(osp.dirname(__file__), 'tests/data/color.jpg')
+        img_path = 'tests/data/color.jpg'
         data = {'img': Image.open(img_path), 'crop_top_left': [0, 0]}
 
         # test transform
