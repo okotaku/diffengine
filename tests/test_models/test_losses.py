@@ -19,7 +19,7 @@ def test_snr_l2_loss():
     gt = torch.Tensor([[1, 0, 1], [0, 1, 0]])
     timesteps = (torch.ones((pred.shape[0], )) + 10)
     scheduler = StableDiffusionPipeline.from_pretrained(
-        'diffusers/tiny-stable-diffusion-torch').scheduler
+        'runwayml/stable-diffusion-v1-5').scheduler
 
     loss = SNRL2Loss()
     assert torch.allclose(
