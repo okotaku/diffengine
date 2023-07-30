@@ -4,12 +4,6 @@
 
 ## Run train
 
-Set env variables
-
-```
-$ export DATA_DIR=/path/to/data
-```
-
 Start a docker container
 
 ```

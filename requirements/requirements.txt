@@ -1,5 +1,6 @@
 datasets
 diffusers==0.19.1
+invisible-watermark
 mmengine==0.8.2
 transformers==4.31.0
 ujson

@@ -1,14 +1,16 @@
 train_pipeline = [
-    dict(type='torchvision/Resize', size=512, interpolation='bilinear'),
-    dict(type='torchvision/RandomCrop', size=512),
-    dict(type='torchvision/RandomHorizontalFlip', p=0.5),
+    dict(type='SaveImageShape'),
+    dict(type='torchvision/Resize', size=1024, interpolation='bilinear'),
+    dict(type='RandomCropWithCropPoint', size=1024),
+    dict(type='RandomHorizontalFlipFixCropPoint', p=0.5),
+    dict(type='ComputeTimeIds'),
     dict(type='torchvision/ToTensor'),
     dict(type='torchvision/Normalize', mean=[0.5], std=[0.5]),
-    dict(type='PackInputs'),
+    dict(type='PackInputs', input_keys=['img', 'text', 'time_ids']),
 ]
 train_dataloader = dict(
-    batch_size=4,
-    num_workers=4,
+    batch_size=2,
+    num_workers=2,
     dataset=dict(
         type='HFDataset',
         dataset='lambdalabs/pokemon-blip-captions',

@@ -1,3 +1,2 @@
-from .stable_diffusion import StableDiffusion
-
-__all__ = ['StableDiffusion']
+from .stable_diffusion import *  # noqa: F401, F403
+from .stable_diffusion_xl import *  # noqa: F401, F403

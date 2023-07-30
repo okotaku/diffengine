@@ -1,9 +1,10 @@
 import random
+from typing import Sequence
 
 import numpy as np
 from datasets import load_dataset
+from mmengine.dataset.base_dataset import Compose
 from torch.utils.data import Dataset
-from torchvision import transforms
 
 from diffengine.registry import DATASETS
 
@@ -16,32 +17,17 @@ class HFDataset(Dataset):
         dataset (str): Dataset name.
         image_column (str): Image column name. Defaults to 'image'.
         caption_column (str): Caption column name. Defaults to 'text'.
-        resolution (int): Input image size. Defaults to 512.
-        center_crop (bool): If true, use center crop.
-            If false, use random crop. Defaults to True.
-        random_flip (bool): If true, use random flip. Defaults to True.
+        pipeline (Sequence): Processing pipeline. Defaults to an empty tuple.
     """
 
     def __init__(self,
                  dataset: str,
                  image_column: str = 'image',
                  caption_column: str = 'text',
-                 resolution: int = 512,
-                 center_crop: bool = True,
-                 random_flip: bool = True):
+                 pipeline: Sequence = ()):
 
         self.dataset = load_dataset(dataset)['train']
-        self.train_transforms = transforms.Compose([
-            transforms.Resize(
-                resolution,
-                interpolation=transforms.InterpolationMode.BILINEAR),
-            transforms.CenterCrop(resolution)
-            if center_crop else transforms.RandomCrop(resolution),
-            transforms.RandomHorizontalFlip()
-            if random_flip else transforms.Lambda(lambda x: x),
-            transforms.ToTensor(),
-            transforms.Normalize([0.5], [0.5]),
-        ])
+        self.pipeline = Compose(pipeline)
 
         self.image_column = image_column
         self.caption_column = caption_column
@@ -67,7 +53,6 @@ class HFDataset(Dataset):
         """
         data_info = self.dataset[idx]
         image = data_info[self.image_column].convert('RGB')
-        image = self.train_transforms(image)
         caption = data_info[self.caption_column]
         if isinstance(caption, str):
             pass
@@ -78,5 +63,7 @@ class HFDataset(Dataset):
             raise ValueError(
                 f'Caption column `{self.caption_column}` should contain either'
                 ' strings or lists of strings.')
+        result = dict(img=image, text=caption)
+        result = self.pipeline(result)
 
-        return dict(pixel_values=image, text=caption)
+        return result

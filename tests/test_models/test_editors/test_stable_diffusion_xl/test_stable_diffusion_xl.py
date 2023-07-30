@@ -4,15 +4,15 @@ import torch
 from mmengine.optim import OptimWrapper
 from torch.optim import SGD
 
-from diffengine.models.editors import StableDiffusion
+from diffengine.models.editors import StableDiffusionXL
 from diffengine.models.losses import L2Loss
 
 
-class TestStableDiffusion(TestCase):
+class TestStableDiffusionXL(TestCase):
 
     def test_infer(self):
-        StableDiffuser = StableDiffusion(
-            'diffusers/tiny-stable-diffusion-torch')
+        StableDiffuser = StableDiffusionXL(
+            'hf-internal-testing/tiny-stable-diffusion-xl-pipe')
 
         # test infer
         result = StableDiffuser.infer(
@@ -27,11 +27,14 @@ class TestStableDiffusion(TestCase):
 
     def test_train_step(self):
         # test load with loss module
-        StableDiffuser = StableDiffusion(
-            'diffusers/tiny-stable-diffusion-torch', loss=L2Loss())
+        StableDiffuser = StableDiffusionXL(
+            'hf-internal-testing/tiny-stable-diffusion-xl-pipe', loss=L2Loss())
 
         # test train step
-        data = dict(img=[torch.zeros((3, 64, 64))], text=['a dog'])
+        data = dict(
+            img=[torch.zeros((3, 64, 64))],
+            text=['a dog'],
+            time_ids=[torch.zeros((1, 6))])
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
