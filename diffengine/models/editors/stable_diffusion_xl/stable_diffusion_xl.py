@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 import numpy as np
 import torch
@@ -7,7 +7,6 @@ from diffusers import (AutoencoderKL, DDPMScheduler, DiffusionPipeline,
                        UNet2DConditionModel)
 from mmengine import print_log
 from mmengine.model import BaseModel
-from mmengine.optim import OptimWrapper
 from torch import nn
 from transformers import AutoTokenizer, PretrainedConfig
 
@@ -70,8 +69,10 @@ class StableDiffusionXL(BaseModel):
         finetune_text_encoder: bool = False,
         prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
+        data_preprocessor: Optional[Union[dict, nn.Module]] = dict(
+            type='SDXLDataPreprocessor'),
     ):
-        super().__init__()
+        super().__init__(data_preprocessor=data_preprocessor)
         self.model = model
         self.lora_config = deepcopy(lora_config)
         self.finetune_text_encoder = finetune_text_encoder
@@ -201,38 +202,42 @@ class StableDiffusionXL(BaseModel):
         pooled_prompt_embeds = pooled_prompt_embeds.view(bs_embed, -1)
         return prompt_embeds, pooled_prompt_embeds
 
-    def train_step(self, data: Union[dict, tuple, list],
-                   optim_wrapper: OptimWrapper) -> Dict[str, torch.Tensor]:
-        weight = None
-        if 'result_class_image' in data:
-            # dreambooth with class image
-            weight = torch.cat([
-                torch.ones((len(data['text']), )),
-                torch.ones((len(data['result_class_image']['text']), )) *
-                self.prior_loss_weight
-            ]).to(self.device).float().reshape(-1, 1, 1, 1)
-            data['text'] = data['text'] + data['result_class_image']['text']
-            data['img'] = data['img'] + data['result_class_image']['img']
-            data['time_ids'] = data['time_ids'] + data['result_class_image'][
-                'time_ids']
+    def val_step(self, data: Union[tuple, dict, list]) -> list:
+        raise NotImplementedError(
+            'val_step is not implemented now, please use infer.')
 
-        data['text_one'] = self.tokenizer_one(
-            data['text'],
+    def test_step(self, data: Union[tuple, dict, list]) -> list:
+        raise NotImplementedError(
+            'test_step is not implemented now, please use infer.')
+
+    def forward(self,
+                inputs: torch.Tensor,
+                data_samples: Optional[list] = None,
+                mode: str = 'loss'):
+        assert mode == 'loss'
+        inputs['text_one'] = self.tokenizer_one(
+            inputs['text'],
             max_length=self.tokenizer_one.model_max_length,
             padding='max_length',
             truncation=True,
             return_tensors='pt').input_ids.to(self.device)
-        data['text_two'] = self.tokenizer_two(
-            data['text'],
+        inputs['text_two'] = self.tokenizer_two(
+            inputs['text'],
             max_length=self.tokenizer_two.model_max_length,
             padding='max_length',
             truncation=True,
             return_tensors='pt').input_ids.to(self.device)
-        data['img'] = torch.stack(data['img'])
-        data['time_ids'] = torch.stack(data['time_ids'])
-        data = self.data_preprocessor(data)
+        num_batches = len(inputs['img'])
+        if 'result_class_image' in inputs:
+            # use prior_loss_weight
+            weight = torch.cat([
+                torch.ones((num_batches // 2, )),
+                torch.ones((num_batches // 2, )) * self.prior_loss_weight
+            ]).float().reshape(-1, 1, 1, 1)
+        else:
+            weight = None
 
-        latents = self.vae.encode(data['img']).latent_dist.sample()
+        latents = self.vae.encode(inputs['img']).latent_dist.sample()
         latents = latents * self.vae.config.scaling_factor
 
         noise = torch.randn_like(latents)
@@ -241,7 +246,6 @@ class StableDiffusionXL(BaseModel):
             noise = noise + self.noise_offset_weight * torch.randn(
                 latents.shape[0], latents.shape[1], 1, 1, device=noise.device)
 
-        num_batches = latents.shape[0]
         timesteps = torch.randint(
             0,
             self.scheduler.num_train_timesteps, (num_batches, ),
@@ -251,9 +255,9 @@ class StableDiffusionXL(BaseModel):
         noisy_latents = self.scheduler.add_noise(latents, noise, timesteps)
 
         prompt_embeds, pooled_prompt_embeds = self.encode_prompt(
-            data['text_one'], data['text_two'])
+            inputs['text_one'], inputs['text_two'])
         unet_added_conditions = {
-            'time_ids': data['time_ids'],
+            'time_ids': inputs['time_ids'],
             'text_embeds': pooled_prompt_embeds
         }
 
@@ -284,16 +288,4 @@ class StableDiffusionXL(BaseModel):
             loss = self.loss_module(
                 model_pred.float(), gt.float(), weight=weight)
         loss_dict['loss'] = loss
-
-        parsed_loss, log_vars = self.parse_losses(loss_dict)
-        optim_wrapper.update_params(parsed_loss)
-
-        return log_vars
-
-    def forward(self,
-                inputs: torch.Tensor,
-                data_samples: Optional[list] = None,
-                mode: str = 'tensor'):
-        """forward is not implemented now."""
-        raise NotImplementedError(
-            'Forward is not implemented now, please use infer.')
+        return loss_dict

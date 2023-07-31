@@ -14,8 +14,10 @@ class TestPackInputs(unittest.TestCase):
         cfg = dict(type='PackInputs', input_keys=['img', 'text'])
         transform = TRANSFORMS.build(cfg)
         results = transform(copy.deepcopy(data))
-        self.assertIn('img', results)
+        self.assertIn('inputs', results)
+
+        self.assertIn('img', results['inputs'])
         self.assertIsInstance(results['img'], torch.Tensor)
-        self.assertIn('text', results)
+        self.assertIn('text', results['inputs'])
         self.assertIsInstance(results['text'], str)
-        self.assertNotIn('dummy', results)
+        self.assertNotIn('dummy', results['inputs'])
