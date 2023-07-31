@@ -1,3 +1,4 @@
+import copy
 import hashlib
 import random
 from pathlib import Path
@@ -67,8 +68,10 @@ class HFDreamBoothDataset(Dataset):
         # generate class image
         if class_prompt is not None:
             essential_keys = {'model', 'data_dir', 'num_images', 'device'}
-            class_image_config = self.default_class_image_config.update(
-                class_image_config)
+            _class_image_config = copy.deepcopy(
+                self.default_class_image_config)
+            _class_image_config.update(class_image_config)
+            class_image_config = _class_image_config
             assert isinstance(
                 class_image_config, dict
                               ) and set(
