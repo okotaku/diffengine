@@ -41,3 +41,22 @@ class TestStableDiffusion(TestCase):
         # test forward
         with self.assertRaisesRegex(NotImplementedError, 'Forward is not'):
             StableDiffuser.forward(torch.zeros((1, )))
+
+    def test_train_step_dreambooth(self):
+        # test load with loss module
+        StableDiffuser = StableDiffusion(
+            'diffusers/tiny-stable-diffusion-torch', loss=L2Loss())
+
+        # test train step
+        data = dict(img=[torch.zeros((3, 64, 64))], text=['a sks dog'])
+        data['result_class_image'] = dict(
+            img=[torch.zeros((3, 64, 64))], text=[' dog'])
+        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+        optim_wrapper = OptimWrapper(optimizer)
+        log_vars = StableDiffuser.train_step(data, optim_wrapper)
+        assert log_vars
+        self.assertIsInstance(log_vars['loss'], torch.Tensor)
+
+        # test forward
+        with self.assertRaisesRegex(NotImplementedError, 'Forward is not'):
+            StableDiffuser.forward(torch.zeros((1, )))

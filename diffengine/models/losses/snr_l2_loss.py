@@ -1,3 +1,5 @@
+from typing import Optional
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -57,9 +59,12 @@ class SNRL2Loss(nn.Module):
         self.snr_gamma = snr_gamma
         self._loss_name = loss_name
 
-    def forward(self, pred: torch.Tensor, gt: torch.Tensor,
+    def forward(self,
+                pred: torch.Tensor,
+                gt: torch.Tensor,
                 timesteps: torch.Tensor,
-                alphas_cumprod: torch.Tensor) -> torch.Tensor:
+                alphas_cumprod: torch.Tensor,
+                weight: Optional[torch.Tensor] = None) -> torch.Tensor:
         snr = compute_snr(timesteps, alphas_cumprod)
         mse_loss_weights = (
             torch.stack([snr, self.snr_gamma * torch.ones_like(timesteps)],
@@ -67,5 +72,7 @@ class SNRL2Loss(nn.Module):
         loss = F.mse_loss(pred, gt, reduction='none')
         loss = loss.mean(
             dim=list(range(1, len(loss.shape)))) * mse_loss_weights
+        if weight is not None:
+            loss = loss * weight
         loss = loss.mean()
         return loss * self.loss_weight

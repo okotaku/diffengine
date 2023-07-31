@@ -28,6 +28,8 @@ class StableDiffusion(BaseModel):
         lora_config (dict): The LoRA config dict. example. dict(rank=4)
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. Defaults to False.
+        prior_loss_weight (float): The weight of prior preservation loss.
+            It works when training dreambooth with class images.
         noise_offset_weight (bool, optional):
             The weight of noise offset introduced in
             https://www.crosslabs.org/blog/diffusion-with-offset-noise
@@ -40,12 +42,14 @@ class StableDiffusion(BaseModel):
         loss: dict = dict(type='L2Loss', loss_weight=1.0),
         lora_config: Optional[dict] = None,
         finetune_text_encoder: bool = False,
+        prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
     ):
         super().__init__()
         self.model = model
         self.lora_config = deepcopy(lora_config)
         self.finetune_text_encoder = finetune_text_encoder
+        self.prior_loss_weight = prior_loss_weight
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
@@ -131,6 +135,16 @@ class StableDiffusion(BaseModel):
 
     def train_step(self, data: Union[dict, tuple, list],
                    optim_wrapper: OptimWrapper) -> Dict[str, torch.Tensor]:
+        weight = None
+        if 'result_class_image' in data:
+            # dreambooth with class image
+            weight = torch.cat([
+                torch.ones((len(data['text']), )),
+                torch.ones((len(data['result_class_image']['text']), )) *
+                self.prior_loss_weight
+            ]).to(self.device).float().reshape(-1, 1, 1, 1)
+            data['text'] = data['text'] + data['result_class_image']['text']
+            data['img'] = data['img'] + data['result_class_image']['img']
         data['text'] = self.tokenizer(
             data['text'],
             max_length=self.tokenizer.model_max_length,
@@ -176,12 +190,16 @@ class StableDiffusion(BaseModel):
         loss_dict = dict()
         # calculate loss in FP32
         if isinstance(self.loss_module, SNRL2Loss):
-            loss_mse = self.loss_module(model_pred.float(), gt.float(),
-                                        timesteps,
-                                        self.scheduler.alphas_cumprod)
+            loss = self.loss_module(
+                model_pred.float(),
+                gt.float(),
+                timesteps,
+                self.scheduler.alphas_cumprod,
+                weight=weight)
         else:
-            loss_mse = self.loss_module(model_pred.float(), gt.float())
-        loss_dict['loss_mse'] = loss_mse
+            loss = self.loss_module(
+                model_pred.float(), gt.float(), weight=weight)
+        loss_dict['loss'] = loss
 
         parsed_loss, log_vars = self.parse_losses(loss_dict)
         optim_wrapper.update_params(parsed_loss)

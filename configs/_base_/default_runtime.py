@@ -1,10 +1,4 @@
 default_scope = 'diffengine'
-default_hooks = dict(
-    checkpoint=dict(
-        type='CheckpointHook',
-        interval=1,
-        max_keep_ckpts=3,
-    ), )
 
 env_cfg = dict(
     cudnn_benchmark=False,
