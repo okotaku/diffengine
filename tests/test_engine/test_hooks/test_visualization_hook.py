@@ -6,7 +6,7 @@ from mmengine.runner import EpochBasedTrainLoop
 from mmengine.testing import RunnerTestCase
 
 from diffengine.engine.hooks import VisualizationHook
-from diffengine.models.editors import StableDiffusion
+from diffengine.models.editors import SDDataPreprocessor, StableDiffusion
 from diffengine.models.losses import L2Loss
 
 
@@ -14,11 +14,14 @@ class TestVisualizationHook(RunnerTestCase):
 
     def setUp(self) -> None:
         MODELS.register_module(name='StableDiffusion', module=StableDiffusion)
+        MODELS.register_module(
+            name='SDDataPreprocessor', module=SDDataPreprocessor)
         MODELS.register_module(name='L2Loss', module=L2Loss)
         return super().setUp()
 
     def tearDown(self):
         MODELS.module_dict.pop('StableDiffusion')
+        MODELS.module_dict.pop('SDDataPreprocessor')
         MODELS.module_dict.pop('L2Loss')
         return super().tearDown()
 

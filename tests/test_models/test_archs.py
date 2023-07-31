@@ -4,7 +4,7 @@ from transformers import CLIPTextModel
 
 from diffengine.models.archs import (set_text_encoder_lora, set_unet_lora,
                                      unet_attn_processors_state_dict)
-from diffengine.models.editors import StableDiffusion
+from diffengine.models.editors import SDDataPreprocessor, StableDiffusion
 
 
 def test_set_lora():
@@ -27,7 +27,8 @@ def test_unet_lora_layers_to_save():
     model = StableDiffusion(
         'diffusers/tiny-stable-diffusion-torch',
         lora_config=dict(rank=4),
-        finetune_text_encoder=True)
+        finetune_text_encoder=True,
+        data_preprocessor=SDDataPreprocessor())
     unet_lora_layers_to_save = unet_attn_processors_state_dict(model.unet)
     text_encoder_lora_layers_to_save = text_encoder_lora_state_dict(
         model.text_encoder)

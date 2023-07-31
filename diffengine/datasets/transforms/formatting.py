@@ -68,4 +68,4 @@ class PackInputs(BaseTransform):
                 # text skip to_tensor
                 packed_results[k] = results[k]
 
-        return packed_results
+        return dict(inputs=packed_results)

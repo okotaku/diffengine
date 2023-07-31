@@ -9,7 +9,9 @@ from mmengine.registry import MODELS
 from mmengine.testing import RunnerTestCase
 
 from diffengine.engine.hooks import LoRASaveHook
-from diffengine.models.editors import StableDiffusion, StableDiffusionXL
+from diffengine.models.editors import (SDDataPreprocessor,
+                                       SDXLDataPreprocessor, StableDiffusion,
+                                       StableDiffusionXL)
 from diffengine.models.losses import L2Loss
 
 
@@ -32,6 +34,10 @@ class TestLoRASaveHook(RunnerTestCase):
         MODELS.register_module(name='StableDiffusion', module=StableDiffusion)
         MODELS.register_module(
             name='StableDiffusionXL', module=StableDiffusionXL)
+        MODELS.register_module(
+            name='SDDataPreprocessor', module=SDDataPreprocessor)
+        MODELS.register_module(
+            name='SDXLDataPreprocessor', module=SDXLDataPreprocessor)
         MODELS.register_module(name='L2Loss', module=L2Loss)
         return super().setUp()
 
@@ -39,6 +45,8 @@ class TestLoRASaveHook(RunnerTestCase):
         MODELS.module_dict.pop('DummyWrapper')
         MODELS.module_dict.pop('StableDiffusion')
         MODELS.module_dict.pop('StableDiffusionXL')
+        MODELS.module_dict.pop('SDDataPreprocessor')
+        MODELS.module_dict.pop('SDXLDataPreprocessor')
         MODELS.module_dict.pop('L2Loss')
         return super().tearDown()
 
