@@ -1,6 +1,7 @@
 from typing import List, Optional, Union
 
 from mmengine.hooks import Hook
+from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
 
 DATA_BATCH = Optional[Union[dict, tuple, list]]
@@ -40,7 +41,10 @@ class VisualizationHook(Hook):
             return
 
         if self.every_n_inner_iters(batch_idx, self.interval):
-            images = runner.model.infer(self.prompt)
+            model = runner.model
+            if is_model_wrapper(model):
+                model = model.module
+            images = model.infer(self.prompt)
             for i, image in enumerate(images):
                 runner.visualizer.add_image(
                     f'image{i}_step', image, step=runner.iter)
@@ -51,7 +55,10 @@ class VisualizationHook(Hook):
             runner (Runner): The runner of the training process.
         """
         if self.by_epoch:
-            images = runner.model.infer(self.prompt)
+            model = runner.model
+            if is_model_wrapper(model):
+                model = model.module
+            images = model.infer(self.prompt)
             for i, image in enumerate(images):
                 runner.visualizer.add_image(
                     f'image{i}_step', image, step=runner.epoch)
