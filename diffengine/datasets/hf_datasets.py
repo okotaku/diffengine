@@ -1,9 +1,12 @@
+import os
 import random
+from pathlib import Path
 from typing import Sequence
 
 import numpy as np
 from datasets import load_dataset
 from mmengine.dataset.base_dataset import Compose
+from PIL import Image
 from torch.utils.data import Dataset
 
 from diffengine.registry import DATASETS
@@ -14,7 +17,7 @@ class HFDataset(Dataset):
     """Dataset for huggingface datasets.
 
     Args:
-        dataset (str): Dataset name.
+        dataset (str): Dataset name or path to dataset.
         image_column (str): Image column name. Defaults to 'image'.
         caption_column (str): Caption column name. Defaults to 'text'.
         pipeline (Sequence): Processing pipeline. Defaults to an empty tuple.
@@ -25,8 +28,14 @@ class HFDataset(Dataset):
                  image_column: str = 'image',
                  caption_column: str = 'text',
                  pipeline: Sequence = ()):
-
-        self.dataset = load_dataset(dataset)['train']
+        self.dataset_name = dataset
+        if Path(dataset).exists():
+            # load local folder
+            data_file = os.path.join(dataset, 'metadata.csv')
+            self.dataset = load_dataset('csv', data_files=data_file)['train']
+        else:
+            # load huggingface online
+            self.dataset = load_dataset(dataset)['train']
         self.pipeline = Compose(pipeline)
 
         self.image_column = image_column
@@ -52,7 +61,10 @@ class HFDataset(Dataset):
             ``self.train_transforms``.
         """
         data_info = self.dataset[idx]
-        image = data_info[self.image_column].convert('RGB')
+        image = data_info[self.image_column]
+        if type(image) == str:
+            image = Image.open(os.path.join(self.dataset_name, image))
+        image = image.convert('RGB')
         caption = data_info[self.caption_column]
         if isinstance(caption, str):
             pass
