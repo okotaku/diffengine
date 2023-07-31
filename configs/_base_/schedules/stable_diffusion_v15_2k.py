@@ -3,13 +3,15 @@ optim_wrapper = dict(
     clip_grad=dict(max_norm=1.0))
 
 # train, val, test setting
-train_cfg = dict(by_epoch=True, max_epochs=50)
+train_cfg = dict(type='IterBasedTrainLoop', max_iters=2000)
 val_cfg = None
 test_cfg = None
 
 default_hooks = dict(
     checkpoint=dict(
         type='CheckpointHook',
-        interval=1,
+        interval=100,
+        by_epoch=False,
         max_keep_ckpts=3,
     ), )
+log_processor = dict(by_epoch=False)
