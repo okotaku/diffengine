@@ -17,7 +17,7 @@ class TestPackInputs(unittest.TestCase):
         self.assertIn('inputs', results)
 
         self.assertIn('img', results['inputs'])
-        self.assertIsInstance(results['img'], torch.Tensor)
+        self.assertIsInstance(results['inputs']['img'], torch.Tensor)
         self.assertIn('text', results['inputs'])
-        self.assertIsInstance(results['text'], str)
+        self.assertIsInstance(results['inputs']['text'], str)
         self.assertNotIn('dummy', results['inputs'])
