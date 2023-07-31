@@ -35,6 +35,13 @@ $ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --
 $ docker compose exec diffengine mim train diffengine configs/stable_diffusion/stable_diffusion_v15_lora_pokemon_blip.py
 ```
 
+## Run DreamBooth training
+
+```
+# Example
+$ docker compose exec diffengine mim train diffengine configs/stable_diffusion/stable_diffusion_v15_dreambooth_lora_dog.py
+```
+
 # Run inference with diffusers
 
 1. Convert weights for diffusers
