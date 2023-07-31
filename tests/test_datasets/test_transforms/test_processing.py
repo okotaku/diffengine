@@ -135,8 +135,9 @@ class TestRandomCropWithCropPoint(TestCase):
         assert len(data['crop_top_left']) == 2
         assert data['img'].height == data['img'].width == self.crop_size
         upper, left = data['crop_top_left']
-        right = left + self.crop_size
-        lower = upper + self.crop_size
+        lower, right = data['crop_bottom_right']
+        assert lower == upper + self.crop_size
+        assert right == left + self.crop_size
         np.equal(
             np.array(data['img']),
             np.array(Image.open(img_path).crop((left, upper, right, lower))))
@@ -160,8 +161,9 @@ class TestCenterCropWithCropPoint(TestCase):
         assert len(data['crop_top_left']) == 2
         assert data['img'].height == data['img'].width == self.crop_size
         upper, left = data['crop_top_left']
-        right = left + self.crop_size
-        lower = upper + self.crop_size
+        lower, right = data['crop_bottom_right']
+        assert lower == upper + self.crop_size
+        assert right == left + self.crop_size
         np.equal(
             np.array(data['img']),
             np.array(Image.open(img_path).crop((left, upper, right, lower))))
@@ -174,7 +176,11 @@ class TestRandomHorizontalFlipFixCropPoint(TestCase):
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), '../../testdata/color.jpg')
-        data = {'img': Image.open(img_path), 'crop_top_left': [0, 0]}
+        data = {
+            'img': Image.open(img_path),
+            'crop_top_left': [0, 0],
+            'crop_bottom_right': [10, 10]
+        }
 
         # test transform
         trans = TRANSFORMS.build(
@@ -182,14 +188,19 @@ class TestRandomHorizontalFlipFixCropPoint(TestCase):
         data = trans(data)
         self.assertIn('crop_top_left', data)
         assert len(data['crop_top_left']) == 2
-        self.assertListEqual(data['crop_top_left'], [0, data['img'].width])
+        self.assertListEqual(data['crop_top_left'],
+                             [0, data['img'].width - 10])
 
         np.equal(
             np.array(data['img']),
             np.array(Image.open(img_path).transpose(Image.FLIP_LEFT_RIGHT)))
 
         # test transform p=0.0
-        data = {'img': Image.open(img_path), 'crop_top_left': [0, 0]}
+        data = {
+            'img': Image.open(img_path),
+            'crop_top_left': [0, 0],
+            'crop_bottom_right': [10, 10]
+        }
         trans = TRANSFORMS.build(
             dict(type='RandomHorizontalFlipFixCropPoint', p=0.))
         data = trans(data)

@@ -120,6 +120,7 @@ class RandomCropWithCropPoint(BaseTransform):
                                                 (self.size, self.size))
         results['img'] = crop(results['img'], y1, x1, h, w)
         results['crop_top_left'] = [y1, x1]
+        results['crop_bottom_right'] = [y1 + h, x1 + w]
         return results
 
 
@@ -143,8 +144,11 @@ class CenterCropWithCropPoint(BaseTransform):
         """
         y1 = max(0, int(round((results['img'].height - self.size) / 2.0)))
         x1 = max(0, int(round((results['img'].width - self.size) / 2.0)))
+        y2 = max(0, int(round((results['img'].height + self.size) / 2.0)))
+        x2 = max(0, int(round((results['img'].width + self.size) / 2.0)))
         results['img'] = self.pipeline(results['img'])
         results['crop_top_left'] = [y1, x1]
+        results['crop_bottom_right'] = [y2, x2]
         return results
 
 
@@ -170,7 +174,7 @@ class RandomHorizontalFlipFixCropPoint(BaseTransform):
             results['img'] = self.pipeline(results['img'])
             if 'crop_top_left' in results:
                 y1 = results['crop_top_left'][0]
-                x1 = results['img'].width - results['crop_top_left'][1]
+                x1 = results['img'].width - results['crop_bottom_right'][1]
                 results['crop_top_left'] = [y1, x1]
         return results
 
