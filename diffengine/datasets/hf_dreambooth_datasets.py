@@ -37,6 +37,12 @@ class HFDreamBoothDataset(Dataset):
                 class as provided instance images. Defaults to None.
         pipeline (Sequence): Processing pipeline. Defaults to an empty tuple.
     """
+    default_class_image_config: dict = dict(
+        model='runwayml/stable-diffusion-v1-5',
+        data_dir='work_dirs/class_image',
+        num_images=200,
+        device='cuda',
+    )
 
     def __init__(self,
                  dataset: str,
@@ -61,6 +67,8 @@ class HFDreamBoothDataset(Dataset):
         # generate class image
         if class_prompt is not None:
             essential_keys = {'model', 'data_dir', 'num_images', 'device'}
+            class_image_config = self.default_class_image_config.update(
+                class_image_config)
             assert isinstance(
                 class_image_config, dict
                               ) and set(
