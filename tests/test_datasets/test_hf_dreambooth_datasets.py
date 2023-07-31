@@ -43,3 +43,14 @@ class TestHFDreamBoothDataset(RunnerTestCase):
         self.assertIsInstance(data['result_class_image']['img'], Image.Image)
         assert data['result_class_image']['img'].width == 128
         shutil.rmtree('temp_dir')
+
+    def test_dataset_from_local(self):
+        dataset = HFDreamBoothDataset(
+            dataset='tests/testdata/dataset',
+            instance_prompt='a photo of sks dog')
+        assert len(dataset) == 1
+
+        data = dataset[0]
+        assert data['text'] == 'a photo of sks dog'
+        self.assertIsInstance(data['img'], Image.Image)
+        assert data['img'].width == 400

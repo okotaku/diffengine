@@ -58,7 +58,14 @@ class HFDreamBoothDataset(Dataset):
                  class_prompt: Optional[str] = None,
                  pipeline: Sequence = ()):
 
-        self.dataset = load_dataset(dataset)['train']
+        if Path(dataset).exists():
+            # load local folder
+            data_files = {}
+            data_files['train'] = '**'
+            self.dataset = load_dataset(dataset, data_files)['train']
+        else:
+            # load huggingface online
+            self.dataset = load_dataset(dataset)['train']
         self.pipeline = Compose(pipeline)
 
         self.instance_prompt = instance_prompt
@@ -128,7 +135,10 @@ class HFDreamBoothDataset(Dataset):
             ``self.train_transforms``.
         """
         data_info = self.dataset[idx]
-        image = data_info[self.image_column].convert('RGB')
+        image = data_info[self.image_column]
+        if type(image) == str:
+            image = Image.open(image)
+        image = image.convert('RGB')
         result = dict(img=image, text=self.instance_prompt)
         result = self.pipeline(result)
 
