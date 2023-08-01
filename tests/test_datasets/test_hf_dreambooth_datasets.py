@@ -1,12 +1,23 @@
 import shutil
 
+from mmengine.registry import TRANSFORMS
 from mmengine.testing import RunnerTestCase
 from PIL import Image
 
 from diffengine.datasets import HFDreamBoothDataset
+from diffengine.datasets.transforms import PackInputs
 
 
 class TestHFDreamBoothDataset(RunnerTestCase):
+
+    def setUp(self) -> None:
+        TRANSFORMS.register_module(
+            name='PackInputs', module=PackInputs, force=True)
+        return super().setUp()
+
+    def tearDown(self):
+        TRANSFORMS.module_dict.pop('PackInputs')
+        return super().tearDown()
 
     def test_dataset(self):
         dataset = HFDreamBoothDataset(
@@ -30,18 +41,21 @@ class TestHFDreamBoothDataset(RunnerTestCase):
                 num_images=1,
                 device='cpu',
             ),
-        )
+            pipeline=[
+                dict(type='PackInputs', skip_to_tensor_key=['img', 'text'])
+            ])
         assert len(dataset) == 5
         assert len(dataset.class_images) == 1
 
         data = dataset[0]
-        assert data['text'] == 'a photo of sks dog'
-        self.assertIsInstance(data['img'], Image.Image)
-        assert data['img'].width == 1815
+        assert data['inputs']['text'] == 'a photo of sks dog'
+        self.assertIsInstance(data['inputs']['img'], Image.Image)
+        assert data['inputs']['img'].width == 1815
 
-        assert data['result_class_image']['text'] == 'a photo of dog'
-        self.assertIsInstance(data['result_class_image']['img'], Image.Image)
-        assert data['result_class_image']['img'].width == 128
+        assert data['inputs']['result_class_image']['text'] == 'a photo of dog'
+        self.assertIsInstance(data['inputs']['result_class_image']['img'],
+                              Image.Image)
+        assert data['inputs']['result_class_image']['img'].width == 128
         shutil.rmtree('temp_dir')
 
     def test_dataset_from_local(self):

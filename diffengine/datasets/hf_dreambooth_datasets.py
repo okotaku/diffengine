@@ -147,6 +147,9 @@ class HFDreamBoothDataset(Dataset):
             class_image = Image.open(class_image)
             result_class_image = dict(img=class_image, text=self.class_prompt)
             result_class_image = self.pipeline(result_class_image)
-            result['result_class_image'] = result_class_image
+            assert 'inputs' in result
+            assert 'inputs' in result_class_image
+            result['inputs']['result_class_image'] = result_class_image[
+                'inputs']
 
         return result
