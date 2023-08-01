@@ -20,6 +20,12 @@ Welcome to diffengine's documentation!
    run_sdxl.md
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Dataset Prepare
+
+   dataset_prepare.md
+
+.. toctree::
    :maxdepth: 1
    :caption: API Reference
 
