@@ -25,7 +25,8 @@ Other tutorials for:
 
 - [Run Stable Diffusion](docs/source/run_sd.md)
 - [Run Stable Diffusion XL](docs/source/run_sdxl.md)
-- [Prepare Dataset](docs/source//dataset_prepare.md)
+- [Learn About Config](docs/source/user_guides/config.md)
+- [Prepare Dataset](docs/source/user_guides/dataset_prepare.md)
 
 ## Contributing
 
