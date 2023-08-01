@@ -1,11 +1,19 @@
 # Installation
 
-Below are quick steps for installation and run dreambooh training:
+Below are quick steps for installation:
 
 ```
 pip install openmim
 pip install git+https://github.com/okotaku/diffengine.git
+```
 
+
+
+# Quick Run
+
+Below are quick steps for run dreambooh training:
+
+```
 mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
 ```
 
