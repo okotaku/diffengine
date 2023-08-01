@@ -20,6 +20,8 @@ Documentation: [docs](docs)
 
 ## Get Started
 
+You can run quickly on colaboratory to run [Example Notebook](https://colab.research.google.com/drive/1vvwdj6yEj3GD5Z483JBlEU4sKCDXmidv?usp=sharing).
+
 Please refer to [get_started.md](docs/source/get_started.md) for get started.
 Other tutorials for:
 

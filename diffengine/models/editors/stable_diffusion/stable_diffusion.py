@@ -33,6 +33,9 @@ class StableDiffusion(BaseModel):
             The weight of noise offset introduced in
             https://www.crosslabs.org/blog/diffusion-with-offset-noise
             Defaults to 0.
+        gradient_checkpointing (bool): Whether or not to use gradient
+            checkpointing to save memory at the expense of slower backward
+            pass. Defaults to False.
         data_preprocessor (dict, optional): The pre-process config of
             :class:`BaseDataPreprocessor`.
     """
@@ -45,6 +48,7 @@ class StableDiffusion(BaseModel):
         finetune_text_encoder: bool = False,
         prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
+        gradient_checkpointing: bool = False,
         data_preprocessor: Optional[Union[dict, nn.Module]] = dict(
             type='SDDataPreprocessor'),
     ):
@@ -72,6 +76,10 @@ class StableDiffusion(BaseModel):
         self.unet = UNet2DConditionModel.from_pretrained(
             model, subfolder='unet')
         self.prepare_model()
+        if gradient_checkpointing:
+            self.unet.enable_gradient_checkpointing()
+            if self.finetune_text_encoder:
+                self.text_encoder.gradient_checkpointing_enable()
         self.set_lora()
 
     def set_lora(self):
@@ -122,7 +130,7 @@ class StableDiffusion(BaseModel):
             tokenizer=self.tokenizer,
             unet=self.unet,
             safety_checker=None,
-        )
+            dtype=torch.float16)
         pipeline.set_progress_bar_config(disable=True)
         images = []
         for p in prompt:
