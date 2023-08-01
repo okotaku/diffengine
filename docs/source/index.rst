@@ -7,6 +7,15 @@ Welcome to diffengine's documentation!
 
    get_started.md
 
+.. _UserGuides:
+.. toctree::
+   :maxdepth: 1
+   :caption: User Guides
+
+   user_guides/config.md
+   user_guides/dataset_prepare.md
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Run Stable Diffusion
@@ -18,12 +27,6 @@ Welcome to diffengine's documentation!
    :caption: Run Stable Diffusion XL
 
    run_sdxl.md
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Dataset Prepare
-
-   dataset_prepare.md
 
 .. toctree::
    :maxdepth: 1
