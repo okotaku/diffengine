@@ -1,4 +1,4 @@
-# Stable Diffusion DreamBooth
+# Stable Diffusion XL DreamBooth
 
 [DreamBooth: Fine Tuning Text-to-Image Diffusion Models for Subject-Driven Generation](https://arxiv.org/abs/2208.12242)
 
@@ -32,7 +32,7 @@ $ mim train diffengine ${CONFIG_FILE}
 $ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 
 # Example.
-$ mim train diffengine configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py
+$ mim train diffengine configs/stable_diffusion_xl_dreambooth/stable_diffusion_xl_dreambooth_lora_dog.py
 ```
 
 ## Inference with diffusers
@@ -43,11 +43,11 @@ Once you have trained a model, specify the path to where the model is saved, and
 import torch
 from diffusers import DiffusionPipeline
 
-checkpoint = 'work_dirs/stable_diffusion_v15_dreambooth_lora_dog/step999'
+checkpoint = 'work_dirs/stable_diffusion_xl_dreambooth_lora_dog/step499'
 prompt = 'A photo of sks dog in a bucket'
 
 pipe = DiffusionPipeline.from_pretrained(
-    'runwayml/stable-diffusion-v1-5', torch_dtype=torch.float16)
+    'stabilityai/stable-diffusion-xl-base-1.0', torch_dtype=torch.float16)
 pipe.to('cuda')
 pipe.load_lora_weights(checkpoint)
 
@@ -62,10 +62,24 @@ You can see more details on [DreamBooth docs](../../docs/source/run_guides/run_d
 
 ## Results Example
 
-#### stable_diffusion_v15_dreambooth_lora_dog
+Note that we use 2 GPUs for training all lora models.
 
-![examplev15](https://github.com/okotaku/diffengine/assets/24734142/f9c2430c-cee7-43cf-868f-35c6301dc573)
+#### stable_diffusion_xl_dreambooth_lora_dog
 
-#### stable_diffusion_v21_dreambooth_lora_dog
+![exampledog](https://github.com/okotaku/diffengine/assets/24734142/ae1e4072-d2a3-445a-b11f-23d1f178a029)
 
-![examplev21](https://github.com/okotaku/diffengine/assets/24734142/75e23332-4b92-480a-9bb2-4a84c00ac3a8)
+#### stable_diffusion_xl_dreambooth_lora_starbucks
+
+![exampledog](https://github.com/okotaku/diffengine/assets/24734142/5a334ec6-db7f-40c0-9f20-3541ab70092f)
+
+#### stable_diffusion_xl_dreambooth_lora_potatehead
+
+![exampledog](https://github.com/okotaku/diffengine/assets/24734142/84c10261-64bd-4428-9c1b-41fb62b9279d)
+
+#### stable_diffusion_xl_dreambooth_lora_keramer_face
+
+![exampledog](https://github.com/okotaku/diffengine/assets/24734142/17696122-f0d4-4d61-8be9-ecc4688a33cb)
+
+## Acknowledgement
+
+These experiments are based on [diffusers docs](https://github.com/huggingface/diffusers/blob/main/examples/dreambooth/README_sdxl.md). Thank you for the great experiments.
