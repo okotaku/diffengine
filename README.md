@@ -20,7 +20,19 @@ Documentation: [docs](docs)
 
 ## Get Started
 
-You can run quickly on colaboratory to run [Example Notebook](https://colab.research.google.com/drive/1vvwdj6yEj3GD5Z483JBlEU4sKCDXmidv?usp=sharing).
+3 commands quick run for DreamBooth Training Example.
+
+```
+pip install openmim
+pip install git+https://github.com/okotaku/diffengine.git
+mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
+```
+
+Output example is:
+
+![img](https://github.com/okotaku/diffengine/assets/24734142/e4576779-e05f-42d0-a709-d6481eea87a9)
+
+You can also run [Example Notebook](examples/example-dreambooth.ipynb) quickly. It has an example of SDV1.5 & SDV2.1 DreamBooth Training.
 
 Please refer to [get_started.md](docs/source/get_started.md) for get started.
 Other tutorials for:
