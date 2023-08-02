@@ -42,6 +42,23 @@ class TestStableDiffusion(TestCase):
         assert log_vars
         self.assertIsInstance(log_vars['loss'], torch.Tensor)
 
+    def test_train_step_with_gradient_checkpointing(self):
+        # test load with loss module
+        StableDiffuser = StableDiffusion(
+            'diffusers/tiny-stable-diffusion-torch',
+            loss=L2Loss(),
+            data_preprocessor=SDDataPreprocessor(),
+            gradient_checkpointing=True)
+
+        # test train step
+        data = dict(
+            inputs=dict(img=[torch.zeros((3, 64, 64))], text=['a dog']))
+        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+        optim_wrapper = OptimWrapper(optimizer)
+        log_vars = StableDiffuser.train_step(data, optim_wrapper)
+        assert log_vars
+        self.assertIsInstance(log_vars['loss'], torch.Tensor)
+
     def test_train_step_dreambooth(self):
         # test load with loss module
         StableDiffuser = StableDiffusion(

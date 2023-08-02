@@ -54,6 +54,9 @@ class StableDiffusionXL(BaseModel):
             encoder. Defaults to False.
         prior_loss_weight (float): The weight of prior preservation loss.
             It works when training dreambooth with class images.
+        gradient_checkpointing (bool): Whether or not to use gradient
+            checkpointing to save memory at the expense of slower backward
+            pass. Defaults to False.
         noise_offset_weight (bool, optional):
             The weight of noise offset introduced in
             https://www.crosslabs.org/blog/diffusion-with-offset-noise
@@ -69,6 +72,7 @@ class StableDiffusionXL(BaseModel):
         finetune_text_encoder: bool = False,
         prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
+        gradient_checkpointing: bool = False,
         data_preprocessor: Optional[Union[dict, nn.Module]] = dict(
             type='SDXLDataPreprocessor'),
     ):
@@ -108,6 +112,11 @@ class StableDiffusionXL(BaseModel):
         self.unet = UNet2DConditionModel.from_pretrained(
             model, subfolder='unet')
         self.prepare_model()
+        if gradient_checkpointing:
+            self.unet.enable_gradient_checkpointing()
+            if self.finetune_text_encoder:
+                self.text_encoder_one.gradient_checkpointing_enable()
+                self.text_encoder_two.gradient_checkpointing_enable()
         self.set_lora()
 
     def set_lora(self):
@@ -163,6 +172,7 @@ class StableDiffusionXL(BaseModel):
             tokenizer_two=self.tokenizer_two,
             unet=self.unet,
             safety_checker=None,
+            dtype=torch.float16,
         )
         pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
