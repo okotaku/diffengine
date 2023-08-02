@@ -7,8 +7,6 @@ pip install openmim
 pip install git+https://github.com/okotaku/diffengine.git
 ```
 
-
-
 # Quick Run
 
 Below are quick steps for run dreambooh training:
@@ -19,4 +17,6 @@ mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
 
 Outputs example is,
 
-![img](https://github.com/okotaku/dethub/assets/24734142/08d51ca6-c492-4524-96ab-5248e70c64a2)
+![img](https://github.com/okotaku/diffengine/assets/24734142/e4576779-e05f-42d0-a709-d6481eea87a9)
+
+You can also run [Example Notebook](../../examples/example-dreambooth.ipynb). It has an example of SDV1.5 & SDV2.1 DreamBooth Training.
