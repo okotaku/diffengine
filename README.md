@@ -37,8 +37,10 @@ You can also run [Example Notebook](examples/example-dreambooth.ipynb) quickly. 
 Please refer to [get_started.md](docs/source/get_started.md) for get started.
 Other tutorials for:
 
-- [Run Stable Diffusion](docs/source/run_sd.md)
-- [Run Stable Diffusion XL](docs/source/run_sdxl.md)
+- [Run Stable Diffusion](docs/source/run_guides/run_sd.md)
+- [Run Stable Diffusion XL](docs/source/run_guides/run_sdxl.md)
+- [Run DreamBooth](docs/source/run_guides/run_dreambooth.md)
+- [Inference](docs/source/run_guides/inference.md)
 - [Learn About Config](docs/source/user_guides/config.md)
 - [Prepare Dataset](docs/source/user_guides/dataset_prepare.md)
 

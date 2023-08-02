@@ -16,17 +16,15 @@ Welcome to diffengine's documentation!
    user_guides/dataset_prepare.md
 
 
+.. _RunGuides:
 .. toctree::
-   :maxdepth: 2
-   :caption: Run Stable Diffusion
+   :maxdepth: 1
+   :caption: Run Guides
 
-   run_sd.md
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Run Stable Diffusion XL
-
-   run_sdxl.md
+   run_guides/run_sd.md
+   run_guides/run_sdxl.md
+   run_guides/run_dreambooth.md
+   run_guides/inference.md
 
 .. toctree::
    :maxdepth: 1
