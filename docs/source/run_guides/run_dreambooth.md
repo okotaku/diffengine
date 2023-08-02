@@ -60,7 +60,7 @@ Run DreamBooth train
 # single gpu
 $ docker compose exec diffengine mim train diffengine ${CONFIG_FILE}
 # Example
-$ docker compose exec diffengine mim train diffengine configs/stable_diffusion/stable_diffusion_v15_dreambooth_lora_dog.py
+$ docker compose exec diffengine mim train diffengine configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py
 
 # multi gpus
 $ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
@@ -103,4 +103,4 @@ You can check [inference docs](inference.md) for inferencing other settings like
 
 ![examplev15](https://github.com/okotaku/diffengine/assets/24734142/f9c2430c-cee7-43cf-868f-35c6301dc573)
 
-You can check [inference docs](../../../configs/stable_diffusion_dreambooth/README.md#results-example) for more deitals.
+You can check [stable_diffusion_dreambooth.README](../../../configs/stable_diffusion_dreambooth/README.md#results-example) for more deitals.

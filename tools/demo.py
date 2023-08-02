@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 import torch
-from diffusers import DiffusionPipeline, UNet2DConditionModel
+from diffusers import AutoencoderKL, DiffusionPipeline, UNet2DConditionModel
 from transformers import CLIPTextModel
 
 
@@ -21,6 +21,13 @@ def main():
         '--text_encoder',
         action='store_true',
         help='Use trained text encoder from dir.')
+    parser.add_argument(
+        '--vaemodel',
+        type=str,
+        default=None,
+        help='Path to pretrained VAE model with better numerical stability. '
+        'More details: https://github.com/huggingface/diffusers/pull/4038.',
+    )
     parser.add_argument('--out', help='Output path', default='demo.jpg')
     parser.add_argument(
         '--device', help='Device used for inference', default='cuda')
@@ -28,11 +35,36 @@ def main():
 
     unet = UNet2DConditionModel.from_pretrained(
         args.checkpoint, subfolder='unet', torch_dtype=torch.float16)
-    if args.text_encoder:
+    if args.vaemodel is not None and args.text_encoder:
+        vae = AutoencoderKL.from_pretrained(
+            args.vaemodel,
+            torch_dtype=torch.float16,
+        )
         text_encoder = CLIPTextModel.from_pretrained(
             args.checkpoint,
             subfolder='text_encoder',
             torch_dtype=torch.float16)
+        pipe = DiffusionPipeline.from_pretrained(
+            args.sdmodel,
+            unet=unet,
+            vae=vae,
+            text_encoder=text_encoder,
+            torch_dtype=torch.float16)
+    elif args.text_encoder:
+        text_encoder = CLIPTextModel.from_pretrained(
+            args.checkpoint,
+            subfolder='text_encoder',
+            torch_dtype=torch.float16)
+        pipe = DiffusionPipeline.from_pretrained(
+            args.sdmodel,
+            unet=unet,
+            text_encoder=text_encoder,
+            torch_dtype=torch.float16)
+    elif args.vaemodel is not None:
+        vae = AutoencoderKL.from_pretrained(
+            args.vaemodel,
+            torch_dtype=torch.float16,
+        )
         pipe = DiffusionPipeline.from_pretrained(
             args.sdmodel,
             unet=unet,

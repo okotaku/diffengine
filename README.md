@@ -40,6 +40,7 @@ Other tutorials for:
 - [Run Stable Diffusion](docs/source/run_guides/run_sd.md)
 - [Run Stable Diffusion XL](docs/source/run_guides/run_sdxl.md)
 - [Run DreamBooth](docs/source/run_guides/run_dreambooth.md)
+- [Run Stable Diffusion XL DreamBooth](docs/source/run_guides/run_dreambooth_xl.md)
 - [Inference](docs/source/run_guides/inference.md)
 - [Learn About Config](docs/source/user_guides/config.md)
 - [Prepare Dataset](docs/source/user_guides/dataset_prepare.md)
