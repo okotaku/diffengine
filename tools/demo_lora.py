@@ -23,7 +23,7 @@ def main():
         help='Path to pretrained VAE model with better numerical stability. '
         'More details: https://github.com/huggingface/diffusers/pull/4038.',
     )
-    parser.add_argument('--out', help='Output path', default='demo.jpg')
+    parser.add_argument('--out', help='Output path', default='demo.png')
     parser.add_argument(
         '--device', help='Device used for inference', default='cuda')
     args = parser.parse_args()

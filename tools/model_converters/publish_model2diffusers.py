@@ -1,6 +1,7 @@
 import argparse
 import os.path as osp
 
+import torch
 from mmengine.config import Config
 from mmengine.logging import print_log
 from mmengine.registry import RUNNERS
@@ -39,7 +40,6 @@ def main():
             f'{args.save_keys}')
 
     cfg = Config.fromfile(args.config)
-    cfg.load_from = args.in_file
     cfg.work_dir = osp.join('./work_dirs',
                             osp.splitext(osp.basename(args.config))[0])
 
@@ -51,6 +51,10 @@ def main():
         # build customized runner from the registry
         # if 'runner_type' is set in the cfg
         runner = RUNNERS.build(cfg)
+    state_dict = torch.load(args.in_file)
+    if 'state_dict' in state_dict:
+        state_dict = state_dict['state_dict']
+    runner.model.load_state_dict(state_dict, strict=False)
 
     process_checkpoint(runner, args.out_dir, args.save_keys)
 

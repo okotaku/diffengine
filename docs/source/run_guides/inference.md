@@ -16,10 +16,7 @@ Then we can run inference.
 
 ```py
 import torch
-from diffusers import DiffusionPipeline
-
-def null_safety(images, **kwargs):
-    return images, [False] * len(images)
+from diffusers import DiffusionPipeline, UNet2DConditionModel
 
 prompt = 'yoda pokemon'
 checkpoint = 'work_dirs/stable_diffusion_v15_pokemon_blip'
