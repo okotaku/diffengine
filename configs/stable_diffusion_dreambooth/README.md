@@ -58,7 +58,7 @@ image = pipe(
 image.save('demo.png')
 ```
 
-You can see more details on [DreamBooth docs](../../docs/source/run_guides/run_dreambooth.md#inference-with-diffusers).
+You can see more details on [Run DreamBooth docs](../../docs/source/run_guides/run_dreambooth.md#inference-with-diffusers).
 
 ## Results Example
 

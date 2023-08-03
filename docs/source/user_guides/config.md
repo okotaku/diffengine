@@ -36,7 +36,7 @@ For easy understanding, we use [stable_diffusion_v15_pokemon_blip config file](h
 _base_ = [                                              # This config file will inherit all config files in `_base_`.
     '../_base_/models/stable_diffusion_v15.py',         # model settings
     '../_base_/datasets/pokemon_blip.py',               # data settings
-    '../_base_/schedules/stable_diffusion_v15_50e.py',  # schedule settings
+    '../_base_/schedules/stable_diffusion_50e.py',  # schedule settings
     '../_base_/default_runtime.py'                      # runtime settings
 ]
 ```
@@ -101,11 +101,12 @@ custom_hooks = [
 This primitive config file mainly contains training strategy settings and the settings of training, val and
 test loops:
 
-Following is the schedule primitive config of the stable_diffusion_v15 config in [`configs/_base_/schedules/stable_diffusion_v15_50e.py`](https://github.com/okotaku/diffengine/blob/main/configs/_base_/schedules/stable_diffusion_v15_50e.py)：
+Following is the schedule primitive config of the stable_diffusion_v15 config in [`configs/_base_/schedules/stable_diffusion_50e.py`](https://github.com/okotaku/diffengine/blob/main/configs/_base_/schedules/stable_diffusion_50e.py)：
 
 
 ```python
 optim_wrapper = dict(
+    type='AmpOptimWrapper', dtype='float16',  # fp16 optimization
     # Use AdamW optimizer to optimize parameters.
     optimizer=dict(type='AdamW', lr=1e-5, weight_decay=1e-2),
     clip_grad=dict(max_norm=1.0))

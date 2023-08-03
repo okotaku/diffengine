@@ -103,4 +103,4 @@ You can check [inference docs](inference.md) for inferencing other settings like
 
 ![examplev15](https://github.com/okotaku/diffengine/assets/24734142/f9c2430c-cee7-43cf-868f-35c6301dc573)
 
-You can check [stable_diffusion_dreambooth.README](../../../configs/stable_diffusion_dreambooth/README.md#results-example) for more deitals.
+You can check [`configs/stable_diffusion_dreambooth/README.md`](../../../configs/stable_diffusion_dreambooth/README.md#results-example) for more deitals.
