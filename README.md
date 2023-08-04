@@ -49,7 +49,7 @@ DiffEngine makes training easy through its pre-defined configs. These configs pr
 mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
 ```
 
-3. **Monitor Progress and get resutls**: The training process will begin, and you will see output similar to the provided example. You can monitor the progress of your training as it proceeds. The outputs of training is in `work_dirs/${CONFIG_NAME}`, `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` in this case.
+3. **Monitor Progress and get resutls**: The training process will begin, and you will monitor the progress of your training as it proceeds. The outputs of training will be located in the `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` directory, specifically in the case of using the `stable_diffusion_v15_dreambooth_lora_dog` config.
 
 ```
 work_dirs/stable_diffusion_v15_dreambooth_lora_dog
