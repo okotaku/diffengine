@@ -70,6 +70,27 @@ An illustrative output example is provided below:
 
 ![img](https://github.com/okotaku/diffengine/assets/24734142/e4576779-e05f-42d0-a709-d6481eea87a9)
 
+4. **Inference with diffusers.piptline**: Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
+
+```py
+import torch
+from diffusers import DiffusionPipeline
+
+checkpoint = 'work_dirs/stable_diffusion_v15_lora_pokemon_blip/step10450'
+prompt = 'yoda pokemon'
+
+pipe = DiffusionPipeline.from_pretrained(
+    'runwayml/stable-diffusion-v1-5', torch_dtype=torch.float16)
+pipe.to('cuda')
+pipe.load_lora_weights(checkpoint)
+
+image = pipe(
+    prompt,
+    num_inference_steps=50,
+).images[0]
+image.save('demo.png')
+```
+
 ## Example Notebook
 
 For a more hands-on introduction to DiffEngine, you can refer to the [Example Notebook](examples/example-dreambooth.ipynb) provided in the repository. This notebook demonstrates the process of training using SDV1.5 and SDV2.1 DreamBooth configurations.

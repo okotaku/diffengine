@@ -31,7 +31,7 @@ $ mim train diffengine configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_b
 
 ## Inference with diffusers
 
-Once you have trained a model, specify the path to where the model is saved, and use it for inference with the `diffusers`.
+Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 Before inferencing, we should convert weights for diffusers format,
 

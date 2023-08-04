@@ -2,7 +2,7 @@
 
 ## Inference with diffusers
 
-Once you have trained a model, specify the path to where the model is saved, and use it for inference with the `diffusers`.
+Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 Before inferencing, we should convert weights for diffusers format,
 
@@ -44,7 +44,7 @@ $ mim run diffengine demo "yoda pokemon" work_dirs/stable_diffusion_v15_snr_poke
 
 ## Inference Text Encoder and Unet finetuned weight with diffusers
 
-Once you have trained a model, specify the path to where the model is saved, and use it for inference with the `diffusers`.
+Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 Before inferencing, we should convert weights for diffusers format,
 

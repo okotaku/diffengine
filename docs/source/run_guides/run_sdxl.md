@@ -98,7 +98,7 @@ $ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --
 
 ## Inference with diffusers
 
-Once you have trained a model, specify the path to where the model is saved, and use it for inference with the `diffusers`.
+Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 Before inferencing, we should convert weights for diffusers format,
 
