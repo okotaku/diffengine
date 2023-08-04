@@ -1,12 +1,12 @@
 # Stable Diffusion LoRA Training
 
-You can also check [`configs/lora/README.md`](../../../configs/lora/README.md) file.
+You can also check [`configs/stable_diffusion_lora/README.md`](../../../configs/stable_diffusion_lora/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/lora`](../../../configs/lora/) folder.
+All configuration files are placed under the [`configs/stable_diffusion_lora`](../../../configs/stable_diffusion_lora/) folder.
 
-Following is the example config fixed from the stable_diffusion_v15_lora_pokemon_blip config file in [`configs/lora/stable_diffusion_v15_lora_pokemon_blip.py`](../../../configs/lora/stable_diffusion_v15_lora_pokemon_blip.py):
+Following is the example config fixed from the stable_diffusion_v15_lora_pokemon_blip config file in [`configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py`](../../../configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -55,7 +55,7 @@ Run LoRA training:
 # single gpu
 $ docker compose exec diffengine mim train diffengine ${CONFIG_FILE}
 # Example
-$ docker compose exec diffengine mim train diffengine configs/lora/stable_diffusion_v15_lora_pokemon_blip.py
+$ docker compose exec diffengine mim train diffengine configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py
 
 # multi gpus
 $ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
@@ -96,4 +96,4 @@ $ mim run diffengine demo_lora "yoda pokemon" work_dirs/stable_diffusion_v15_lor
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/24899409-554d-4393-88e5-f8b8d6e6b36d)
 
-You can check [`configs/lora/README.md`](../../../configs/lora/README.md#results-example) for more deitals.
+You can check [`configs/stable_diffusion_lora/README.md`](../../../configs/stable_diffusion_lora/README.md#results-example) for more deitals.

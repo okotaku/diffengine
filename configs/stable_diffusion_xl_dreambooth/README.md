@@ -1,6 +1,7 @@
 # Stable Diffusion XL DreamBooth
 
 [DreamBooth: Fine Tuning Text-to-Image Diffusion Models for Subject-Driven Generation](https://arxiv.org/abs/2208.12242)
+[Stable Diffusion XL](https://arxiv.org/abs/2307.01952)
 
 ## Abstract
 

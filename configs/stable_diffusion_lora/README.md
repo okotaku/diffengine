@@ -1,4 +1,4 @@
-# LoRA
+# Stable Diffusion LoRA
 
 [LoRA: Low-Rank Adaptation of Large Language Models](https://arxiv.org/abs/2106.09685)
 
@@ -34,7 +34,7 @@ $ mim train diffengine ${CONFIG_FILE}
 $ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 
 # Example.
-$ mim train diffengine configs/lora/stable_diffusion_v15_lora_pokemon_blip.py
+$ mim train diffengine configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py
 ```
 
 ## Inference with diffusers

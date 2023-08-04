@@ -2,6 +2,7 @@ from mmengine.registry import DATASETS as MMENGINE_DATASETS
 from mmengine.registry import FUNCTIONS as MMENGINE_FUNCTIONS
 from mmengine.registry import HOOKS as MMENGINE_HOOKS
 from mmengine.registry import MODELS as MMENGINE_MODELS
+from mmengine.registry import OPTIMIZERS as MMENGINE_OPTIMIZERS
 from mmengine.registry import TRANSFORMS as MMENGINE_TRANSFORMS
 from mmengine.registry import Registry
 
@@ -16,6 +17,11 @@ MODELS = Registry(
     'model',
     parent=MMENGINE_MODELS,
     locations=['diffengine.models'],
+)
+OPTIMIZERS = Registry(
+    'optimizer',
+    parent=MMENGINE_OPTIMIZERS,
+    locations=['diffengine.engine'],
 )
 HOOKS = Registry(
     'hook',

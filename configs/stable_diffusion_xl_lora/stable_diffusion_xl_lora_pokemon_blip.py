@@ -8,5 +8,4 @@ _base_ = [
 custom_hooks = [
     dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
     dict(type='LoRASaveHook'),
-    dict(type='UnetEMAHook', momentum=1e-4, priority='ABOVE_NORMAL')
 ]

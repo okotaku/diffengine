@@ -8,6 +8,15 @@ All configuration files are placed under the [`configs/stable_diffusion`](../../
 
 Following is the example config fixed from the stable_diffusion_v15_pokemon_blip config file in [`configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py`](../../../configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py):
 
+```
+_base_ = [
+    '../_base_/models/stable_diffusion_v15.py',
+    '../_base_/datasets/pokemon_blip.py',
+    '../_base_/schedules/stable_diffusion_50e.py',
+    '../_base_/default_runtime.py'
+]
+```
+
 #### Finetuning the text encoder and UNet
 
 The script also allows you to finetune the text_encoder along with the unet.

@@ -66,10 +66,7 @@ def main():
             torch_dtype=torch.float16,
         )
         pipe = DiffusionPipeline.from_pretrained(
-            args.sdmodel,
-            unet=unet,
-            text_encoder=text_encoder,
-            torch_dtype=torch.float16)
+            args.sdmodel, unet=unet, vae=vae, torch_dtype=torch.float16)
     else:
         pipe = DiffusionPipeline.from_pretrained(
             args.sdmodel, unet=unet, torch_dtype=torch.float16)
