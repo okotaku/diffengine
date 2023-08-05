@@ -26,6 +26,24 @@ $ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 $ mim train diffengine configs/distill_sd_dreambooth/small_sd_dreambooth_lora_dog.py
 ```
 
+## Training Speed
+
+Environment:
+
+- A6000 Single GPU
+- nvcr.io/nvidia/pytorch:23.07-py3
+
+Settings:
+
+- 1k iterations training, (validation 4 images / 100 iterations)
+- LoRA (rank=8) / DreamBooth
+
+|  Model   | total time |
+| :------: | :--------: |
+|  SDV1.5  | 16 m 39 s  |
+| Small SD | 11 m 57 s  |
+| Tiny SD  | 11 m 17 s  |
+
 ## Inference with diffusers
 
 Once you have trained a model, specify the path to where the model is saved, and use it for inference with the `diffusers`.
@@ -60,6 +78,8 @@ $ mim run diffengine demo_lora "A photo of sks dog in a bucket" work_dirs/small_
 #### small_sd_dreambooth_lora_dog
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/16cc3ef2-860d-4e4a-8b1d-8f56d9021db9)
+
+We uploaded pretrained checkpoint on [`takuoko/small-sd-dreambooth-lora-dog`](https://huggingface.co/takuoko/small-sd-dreambooth-lora-dog).
 
 #### tiny_sd_dreambooth_lora_dog
 
