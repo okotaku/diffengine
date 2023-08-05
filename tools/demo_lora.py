@@ -4,10 +4,6 @@ import torch
 from diffusers import AutoencoderKL, DiffusionPipeline
 
 
-def null_safety(images, **kwargs):
-    return images, [False] * len(images)
-
-
 def main():
     parser = ArgumentParser()
     parser.add_argument('prompt', help='Prompt text')
@@ -34,15 +30,16 @@ def main():
             torch_dtype=torch.float16,
         )
         pipe = DiffusionPipeline.from_pretrained(
-            args.sdmodel, vae=vae, torch_dtype=torch.float16)
+            args.sdmodel,
+            vae=vae,
+            torch_dtype=torch.float16,
+            safety_checker=None)
     else:
         pipe = DiffusionPipeline.from_pretrained(
-            args.sdmodel, torch_dtype=torch.float16)
+            args.sdmodel, torch_dtype=torch.float16, safety_checker=None)
 
     pipe.to(args.device)
     pipe.load_lora_weights(args.checkpoint)
-
-    pipe.safety_checker = null_safety
 
     image = pipe(
         args.prompt,

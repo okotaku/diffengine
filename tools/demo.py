@@ -5,10 +5,6 @@ from diffusers import AutoencoderKL, DiffusionPipeline, UNet2DConditionModel
 from transformers import CLIPTextModel
 
 
-def null_safety(images, **kwargs):
-    return images, [False] * len(images)
-
-
 def main():
     parser = ArgumentParser()
     parser.add_argument('prompt', help='Prompt text')
@@ -49,7 +45,8 @@ def main():
             unet=unet,
             vae=vae,
             text_encoder=text_encoder,
-            torch_dtype=torch.float16)
+            torch_dtype=torch.float16,
+            safety_checker=None)
     elif args.text_encoder:
         text_encoder = CLIPTextModel.from_pretrained(
             args.checkpoint,
@@ -59,20 +56,26 @@ def main():
             args.sdmodel,
             unet=unet,
             text_encoder=text_encoder,
-            torch_dtype=torch.float16)
+            torch_dtype=torch.float16,
+            safety_checker=None)
     elif args.vaemodel is not None:
         vae = AutoencoderKL.from_pretrained(
             args.vaemodel,
             torch_dtype=torch.float16,
         )
         pipe = DiffusionPipeline.from_pretrained(
-            args.sdmodel, unet=unet, vae=vae, torch_dtype=torch.float16)
+            args.sdmodel,
+            unet=unet,
+            vae=vae,
+            torch_dtype=torch.float16,
+            safety_checker=None)
     else:
         pipe = DiffusionPipeline.from_pretrained(
-            args.sdmodel, unet=unet, torch_dtype=torch.float16)
+            args.sdmodel,
+            unet=unet,
+            torch_dtype=torch.float16,
+            safety_checker=None)
     pipe.to(args.device)
-
-    pipe.safety_checker = null_safety
 
     image = pipe(
         args.prompt,

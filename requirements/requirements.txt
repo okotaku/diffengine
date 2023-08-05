@@ -1,5 +1,5 @@
 datasets==2.13.1
-diffusers==0.19.1
+diffusers==0.19.3
 invisible-watermark
 mmengine==0.8.2
 tqdm
