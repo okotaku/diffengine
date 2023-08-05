@@ -8,15 +8,15 @@
 
 ## 📄 Table of Contents
 
-- [📖 Introduction](#introduction)
-- [🛠️ Installation](#installation)
-- [👨‍🏫 Get Started](#get-started)
-- [🖋 Example Notebook](#example-notebook)
-- [📘 Documentation](#documentation)
-- [🙌 Contributing](#contributing)
-- [🎫 License](#license)
-- [🖊️ Citation](#citation)
-- [🤝 Acknowledgement](#acknowledgement)
+- [📖 Introduction](#-introduction-)
+- [🛠️ Installation](#-installation-)
+- [👨‍🏫 Get Started](#-get-started-)
+- [🖋 Example Notebook](#-example-notebook-)
+- [📘 Documentation](#-documentation-)
+- [🙌 Contributing](#-contributing-)
+- [🎫 License](#-license-)
+- [🖊️ Citation](#-citation-)
+- [🤝 Acknowledgement](#-acknowledgement-)
 
 ## 📖 Introduction [🔝](#-table-of-contents)
 
