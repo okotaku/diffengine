@@ -40,7 +40,7 @@ $ mim train diffengine configs/stable_diffusion_xl_lora/stable_diffusion_xl_lora
 
 ## Inference with diffusers
 
-Once you have trained a model, specify the path to where the model is saved, and use it for inference with the `diffusers`.
+Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 ```py
 import torch
