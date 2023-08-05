@@ -6,19 +6,19 @@
 
 [🤔 Reporting Issues](https://github.com/okotaku/diffengine/issues/new/choose)
 
-## Table of Contents
+## 📄 Table of Contents
 
-- [Introduction](#introduction)
-- [Installation](#installation)
-- [Get Started](#get-started)
-- [Example Notebook](#example-notebook)
-- [Documentation](#documentation)
-- [Contributing](#contributing)
-- [License](#license)
-- [Citation](#citation)
-- [Acknowledgement](#acknowledgement)
+- [📖 Introduction](#introduction)
+- [🛠️ Installation](#installation)
+- [👨‍🏫 Get Started](#get-started)
+- [🖋 Example Notebook](#example-notebook)
+- [📘 Documentation](#documentation)
+- [🙌 Contributing](#contributing)
+- [🎫 License](#license)
+- [🖊️ Citation](#citation)
+- [🤝 Acknowledgement](#acknowledgement)
 
-## Introduction
+## 📖 Introduction [🔝](#-table-of-contents)
 
 DiffEngine is the open-source toolbox for training state-of-the-art Diffusion Models. Packed with advanced features including diffusers and MMEngine, DiffEngine empowers both seasoned experts and newcomers in the field to efficiently create and enhance diffusion models. Stay at the forefront of innovation with our cutting-edge platform, accelerating your journey in Diffusion Models training.
 
@@ -26,7 +26,7 @@ DiffEngine is the open-source toolbox for training state-of-the-art Diffusion Mo
 2. **Unified Config System and Module Designs**: Thanks to MMEngine, our platform boasts a unified configuration system and modular designs that streamline your workflow. Easily customize hyperparameters, loss functions, and other crucial settings while maintaining a structured and organized project environment.
 3. **Inference with diffusers.pipeline**: Seamlessly transition from training to real-world application using the diffusers.pipeline module. Effortlessly deploy your trained Diffusion Models for inference tasks, enabling quick and efficient decision-making based on the insights derived from your models.
 
-## Installation
+## 🛠️ Installation [🔝](#-table-of-contents)
 
 Before installing DiffEngine, please ensure that PyTorch has been successfully installed following the [official guide](https://pytorch.org/get-started/locally/).
 
@@ -37,7 +37,7 @@ pip install openmim
 pip install git+https://github.com/okotaku/diffengine.git
 ```
 
-## Get Started
+## 👨‍🏫 Get Started [🔝](#-table-of-contents)
 
 DiffEngine makes training easy through its pre-defined configs. These configs provide a streamlined way to start your training process. Here's how you can get started using one of the pre-defined configs:
 
@@ -91,11 +91,11 @@ image = pipe(
 image.save('demo.png')
 ```
 
-## Example Notebook
+## 🖋 Example Notebook [🔝](#-table-of-contents)
 
 For a more hands-on introduction to DiffEngine, you can refer to the [Example Notebook](examples/example-dreambooth.ipynb) provided in the repository. This notebook demonstrates the process of training using SDV1.5 and SDV2.1 DreamBooth configurations.
 
-## Documentation
+## 📘 Documentation [🔝](#-table-of-contents)
 
 For detailed user guides and advanced guides, please refer to our [Documentation](docs/source/):
 
@@ -122,15 +122,15 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 
 </details>
 
-## Contributing
+## 🙌 Contributing [🔝](#-table-of-contents)
 
 We appreciate all contributions to improve clshub. Please refer to [CONTRIBUTING.md](https://github.com/open-mmlab/mmpretrain/blob/main/CONTRIBUTING.md) for the contributing guideline.
 
-## License
+## 🎫 License [🔝](#-table-of-contents)
 
 This project is released under the [Apache 2.0 license](LICENSE).
 
-## Citation
+## 🖊️ Citation [🔝](#-table-of-contents)
 
 If DiffEngine is helpful to your research, please cite it as below.
 
@@ -143,7 +143,7 @@ If DiffEngine is helpful to your research, please cite it as below.
 }
 ```
 
-## Acknowledgement
+## 🤝 Acknowledgement [🔝](#-table-of-contents)
 
 This repo borrows the architecture design and part of the code from [mmengine](https://github.com/open-mmlab/mmengine), [mmagic](https://github.com/open-mmlab/mmagic) and [diffusers](https://github.com/huggingface/diffusers).
 
