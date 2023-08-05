@@ -64,11 +64,16 @@ def main():
             torch_dtype=torch.float16,
         )
         pipe = DiffusionPipeline.from_pretrained(
-            args.sdmodel, unet=unet, vae=vae, torch_dtype=torch.float16,
+            args.sdmodel,
+            unet=unet,
+            vae=vae,
+            torch_dtype=torch.float16,
             safety_checker=None)
     else:
         pipe = DiffusionPipeline.from_pretrained(
-            args.sdmodel, unet=unet, torch_dtype=torch.float16,
+            args.sdmodel,
+            unet=unet,
+            torch_dtype=torch.float16,
             safety_checker=None)
     pipe.to(args.device)
 

@@ -30,12 +30,13 @@ def main():
             torch_dtype=torch.float16,
         )
         pipe = DiffusionPipeline.from_pretrained(
-            args.sdmodel, vae=vae, torch_dtype=torch.float16,
+            args.sdmodel,
+            vae=vae,
+            torch_dtype=torch.float16,
             safety_checker=None)
     else:
         pipe = DiffusionPipeline.from_pretrained(
-            args.sdmodel, torch_dtype=torch.float16,
-            safety_checker=None)
+            args.sdmodel, torch_dtype=torch.float16, safety_checker=None)
 
     pipe.to(args.device)
     pipe.load_lora_weights(args.checkpoint)
