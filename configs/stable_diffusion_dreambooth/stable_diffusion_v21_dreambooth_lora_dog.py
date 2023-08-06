@@ -7,8 +7,8 @@ _base_ = [
 
 train_pipeline = [
     dict(type='torchvision/Resize', size=768, interpolation='bilinear'),
-    dict(type='torchvision/RandomCrop', size=768),
-    dict(type='torchvision/RandomHorizontalFlip', p=0.5),
+    dict(type='RandomCrop', size=768),
+    dict(type='RandomHorizontalFlip', p=0.5),
     dict(type='torchvision/ToTensor'),
     dict(type='torchvision/Normalize', mean=[0.5], std=[0.5]),
     dict(type='PackInputs'),

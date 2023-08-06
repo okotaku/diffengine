@@ -8,7 +8,7 @@ from transformers import CLIPTextModel
 def main():
     parser = ArgumentParser()
     parser.add_argument('prompt', help='Prompt text')
-    parser.add_argument('checkpoint', help='Prompt text')
+    parser.add_argument('checkpoint', help='Path to checkpoint.')
     parser.add_argument(
         '--sdmodel',
         help='Stable Diffusion model name',

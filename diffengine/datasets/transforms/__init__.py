@@ -1,11 +1,11 @@
 from .base import BaseTransform
+from .dump_image import DumpImage
 from .formatting import PackInputs
-from .processing import (TRANSFORMS, CenterCropWithCropPoint, ComputeTimeIds,
-                         RandomCropWithCropPoint,
-                         RandomHorizontalFlipFixCropPoint, SaveImageShape)
+from .processing import (TRANSFORMS, CenterCrop, ComputeTimeIds, RandomCrop,
+                         RandomHorizontalFlip, SaveImageShape)
 
 __all__ = [
     'BaseTransform', 'PackInputs', 'TRANSFORMS', 'SaveImageShape',
-    'RandomCropWithCropPoint', 'CenterCropWithCropPoint',
-    'RandomHorizontalFlipFixCropPoint', 'ComputeTimeIds'
+    'RandomCrop', 'CenterCrop', 'RandomHorizontalFlip', 'ComputeTimeIds',
+    'DumpImage'
 ]

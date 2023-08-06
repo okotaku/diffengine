@@ -24,6 +24,11 @@ Welcome to diffengine's documentation!
    run_guides/run_sd.md
    run_guides/run_sdxl.md
    run_guides/run_dreambooth.md
+   run_guides/run_dreambooth_xl.md
+   run_guides/run_lora.md
+   run_guides/run_lora_xl.md
+   run_guides/run_controlnet.md
+   run_guides/run_controlnet_xl.md
    run_guides/inference.md
 
 .. toctree::

@@ -13,12 +13,14 @@ from diffengine.registry import DATASETS
 
 
 @DATASETS.register_module()
-class HFDataset(Dataset):
+class HFControlNetDataset(Dataset):
     """Dataset for huggingface datasets.
 
     Args:
         dataset (str): Dataset name or path to dataset.
         image_column (str): Image column name. Defaults to 'image'.
+        condition_column (str): Condition column name for ControlNet.
+            Defaults to 'condition'.
         caption_column (str): Caption column name. Defaults to 'text'.
         pipeline (Sequence): Processing pipeline. Defaults to an empty tuple.
         cache_dir (str, optional): The directory where the downloaded datasets
@@ -28,6 +30,7 @@ class HFDataset(Dataset):
     def __init__(self,
                  dataset: str,
                  image_column: str = 'image',
+                 condition_column: str = 'condition',
                  caption_column: str = 'text',
                  pipeline: Sequence = (),
                  cache_dir: Optional[str] = None):
@@ -43,6 +46,7 @@ class HFDataset(Dataset):
         self.pipeline = Compose(pipeline)
 
         self.image_column = image_column
+        self.condition_column = condition_column
         self.caption_column = caption_column
 
     def __len__(self) -> int:
@@ -69,6 +73,13 @@ class HFDataset(Dataset):
         if type(image) == str:
             image = Image.open(os.path.join(self.dataset_name, image))
         image = image.convert('RGB')
+
+        condition_image = data_info[self.condition_column]
+        if type(condition_image) == str:
+            condition_image = Image.open(
+                os.path.join(self.dataset_name, condition_image))
+        condition_image = condition_image.convert('RGB')
+
         caption = data_info[self.caption_column]
         if isinstance(caption, str):
             pass
@@ -79,7 +90,7 @@ class HFDataset(Dataset):
             raise ValueError(
                 f'Caption column `{self.caption_column}` should contain either'
                 ' strings or lists of strings.')
-        result = dict(img=image, text=caption)
+        result = dict(img=image, condition_img=condition_image, text=caption)
         result = self.pipeline(result)
 
         return result

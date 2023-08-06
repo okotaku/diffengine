@@ -2,7 +2,7 @@ import inspect
 import random
 import re
 from enum import EnumMeta
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import torchvision
 from torchvision.transforms.functional import crop
@@ -33,8 +33,19 @@ def _interpolation_modes_from_str(t: str):
 
 
 class TorchVisonTransformWrapper:
+    """TorchVisonTransformWrapper.
 
-    def __init__(self, transform, *args, **kwargs):
+    We can use torchvision.transforms like `dict(type='torchvision/Resize',
+    size=512)`
+
+    Args:
+        transform (str): The name of transform. For example
+            `torchvision/Resize`.
+        keys (List[str]): `keys` to apply augmentation from results.
+    """
+
+    def __init__(self, transform, *args, keys: List[str] = ['img'], **kwargs):
+        self.keys = keys
         if 'interpolation' in kwargs and isinstance(kwargs['interpolation'],
                                                     str):
             kwargs['interpolation'] = _interpolation_modes_from_str(
@@ -44,7 +55,8 @@ class TorchVisonTransformWrapper:
         self.t = transform(*args, **kwargs)
 
     def __call__(self, results):
-        results['img'] = self.t(results['img'])
+        for k in self.keys:
+            results[k] = self.t(results[k])
         return results
 
     def __repr__(self) -> str:
@@ -99,11 +111,30 @@ class SaveImageShape(BaseTransform):
 
 
 @TRANSFORMS.register_module()
-class RandomCropWithCropPoint(BaseTransform):
-    """RandomCrop and save crop top left as 'crop_top_left' in results."""
+class RandomCrop(BaseTransform):
+    """RandomCrop.
 
-    def __init__(self, *args, size, **kwargs):
+    The difference from torchvision/RandomCrop is
+        1. save crop top left as 'crop_top_left' and `crop_bottom_right` in
+        results
+        2. apply same random parameters to multiple `keys` like ['img',
+        'condition_img'].
+
+    Args:
+        size (sequence or int): Desired output size of the crop. If size is an
+            int instead of sequence like (h, w), a square crop (size, size) is
+            made. If provided a sequence of length 1, it will be interpreted
+            as (size[0], size[0])
+        keys (List[str]): `keys` to apply augmentation from results.
+    """
+
+    def __init__(self,
+                 *args,
+                 size: Union[Sequence[int], int],
+                 keys: List[str] = ['img'],
+                 **kwargs):
         self.size = size
+        self.keys = keys
         self.pipeline = torchvision.transforms.RandomCrop(
             *args, size, **kwargs)
 
@@ -114,22 +145,42 @@ class RandomCropWithCropPoint(BaseTransform):
             results (dict): The result dict.
 
         Returns:
-            dict: 'crop_top_left' key is added as crop point.
+            dict: 'crop_top_left' and  `crop_bottom_right` key is added as crop
+                point.
         """
+        assert all(results['img'].size == results[k].size for k in self.keys)
         y1, x1, h, w = self.pipeline.get_params(results['img'],
                                                 (self.size, self.size))
-        results['img'] = crop(results['img'], y1, x1, h, w)
+        for k in self.keys:
+            results[k] = crop(results[k], y1, x1, h, w)
         results['crop_top_left'] = [y1, x1]
         results['crop_bottom_right'] = [y1 + h, x1 + w]
         return results
 
 
 @TRANSFORMS.register_module()
-class CenterCropWithCropPoint(BaseTransform):
-    """CenterCrop and save crop top left as 'crop_top_left' in results."""
+class CenterCrop(BaseTransform):
+    """CenterCrop.
 
-    def __init__(self, *args, size, **kwargs):
+    The difference from torchvision/CenterCrop is
+        1. save crop top left as 'crop_top_left' and `crop_bottom_right` in
+        results
+
+    Args:
+        size (sequence or int): Desired output size of the crop. If size is an
+            int instead of sequence like (h, w), a square crop (size, size) is
+            made. If provided a sequence of length 1, it will be interpreted
+            as (size[0], size[0])
+        keys (List[str]): `keys` to apply augmentation from results.
+    """
+
+    def __init__(self,
+                 *args,
+                 size: Union[Sequence[int], int],
+                 keys: List[str] = ['img'],
+                 **kwargs):
         self.size = size
+        self.keys = keys
         self.pipeline = torchvision.transforms.CenterCrop(
             *args, size, **kwargs)
 
@@ -142,22 +193,36 @@ class CenterCropWithCropPoint(BaseTransform):
         Returns:
             dict: 'crop_top_left' key is added as crop points.
         """
+        assert all(results['img'].size == results[k].size for k in self.keys)
         y1 = max(0, int(round((results['img'].height - self.size) / 2.0)))
         x1 = max(0, int(round((results['img'].width - self.size) / 2.0)))
         y2 = max(0, int(round((results['img'].height + self.size) / 2.0)))
         x2 = max(0, int(round((results['img'].width + self.size) / 2.0)))
-        results['img'] = self.pipeline(results['img'])
+        for k in self.keys:
+            results[k] = self.pipeline(results[k])
         results['crop_top_left'] = [y1, x1]
         results['crop_bottom_right'] = [y2, x2]
         return results
 
 
 @TRANSFORMS.register_module()
-class RandomHorizontalFlipFixCropPoint(BaseTransform):
-    """Apply RandomHorizontalFlip and fix 'crop_top_left' in results."""
+class RandomHorizontalFlip(BaseTransform):
+    """RandomHorizontalFlip.
 
-    def __init__(self, *args, p, **kwargs):
+    The difference from torchvision/RandomHorizontalFlip is
+        1. update 'crop_top_left' and `crop_bottom_right` if exists.
+        2. apply same random parameters to multiple `keys` like ['img',
+        'condition_img'].
+
+    Args:
+        p (float): probability of the image being flipped.
+            Default value is 0.5.
+        keys (List[str]): `keys` to apply augmentation from results.
+    """
+
+    def __init__(self, *args, p: float = 0.5, keys=['img'], **kwargs):
         self.p = p
+        self.keys = keys
         self.pipeline = torchvision.transforms.RandomHorizontalFlip(
             *args, p=1.0, **kwargs)
 
@@ -171,7 +236,10 @@ class RandomHorizontalFlipFixCropPoint(BaseTransform):
             dict: 'crop_top_left' key is fixed.
         """
         if random.random() < self.p:
-            results['img'] = self.pipeline(results['img'])
+            assert all(results['img'].size == results[k].size
+                       for k in self.keys)
+            for k in self.keys:
+                results[k] = self.pipeline(results[k])
             if 'crop_top_left' in results:
                 y1 = results['crop_top_left'][0]
                 x1 = results['img'].width - results['crop_bottom_right'][1]

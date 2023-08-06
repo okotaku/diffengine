@@ -42,14 +42,14 @@ class StableDiffusionXL(BaseModel):
     Args:
         model (str): pretrained model name of stable diffusion xl.
             Defaults to 'stabilityai/stable-diffusion-xl-base-1.0'.
-        vae_model (str): Path to pretrained VAE model with better numerical
-            stability. More details:
+        vae_model (str, optional): Path to pretrained VAE model with better
+            numerical stability. More details:
             https://github.com/huggingface/diffusers/pull/4038.
             Defaults to None.
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
-        lora_config (dict): The LoRA config dict. example. dict(rank=4)
-            Defaults to None.
+        lora_config (dict, optional): The LoRA config dict.
+            example. dict(rank=4). Defaults to None.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. Defaults to False.
         prior_loss_weight (float): The weight of prior preservation loss.
@@ -81,6 +81,7 @@ class StableDiffusionXL(BaseModel):
         self.lora_config = deepcopy(lora_config)
         self.finetune_text_encoder = finetune_text_encoder
         self.prior_loss_weight = prior_loss_weight
+        self.gradient_checkpointing = gradient_checkpointing
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
@@ -112,11 +113,6 @@ class StableDiffusionXL(BaseModel):
         self.unet = UNet2DConditionModel.from_pretrained(
             model, subfolder='unet')
         self.prepare_model()
-        if gradient_checkpointing:
-            self.unet.enable_gradient_checkpointing()
-            if self.finetune_text_encoder:
-                self.text_encoder_one.gradient_checkpointing_enable()
-                self.text_encoder_two.gradient_checkpointing_enable()
         self.set_lora()
 
     def set_lora(self):
@@ -135,6 +131,12 @@ class StableDiffusionXL(BaseModel):
 
         Disable gradient for some models.
         """
+        if self.gradient_checkpointing:
+            self.unet.enable_gradient_checkpointing()
+            if self.finetune_text_encoder:
+                self.text_encoder_one.gradient_checkpointing_enable()
+                self.text_encoder_two.gradient_checkpointing_enable()
+
         self.vae.requires_grad_(False)
         print_log('Set VAE untrainable.', 'current')
         if not self.finetune_text_encoder:
