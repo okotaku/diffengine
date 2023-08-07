@@ -10,13 +10,13 @@ train_dataloader = dict(
 
 train_dataloader = dict(
     dataset=dict(
-        instance_prompt='Portrait of a sks person',
-        class_prompt='Portrait of a person'), )
+        instance_prompt='Portrait photo of a sks person',
+        class_prompt='Portrait photo of a person'), )
 
 custom_hooks = [
     dict(
         type='VisualizationHook',
-        prompt=['Portrait of a sks person in suits'] * 4,
+        prompt=['Portrait photo of a sks person in suits'] * 4,
         by_epoch=False,
         interval=100),
     dict(type='LoRASaveHook'),
