@@ -6,8 +6,8 @@ from diffusers import AutoencoderKL, DiffusionPipeline
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument('prompt', help='Prompt text')
-    parser.add_argument('checkpoint', help='Prompt text')
+    parser.add_argument('prompt', help='Prompt text.')
+    parser.add_argument('checkpoint', help='Path to LoRA weight.')
     parser.add_argument(
         '--sdmodel',
         help='Stable Diffusion model name',

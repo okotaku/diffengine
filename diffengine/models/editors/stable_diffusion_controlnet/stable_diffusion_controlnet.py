@@ -1,117 +1,88 @@
-from copy import deepcopy
 from typing import List, Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (AutoencoderKL, DDPMScheduler, StableDiffusionPipeline,
-                       UNet2DConditionModel)
+from diffusers import ControlNetModel, StableDiffusionControlNetPipeline
+from diffusers.utils import load_image
 from mmengine import print_log
-from mmengine.model import BaseModel
+from PIL import Image
 from torch import nn
-from transformers import CLIPTextModel, CLIPTokenizer
 
-from diffengine.models.archs import set_text_encoder_lora, set_unet_lora
+from diffengine.models.editors.stable_diffusion import StableDiffusion
 from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
 @MODELS.register_module()
-class StableDiffusion(BaseModel):
-    """Stable Diffusion.
+class StableDiffusionControlNet(StableDiffusion):
+    """Stable Diffusion ControlNet.
 
     Args:
-        model (str): pretrained model name of stable diffusion.
-            Defaults to 'runwayml/stable-diffusion-v1-5'.
-        loss (dict): Config of loss. Defaults to
-            ``dict(type='L2Loss', loss_weight=1.0)``.
-        lora_config (dict, optional): The LoRA config dict.
-            example. dict(rank=4). Defaults to None.
+        controlnet_model (str, optional): Path to pretrained VAE model with
+            better numerical stability. More details:
+            https://github.com/huggingface/diffusers/pull/4038.
+            Defaults to None.
+        lora_config (dict, optional): The LoRA config dict. This should be
+            `None` when training ControlNet. Defaults to None.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
-            encoder. Defaults to False.
-        prior_loss_weight (float): The weight of prior preservation loss.
-            It works when training dreambooth with class images.
-        noise_offset_weight (bool, optional):
-            The weight of noise offset introduced in
-            https://www.crosslabs.org/blog/diffusion-with-offset-noise
-            Defaults to 0.
-        gradient_checkpointing (bool): Whether or not to use gradient
-            checkpointing to save memory at the expense of slower backward
-            pass. Defaults to False.
+            encoder. This should be `False` when training ControlNet.
+            Defaults to False.
         data_preprocessor (dict, optional): The pre-process config of
-            :class:`SDDataPreprocessor`.
+            :class:`SDControlNetDataPreprocessor`.
     """
 
-    def __init__(
-        self,
-        model: str = 'runwayml/stable-diffusion-v1-5',
-        loss: dict = dict(type='L2Loss', loss_weight=1.0),
-        lora_config: Optional[dict] = None,
-        finetune_text_encoder: bool = False,
-        prior_loss_weight: float = 1.,
-        noise_offset_weight: float = 0,
-        gradient_checkpointing: bool = False,
-        data_preprocessor: Optional[Union[dict, nn.Module]] = dict(
-            type='SDDataPreprocessor'),
-    ):
-        super().__init__(data_preprocessor=data_preprocessor)
-        self.model = model
-        self.lora_config = deepcopy(lora_config)
-        self.finetune_text_encoder = finetune_text_encoder
-        self.prior_loss_weight = prior_loss_weight
-        self.gradient_checkpointing = gradient_checkpointing
+    def __init__(self,
+                 *args,
+                 controlnet_model: Optional[str] = None,
+                 lora_config: Optional[dict] = None,
+                 finetune_text_encoder: bool = False,
+                 data_preprocessor: Optional[Union[dict, nn.Module]] = dict(
+                     type='SDControlNetDataPreprocessor'),
+                 **kwargs):
+        assert lora_config is None, \
+            '`lora_config` should be None when training ControlNet'
+        assert not finetune_text_encoder, \
+            '`finetune_text_encoder` should be False when training ControlNet'
 
-        if not isinstance(loss, nn.Module):
-            loss = MODELS.build(loss)
-        self.loss_module = loss
+        self.controlnet_model = controlnet_model
 
-        self.enable_noise_offset = noise_offset_weight > 0
-        self.noise_offset_weight = noise_offset_weight
-
-        self.tokenizer = CLIPTokenizer.from_pretrained(
-            model, subfolder='tokenizer')
-        self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder='scheduler')
-
-        self.text_encoder = CLIPTextModel.from_pretrained(
-            model, subfolder='text_encoder')
-        self.vae = AutoencoderKL.from_pretrained(model, subfolder='vae')
-        self.unet = UNet2DConditionModel.from_pretrained(
-            model, subfolder='unet')
-        self.prepare_model()
-        self.set_lora()
+        super().__init__(
+            *args,
+            lora_config=lora_config,
+            finetune_text_encoder=finetune_text_encoder,
+            data_preprocessor=data_preprocessor,
+            **kwargs)
 
     def set_lora(self):
         """Set LORA for model."""
-        if self.lora_config is not None:
-            if self.finetune_text_encoder:
-                self.text_encoder.requires_grad_(False)
-                set_text_encoder_lora(self.text_encoder, self.lora_config)
-            self.unet.requires_grad_(False)
-            set_unet_lora(self.unet, self.lora_config)
+        pass
 
     def prepare_model(self):
         """Prepare model for training.
 
         Disable gradient for some models.
         """
+        if self.controlnet_model is not None:
+            self.controlnet = ControlNetModel.from_pretrained(
+                self.controlnet_model)
+        else:
+            self.controlnet = ControlNetModel.from_unet(self.unet)
+
         if self.gradient_checkpointing:
+            self.controlnet.enable_gradient_checkpointing()
             self.unet.enable_gradient_checkpointing()
-            if self.finetune_text_encoder:
-                self.text_encoder.gradient_checkpointing_enable()
 
         self.vae.requires_grad_(False)
         print_log('Set VAE untrainable.', 'current')
-        if not self.finetune_text_encoder:
-            self.text_encoder.requires_grad_(False)
-            print_log('Set Text Encoder untrainable.', 'current')
-
-    @property
-    def device(self):
-        return next(self.parameters()).device
+        self.text_encoder.requires_grad_(False)
+        print_log('Set Text Encoder untrainable.', 'current')
+        self.unet.requires_grad_(False)
+        print_log('Set Unet untrainable.', 'current')
 
     @torch.no_grad()
     def infer(self,
               prompt: List[str],
+              condition_image: List[Union[str, Image.Image]],
               height: Optional[int] = None,
               width: Optional[int] = None) -> List[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
@@ -119,6 +90,8 @@ class StableDiffusion(BaseModel):
         Args:
             prompt (`List[str]`):
                 The prompt or prompts to guide the image generation.
+            condition_image (`List[Union[str, Image.Image]]`):
+                The condition image for ControlNet.
             height (`int`, *optional*, defaults to
                 `self.unet.config.sample_size * self.vae_scale_factor`):
                 The height in pixels of the generated image.
@@ -126,19 +99,24 @@ class StableDiffusion(BaseModel):
                 `self.unet.config.sample_size * self.vae_scale_factor`):
                 The width in pixels of the generated image.
         """
-        pipeline = StableDiffusionPipeline.from_pretrained(
+        assert len(prompt) == len(condition_image)
+        pipeline = StableDiffusionControlNetPipeline.from_pretrained(
             self.model,
             vae=self.vae,
             text_encoder=self.text_encoder,
             tokenizer=self.tokenizer,
             unet=self.unet,
+            controlnet=self.controlnet,
             safety_checker=None,
             dtype=torch.float16)
         pipeline.set_progress_bar_config(disable=True)
         images = []
-        for p in prompt:
+        for p, img in zip(prompt, condition_image):
+            if type(img) == str:
+                img = load_image(img)
+            img = img.convert('RGB')
             image = pipeline(
-                p, num_inference_steps=50, height=height,
+                p, img, num_inference_steps=50, height=height,
                 width=width).images[0]
             images.append(np.array(image))
 
@@ -146,14 +124,6 @@ class StableDiffusion(BaseModel):
         torch.cuda.empty_cache()
 
         return images
-
-    def val_step(self, data: Union[tuple, dict, list]) -> list:
-        raise NotImplementedError(
-            'val_step is not implemented now, please use infer.')
-
-    def test_step(self, data: Union[tuple, dict, list]) -> list:
-        raise NotImplementedError(
-            'test_step is not implemented now, please use infer.')
 
     def forward(self,
                 inputs: torch.Tensor,
@@ -204,10 +174,20 @@ class StableDiffusion(BaseModel):
             raise ValueError('Unknown prediction type '
                              f'{self.scheduler.config.prediction_type}')
 
+        down_block_res_samples, mid_block_res_sample = self.controlnet(
+            noisy_latents,
+            timesteps,
+            encoder_hidden_states=encoder_hidden_states,
+            controlnet_cond=inputs['condition_img'],
+            return_dict=False,
+        )
+
         model_pred = self.unet(
             noisy_latents,
             timesteps,
-            encoder_hidden_states=encoder_hidden_states).sample
+            encoder_hidden_states=encoder_hidden_states,
+            down_block_additional_residuals=down_block_res_samples,
+            mid_block_additional_residual=mid_block_res_sample).sample
 
         loss_dict = dict()
         # calculate loss in FP32

@@ -110,6 +110,8 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 - [Run Stable Diffusion XL DreamBooth](docs/source/run_guides/run_dreambooth_xl.md)
 - [Run Stable Diffusion LoRA](docs/source/run_guides/run_lora.md)
 - [Run Stable Diffusion XL LoRA](docs/source/run_guides/run_lora_xl.md)
+- [Run Stable Diffusion ControlNet](docs/source/run_guides/run_controlnet.md)
+- [Run Stable Diffusion XL ControlNet](docs/source/run_guides/run_controlnet_xl.md)
 - [Inference](docs/source/run_guides/inference.md)
 
 </details>

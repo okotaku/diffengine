@@ -37,6 +37,8 @@ class HFDreamBoothDataset(Dataset):
         class_prompt (Optional[str]): The prompt to specify images in the same
                 class as provided instance images. Defaults to None.
         pipeline (Sequence): Processing pipeline. Defaults to an empty tuple.
+        cache_dir (str, optional): The directory where the downloaded datasets
+            will be stored.Defaults to None.
     """
     default_class_image_config: dict = dict(
         model='runwayml/stable-diffusion-v1-5',
@@ -56,16 +58,18 @@ class HFDreamBoothDataset(Dataset):
                      device='cuda',
                  ),
                  class_prompt: Optional[str] = None,
-                 pipeline: Sequence = ()):
+                 pipeline: Sequence = (),
+                 cache_dir: Optional[str] = None):
 
         if Path(dataset).exists():
             # load local folder
             data_files = {}
             data_files['train'] = '**'
-            self.dataset = load_dataset(dataset, data_files)['train']
+            self.dataset = load_dataset(
+                dataset, data_files, cache_dir=cache_dir)['train']
         else:
             # load huggingface online
-            self.dataset = load_dataset(dataset)['train']
+            self.dataset = load_dataset(dataset, cache_dir=cache_dir)['train']
         self.pipeline = Compose(pipeline)
 
         self.instance_prompt = instance_prompt

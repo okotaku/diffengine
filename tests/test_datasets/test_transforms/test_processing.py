@@ -69,7 +69,7 @@ class TestVisionTransformWrapper(TestCase):
 
         pipeline_cfg = [
             dict(type='torchvision/Resize', size=176),
-            dict(type='torchvision/RandomHorizontalFlip'),
+            dict(type='RandomHorizontalFlip'),
             dict(type='torchvision/PILToTensor'),
             dict(type='torchvision/ConvertImageDtype', dtype='float'),
             dict(
@@ -117,19 +117,18 @@ class TestComputeTimeIds(TestCase):
                              [32, 32, 0, 0, img.height, img.width])
 
 
-class TestRandomCropWithCropPoint(TestCase):
+class TestRandomCrop(TestCase):
     crop_size = 32
 
     def test_register(self):
-        self.assertIn('RandomCropWithCropPoint', TRANSFORMS)
+        self.assertIn('RandomCrop', TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), '../../testdata/color.jpg')
         data = {'img': Image.open(img_path)}
 
         # test transform
-        trans = TRANSFORMS.build(
-            dict(type='RandomCropWithCropPoint', size=self.crop_size))
+        trans = TRANSFORMS.build(dict(type='RandomCrop', size=self.crop_size))
         data = trans(data)
         self.assertIn('crop_top_left', data)
         assert len(data['crop_top_left']) == 2
@@ -142,20 +141,45 @@ class TestRandomCropWithCropPoint(TestCase):
             np.array(data['img']),
             np.array(Image.open(img_path).crop((left, upper, right, lower))))
 
+    def test_transform_multiple_keys(self):
+        img_path = osp.join(osp.dirname(__file__), '../../testdata/color.jpg')
+        data = {
+            'img': Image.open(img_path),
+            'condition_img': Image.open(img_path)
+        }
 
-class TestCenterCropWithCropPoint(TestCase):
+        # test transform
+        trans = TRANSFORMS.build(
+            dict(
+                type='RandomCrop',
+                size=self.crop_size,
+                keys=['img', 'condition_img']))
+        data = trans(data)
+        self.assertIn('crop_top_left', data)
+        assert len(data['crop_top_left']) == 2
+        assert data['img'].height == data['img'].width == self.crop_size
+        upper, left = data['crop_top_left']
+        lower, right = data['crop_bottom_right']
+        assert lower == upper + self.crop_size
+        assert right == left + self.crop_size
+        np.equal(
+            np.array(data['img']),
+            np.array(Image.open(img_path).crop((left, upper, right, lower))))
+        np.equal(np.array(data['img']), np.array(data['condition_img']))
+
+
+class TestCenterCrop(TestCase):
     crop_size = 32
 
     def test_register(self):
-        self.assertIn('CenterCropWithCropPoint', TRANSFORMS)
+        self.assertIn('CenterCrop', TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), '../../testdata/color.jpg')
         data = {'img': Image.open(img_path)}
 
         # test transform
-        trans = TRANSFORMS.build(
-            dict(type='CenterCropWithCropPoint', size=self.crop_size))
+        trans = TRANSFORMS.build(dict(type='CenterCrop', size=self.crop_size))
         data = trans(data)
         self.assertIn('crop_top_left', data)
         assert len(data['crop_top_left']) == 2
@@ -168,11 +192,37 @@ class TestCenterCropWithCropPoint(TestCase):
             np.array(data['img']),
             np.array(Image.open(img_path).crop((left, upper, right, lower))))
 
+    def test_transform_multiple_keys(self):
+        img_path = osp.join(osp.dirname(__file__), '../../testdata/color.jpg')
+        data = {
+            'img': Image.open(img_path),
+            'condition_img': Image.open(img_path)
+        }
 
-class TestRandomHorizontalFlipFixCropPoint(TestCase):
+        # test transform
+        trans = TRANSFORMS.build(
+            dict(
+                type='CenterCrop',
+                size=self.crop_size,
+                keys=['img', 'condition_img']))
+        data = trans(data)
+        self.assertIn('crop_top_left', data)
+        assert len(data['crop_top_left']) == 2
+        assert data['img'].height == data['img'].width == self.crop_size
+        upper, left = data['crop_top_left']
+        lower, right = data['crop_bottom_right']
+        assert lower == upper + self.crop_size
+        assert right == left + self.crop_size
+        np.equal(
+            np.array(data['img']),
+            np.array(Image.open(img_path).crop((left, upper, right, lower))))
+        np.equal(np.array(data['img']), np.array(data['condition_img']))
+
+
+class TestRandomHorizontalFlip(TestCase):
 
     def test_register(self):
-        self.assertIn('RandomHorizontalFlipFixCropPoint', TRANSFORMS)
+        self.assertIn('RandomHorizontalFlip', TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), '../../testdata/color.jpg')
@@ -183,8 +233,7 @@ class TestRandomHorizontalFlipFixCropPoint(TestCase):
         }
 
         # test transform
-        trans = TRANSFORMS.build(
-            dict(type='RandomHorizontalFlipFixCropPoint', p=1.))
+        trans = TRANSFORMS.build(dict(type='RandomHorizontalFlip', p=1.))
         data = trans(data)
         self.assertIn('crop_top_left', data)
         assert len(data['crop_top_left']) == 2
@@ -201,10 +250,35 @@ class TestRandomHorizontalFlipFixCropPoint(TestCase):
             'crop_top_left': [0, 0],
             'crop_bottom_right': [10, 10]
         }
-        trans = TRANSFORMS.build(
-            dict(type='RandomHorizontalFlipFixCropPoint', p=0.))
+        trans = TRANSFORMS.build(dict(type='RandomHorizontalFlip', p=0.))
         data = trans(data)
         self.assertIn('crop_top_left', data)
         self.assertListEqual(data['crop_top_left'], [0, 0])
 
         np.equal(np.array(data['img']), np.array(Image.open(img_path)))
+
+    def test_transform_multiple_keys(self):
+        img_path = osp.join(osp.dirname(__file__), '../../testdata/color.jpg')
+        data = {
+            'img': Image.open(img_path),
+            'condition_img': Image.open(img_path),
+            'crop_top_left': [0, 0],
+            'crop_bottom_right': [10, 10]
+        }
+
+        # test transform
+        trans = TRANSFORMS.build(
+            dict(
+                type='RandomHorizontalFlip',
+                p=1.,
+                keys=['img', 'condition_img']))
+        data = trans(data)
+        self.assertIn('crop_top_left', data)
+        assert len(data['crop_top_left']) == 2
+        self.assertListEqual(data['crop_top_left'],
+                             [0, data['img'].width - 10])
+
+        np.equal(
+            np.array(data['img']),
+            np.array(Image.open(img_path).transpose(Image.FLIP_LEFT_RIGHT)))
+        np.equal(np.array(data['img']), np.array(data['condition_img']))

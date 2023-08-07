@@ -50,7 +50,7 @@ image = pipe(
 image.save('demo.png')
 ```
 
-You can see more details on [Run Stable Diffusion docs](../../docs/source/run_guides/run_sd.md#inference-with-diffusers).
+You can see more details on [`docs/source/run_guides/run_sd.md`](../../docs/source/run_guides/run_sd.md#inference-with-diffusers).
 
 ## Results Example
 
