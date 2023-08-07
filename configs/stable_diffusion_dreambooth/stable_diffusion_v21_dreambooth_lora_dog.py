@@ -13,4 +13,7 @@ train_pipeline = [
     dict(type='torchvision/Normalize', mean=[0.5], std=[0.5]),
     dict(type='PackInputs'),
 ]
-train_dataloader = dict(dataset=dict(pipeline=train_pipeline), )
+train_dataloader = dict(
+    dataset=dict(
+        class_image_config=dict(model={{_base_.model.model}}, ),
+        pipeline=train_pipeline))
