@@ -1,6 +1,7 @@
 import copy
 import hashlib
 import random
+import shutil
 from pathlib import Path
 from typing import Optional, Sequence
 
@@ -33,7 +34,9 @@ class HFDreamBoothDataset(Dataset):
             num_images (int): Minimal class images for prior preservation
                 loss. If there are not enough images already present in
                 class_data_dir, additional images will be sampled with
-                class_prompt.
+                class_prompt. Defaults to 200.
+            recreate_class_images (bool): Whether to re create all class
+                images. Defaults to True.
         class_prompt (Optional[str]): The prompt to specify images in the same
                 class as provided instance images. Defaults to None.
         pipeline (Sequence): Processing pipeline. Defaults to an empty tuple.
@@ -45,6 +48,7 @@ class HFDreamBoothDataset(Dataset):
         data_dir='work_dirs/class_image',
         num_images=200,
         device='cuda',
+        recreate_class_images=True,
     )
 
     def __init__(self,
@@ -56,6 +60,7 @@ class HFDreamBoothDataset(Dataset):
                      data_dir='work_dirs/class_image',
                      num_images=200,
                      device='cuda',
+                     recreate_class_images=True,
                  ),
                  class_prompt: Optional[str] = None,
                  pipeline: Sequence = (),
@@ -78,7 +83,10 @@ class HFDreamBoothDataset(Dataset):
 
         # generate class image
         if class_prompt is not None:
-            essential_keys = {'model', 'data_dir', 'num_images', 'device'}
+            essential_keys = {
+                'model', 'data_dir', 'num_images', 'device',
+                'recreate_class_images'
+            }
             _class_image_config = copy.deepcopy(
                 self.default_class_image_config)
             _class_image_config.update(class_image_config)
@@ -93,6 +101,9 @@ class HFDreamBoothDataset(Dataset):
 
     def generate_class_image(self, class_image_config):
         class_images_dir = Path(class_image_config['data_dir'])
+        if class_images_dir.exists(
+        ) and class_image_config['recreate_class_images']:
+            shutil.rmtree(class_images_dir)
         class_images_dir.mkdir(parents=True, exist_ok=True)
         cur_class_images = list(class_images_dir.iterdir())
         num_cur_images = len(cur_class_images)

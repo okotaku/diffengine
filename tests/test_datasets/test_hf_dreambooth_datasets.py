@@ -40,6 +40,7 @@ class TestHFDreamBoothDataset(RunnerTestCase):
                 data_dir='temp_dir/class_image',
                 num_images=1,
                 device='cpu',
+                recreate_class_images=True,
             ),
             pipeline=[
                 dict(type='PackInputs', skip_to_tensor_key=['img', 'text'])
