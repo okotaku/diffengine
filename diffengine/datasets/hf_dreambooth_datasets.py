@@ -101,7 +101,8 @@ class HFDreamBoothDataset(Dataset):
 
     def generate_class_image(self, class_image_config):
         class_images_dir = Path(class_image_config['data_dir'])
-        if class_image_config['recreate_class_images']:
+        if class_images_dir.exists(
+        ) and class_image_config['recreate_class_images']:
             shutil.rmtree(class_images_dir)
         class_images_dir.mkdir(parents=True, exist_ok=True)
         cur_class_images = list(class_images_dir.iterdir())
