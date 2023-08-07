@@ -89,6 +89,6 @@ $ mim run diffengine demo_controlnet "cyan circle with brown floral background" 
 
 ![input1](https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg)
 
-![example1](https://github.com/okotaku/diffengine/assets/24734142/9cac6847-43d9-4816-a2e0-2ce08f79557b)
+![example1](https://github.com/okotaku/diffengine/assets/24734142/a14cc9a6-3a40-4577-bd5a-2ddbab60970d)
 
 You can check [`configs/stable_diffusion_controlnet/README.md`](../../../configs/stable_diffusion_controlnet/README.md#results-example) for more deitals.

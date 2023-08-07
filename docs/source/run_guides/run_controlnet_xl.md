@@ -65,7 +65,7 @@ import torch
 from diffusers import StableDiffusionXLControlNetPipeline, ControlNetModel, AutoencoderKL
 from diffusers.utils import load_image
 
-checkpoint = 'work_dirs/stable_diffusion_xl_controlnet_fill50k/step6250'
+checkpoint = 'work_dirs/stable_diffusion_xl_controlnet_fill50k/step25000'
 prompt = 'cyan circle with brown floral background'
 condition_image = load_image(
     'https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg'
@@ -93,9 +93,9 @@ image.save('demo.png')
 We also provide inference demo scripts, it can run with `--use_sdxl`:
 
 ```
-$ mim run diffengine demo_controlnet ${PROMPT} ${CONDITION_IMAGE} ${CHECKPOINT} --use_sdxl
+$ mim run diffengine demo_controlnet ${PROMPT} ${CONDITION_IMAGE} ${CHECKPOINT} --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --use_sdxl
 # Example
-$ mim run diffengine demo_controlnet "cyan circle with brown floral background" https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg work_dirs/stable_diffusion_xl_controlnet_fill50k/step6250 --use_sdxl
+$ mim run diffengine demo_controlnet "cyan circle with brown floral background" https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg work_dirs/stable_diffusion_xl_controlnet_fill50k/step25000 --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --use_sdxl
 ```
 
 ## Results Example
@@ -104,6 +104,6 @@ $ mim run diffengine demo_controlnet "cyan circle with brown floral background" 
 
 ![input1](https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg)
 
-![example1]()
+![example1](https://github.com/okotaku/diffengine/assets/24734142/a331a413-a9e7-4b9a-aa75-72279c4cc77a)
 
 You can check [`configs/stable_diffusion_xl_controlnet/README.md`](../../../configs/stable_diffusion_xl_controlnet/README.md#results-example) for more deitals.

@@ -23,7 +23,6 @@ train_dataloader = dict(
         dataset='fusing/fill50k',
         condition_column='conditioning_image',
         caption_column='text',
-        cache_dir='/workspace/cache_dir',
         pipeline=train_pipeline),
     sampler=dict(type='DefaultSampler', shuffle=True),
 )

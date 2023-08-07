@@ -38,6 +38,7 @@ def main():
         controlnet_cls = StableDiffusionXLControlNetPipeline
     else:
         controlnet_cls = StableDiffusionControlNetPipeline
+    print(controlnet_cls)
     if args.vaemodel is not None:
         vae = AutoencoderKL.from_pretrained(
             args.vaemodel,
@@ -57,11 +58,19 @@ def main():
             safety_checker=None)
     pipe.to(args.device)
 
-    image = pipe(
-        args.prompt,
-        load_image(args.condition_image),
-        num_inference_steps=50,
-    ).images[0]
+    if args.use_sdxl:
+        image = pipe(
+            args.prompt,
+            args.prompt,
+            load_image(args.condition_image),
+            num_inference_steps=50,
+        ).images[0]
+    else:
+        image = pipe(
+            args.prompt,
+            load_image(args.condition_image),
+            num_inference_steps=50,
+        ).images[0]
     image.save(args.out)
 
 

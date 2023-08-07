@@ -74,15 +74,13 @@ You can see more details on [`docs/source/run_guides/run_controlnet.md`](../../d
 
 ![input1](https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg)
 
-![example1](https://github.com/okotaku/diffengine/assets/24734142/9cac6847-43d9-4816-a2e0-2ce08f79557b)
+![example1](https://github.com/okotaku/diffengine/assets/24734142/a14cc9a6-3a40-4577-bd5a-2ddbab60970d)
 
 #### stable_diffusion_v15_controlnet_face_spiga
 
 ![input2](https://datasets-server.huggingface.co/assets/multimodalart/facesyntheticsspigacaptioned/--/multimodalart--facesyntheticsspigacaptioned/train/1/spiga_seg/image.jpg)
 
-![example2](https://github.com/okotaku/diffengine/assets/24734142/bd6a047b-c165-4217-bf07-5a0629bbb4ad)
-
-Note that 3 epochs training is not enough.
+![example2](https://github.com/okotaku/diffengine/assets/24734142/172b7c7a-a5a0-493a-8bcf-2d6491f44f90)
 
 ## Acknowledgement
 

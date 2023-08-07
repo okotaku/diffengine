@@ -46,7 +46,7 @@ import torch
 from diffusers import StableDiffusionXLControlNetPipeline, ControlNetModel, AutoencoderKL
 from diffusers.utils import load_image
 
-checkpoint = 'work_dirs/stable_diffusion_xl_controlnet_fill50k/step6250'
+checkpoint = 'work_dirs/stable_diffusion_xl_controlnet_fill50k/step25000'
 prompt = 'cyan circle with brown floral background'
 condition_image = load_image(
     'https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg'
@@ -79,7 +79,9 @@ You can see more details on [`docs/source/run_guides/run_controlnet_xl.md`](../.
 
 ![input1](https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg)
 
-![example1](<>)
+![example1](https://github.com/okotaku/diffengine/assets/24734142/a331a413-a9e7-4b9a-aa75-72279c4cc77a)
+
+Note that some of the results are not good. We should attempt further tuning.
 
 ## Acknowledgement
 
