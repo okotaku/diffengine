@@ -99,30 +99,30 @@ For a more hands-on introduction to DiffEngine, you can refer to the [Example No
 
 ## 📘 Documentation [🔝](#-table-of-contents)
 
-For detailed user guides and advanced guides, please refer to our [Documentation](docs/source/):
+For detailed user guides and advanced guides, please refer to our [Documentation](https://diffengine.readthedocs.io/en/latest/):
 
-- [Get Started](docs/source/get_started.md) for get started.
+- [Get Started](https://diffengine.readthedocs.io/en/latest/get_started.html) for get started.
 
 <details>
 <summary>Run Guides</summary>
 
-- [Run Stable Diffusion](docs/source/run_guides/run_sd.md)
-- [Run Stable Diffusion XL](docs/source/run_guides/run_sdxl.md)
-- [Run Stable Diffusion DreamBooth](docs/source/run_guides/run_dreambooth.md)
-- [Run Stable Diffusion XL DreamBooth](docs/source/run_guides/run_dreambooth_xl.md)
-- [Run Stable Diffusion LoRA](docs/source/run_guides/run_lora.md)
-- [Run Stable Diffusion XL LoRA](docs/source/run_guides/run_lora_xl.md)
-- [Run Stable Diffusion ControlNet](docs/source/run_guides/run_controlnet.md)
-- [Run Stable Diffusion XL ControlNet](docs/source/run_guides/run_controlnet_xl.md)
-- [Inference](docs/source/run_guides/inference.md)
+- [Run Stable Diffusion](https://diffengine.readthedocs.io/en/latest/run_guides/run_sd.html)
+- [Run Stable Diffusion XL](https://diffengine.readthedocs.io/en/latest/run_guides/run_sdxl.html)
+- [Run Stable Diffusion DreamBooth](https://diffengine.readthedocs.io/en/latest/run_guides/run_dreambooth.html)
+- [Run Stable Diffusion XL DreamBooth](https://diffengine.readthedocs.io/en/latest/run_guides/run_dreambooth_xl.html)
+- [Run Stable Diffusion LoRA](https://diffengine.readthedocs.io/en/latest/run_guides/run_lora.html)
+- [Run Stable Diffusion XL LoRA](https://diffengine.readthedocs.io/en/latest/run_guides/run_lora_xl.html)
+- [Run Stable Diffusion ControlNet](https://diffengine.readthedocs.io/en/latest/run_guides/run_controlnet.html)
+- [Run Stable Diffusion XL ControlNet](https://diffengine.readthedocs.io/en/latest/run_guides/run_controlnet_xl.html)
+- [Inference](https://diffengine.readthedocs.io/en/latest/run_guides/inference.html)
 
 </details>
 
 <details>
 <summary>User Guides</summary>
 
-- [Learn About Config](docs/source/user_guides/config.md)
-- [Prepare Dataset](docs/source/user_guides/dataset_prepare.md)
+- [Learn About Config](https://diffengine.readthedocs.io/en/latest/user_guides/config.html)
+- [Prepare Dataset](https://diffengine.readthedocs.io/en/latest/user_guides/dataset_prepare.html)
 
 </details>
 
