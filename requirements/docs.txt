@@ -3,6 +3,7 @@ modelindex
 myst-parser
 git+https://github.com/mzr1996/pytorch_sphinx_theme.git#egg=pytorch_sphinx_theme
 sphinx==6.1.3
+sphinx-autodoc-typehints
 sphinx-copybutton
 sphinx-notfound-page
 sphinx-rtd-theme
