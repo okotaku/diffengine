@@ -5,6 +5,7 @@ git+https://github.com/mzr1996/pytorch_sphinx_theme.git#egg=pytorch_sphinx_theme
 sphinx==6.1.3
 sphinx-copybutton
 sphinx-notfound-page
+sphinx-rtd-theme
 sphinx-tabs
 sphinxcontrib-jquery
 tabulate
