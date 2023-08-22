@@ -35,9 +35,16 @@ release = '2023'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'sphinx_autodoc_typehints',
-    'sphinx.ext.viewcode'
-]
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.viewcode',
+    'myst_parser',
+    'sphinx_copybutton',
+    'sphinx.ext.autodoc.typehints',
+    'sphinx_tabs.tabs',
+]  # yapf: disable
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
