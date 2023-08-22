@@ -46,6 +46,10 @@ extensions = [
     'sphinx_tabs.tabs',
 ]  # yapf: disable
 
+autodoc_typehints = 'description'
+myst_heading_anchors = 4
+myst_enable_extensions = ['colon_fence']
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
