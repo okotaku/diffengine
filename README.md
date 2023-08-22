@@ -1,9 +1,11 @@
 # DiffEngine
 
 [![build](https://github.com/okotaku/diffengine/actions/workflows/build.yml/badge.svg)](https://github.com/okotaku/diffengine/actions/workflows/build.yml)
+[![Docs](https://img.shields.io/badge/docs-latest-blue)](https://diffengine.readthedocs.io/en/latest/)
 [![license](https://img.shields.io/github/license/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/blob/main/LICENSE)
 [![open issues](https://isitmaintained.com/badge/open/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/issues)
 
+[📘 Documentation](https://diffengine.readthedocs.io/en/latest/) |
 [🤔 Reporting Issues](https://github.com/okotaku/diffengine/issues/new/choose)
 
 ## 📄 Table of Contents
