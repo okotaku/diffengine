@@ -73,7 +73,7 @@ An illustrative output example is provided below:
 
 ![img](https://github.com/okotaku/diffengine/assets/24734142/e4576779-e05f-42d0-a709-d6481eea87a9)
 
-4. **Inference with diffusers.piptline**: Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
+4. **Inference with diffusers.pipeline**: Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 ```py
 import torch
