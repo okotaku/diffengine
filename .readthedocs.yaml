@@ -13,4 +13,5 @@ formats:
 
 python:
    install:
+     - requirements: requirements/readthedocs.txt
      - requirements: requirements/docs.txt

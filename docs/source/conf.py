@@ -29,6 +29,18 @@ author = 'diffengine Contributors'
 # The full version, including alpha/beta/rc tags
 release = '2023'
 
+# The full version, including alpha/beta/rc tags
+version_file = '../../diffengine/version.py'
+
+
+def get_version():
+    with open(version_file, 'r') as f:
+        exec(compile(f.read(), version_file, 'exec'))
+    return locals()['__version__']
+
+
+release = get_version()
+
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
