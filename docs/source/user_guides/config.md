@@ -200,4 +200,4 @@ train_dataloader = dict(
 
 ## Acknowledgement
 
-This content refers to [mmpretrain docs: LEARN ABOUT CONFIGS](https://mmpretrain.readthedocs.io/en/latest/user_guides/config.html). Thank you for the greate docs.
+This content refers to [mmpretrain docs: LEARN ABOUT CONFIGS](https://mmpretrain.readthedocs.io/en/latest/user_guides/config.html). Thank you for the great docs.
