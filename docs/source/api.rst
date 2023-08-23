@@ -70,6 +70,16 @@ Datasets
    HFControlNetDataset
    HFDreamBoothDataset
 
+diffengine.datasets.transforms
+===================================
+
+.. contents:: diffengine.datasets.transforms
+   :depth: 2
+   :local:
+   :backlinks: top
+
+.. currentmodule:: diffengine.datasets.transforms
+
 Transforms
 ----------------
 
@@ -78,6 +88,7 @@ Transforms
    :nosignatures:
    :template: classtemplate.rst
 
+   BaseTransform
    PackInputs
    SaveImageShape
    RandomCrop
