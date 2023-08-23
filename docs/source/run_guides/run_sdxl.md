@@ -152,4 +152,4 @@ Todo
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/dd04fb22-64fb-4c4f-8164-b8391d94abab)
 
-You can check [`configs/stable_diffusion_xl/README.md`](../../../configs/stable_diffusion_xl/README.md#results-example) for more deitals.
+You can check [`configs/stable_diffusion_xl/README.md`](../../../configs/stable_diffusion_xl/README.md#results-example) for more details.
