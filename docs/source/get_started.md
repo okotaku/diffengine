@@ -46,7 +46,9 @@ An illustrative output example is provided below:
 
 ## Example Notebook
 
-For a more hands-on introduction to DiffEngine, you can refer to the [Example Notebook](examples/example-dreambooth.ipynb) provided in the repository. This notebook demonstrates the process of training using SDV1.5 and SDV2.1 DreamBooth configurations.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/gist/okotaku/cfca8baf57938f193c212dcb43c02fac/diffengine-example.ipynb)
+
+For a more hands-on introduction to DiffEngine, you can run the Example Notebook on Colaboratory. This notebook demonstrates the process of training using SDV1.5 and SDV2.1 DreamBooth configurations.
 
 # Docker
 

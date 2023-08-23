@@ -4,6 +4,7 @@
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://diffengine.readthedocs.io/en/latest/)
 [![license](https://img.shields.io/github/license/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/blob/main/LICENSE)
 [![open issues](https://isitmaintained.com/badge/open/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/issues)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/gist/okotaku/cfca8baf57938f193c212dcb43c02fac/diffengine-example.ipynb)
 
 [📘 Documentation](https://diffengine.readthedocs.io/en/latest/) |
 [🤔 Reporting Issues](https://github.com/okotaku/diffengine/issues/new/choose)
@@ -72,7 +73,7 @@ An illustrative output example is provided below:
 
 ![img](https://github.com/okotaku/diffengine/assets/24734142/e4576779-e05f-42d0-a709-d6481eea87a9)
 
-4. **Inference with diffusers.piptline**: Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
+4. **Inference with diffusers.pipeline**: Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 ```py
 import torch
@@ -95,7 +96,9 @@ image.save('demo.png')
 
 ## 🖋 Example Notebook [🔝](#-table-of-contents)
 
-For a more hands-on introduction to DiffEngine, you can refer to the [Example Notebook](examples/example-dreambooth.ipynb) provided in the repository. This notebook demonstrates the process of training using SDV1.5 and SDV2.1 DreamBooth configurations.
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/gist/okotaku/cfca8baf57938f193c212dcb43c02fac/diffengine-example.ipynb)
+
+For a more hands-on introduction to DiffEngine, you can run the Example Notebook on Colaboratory. This notebook demonstrates the process of training using SDV1.5 and SDV2.1 DreamBooth configurations.
 
 ## 📘 Documentation [🔝](#-table-of-contents)
 
