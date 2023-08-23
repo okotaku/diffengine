@@ -9,7 +9,7 @@ diffengine.models
    :local:
    :backlinks: top
 
-.. currentmodule:: diffengine.model
+.. currentmodule:: diffengine.models
 
 Editors
 ----------------
