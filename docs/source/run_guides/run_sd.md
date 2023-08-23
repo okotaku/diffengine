@@ -181,4 +181,4 @@ $ mim run diffengine demo "yoda pokemon" work_dirs/stable_diffusion_v15_textenco
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/24d5254d-95be-46eb-8982-b38b6a11f1ba)
 
-You can check [`configs/stable_diffusion/README.md`](../../../configs/stable_diffusion/README.md#results-example) for more deitals.
+You can check [`configs/stable_diffusion/README.md`](../../../configs/stable_diffusion/README.md#results-example) for more details.

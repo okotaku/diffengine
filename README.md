@@ -24,7 +24,7 @@
 
 DiffEngine is the open-source toolbox for training state-of-the-art Diffusion Models. Packed with advanced features including diffusers and MMEngine, DiffEngine empowers both seasoned experts and newcomers in the field to efficiently create and enhance diffusion models. Stay at the forefront of innovation with our cutting-edge platform, accelerating your journey in Diffusion Models training.
 
-1. **Training state-of-the-art Diffusion Models**: Empower your projects with state-of-the-art Diffusion Models. We can use Stable Diffuxion, Stable Diffuxion XL, DreamBooth, LoRA etc.
+1. **Training state-of-the-art Diffusion Models**: Empower your projects with state-of-the-art Diffusion Models. We can use Stable Diffusion, Stable Diffusion XL, DreamBooth, LoRA etc.
 2. **Unified Config System and Module Designs**: Thanks to MMEngine, our platform boasts a unified configuration system and modular designs that streamline your workflow. Easily customize hyperparameters, loss functions, and other crucial settings while maintaining a structured and organized project environment.
 3. **Inference with diffusers.pipeline**: Seamlessly transition from training to real-world application using the diffusers.pipeline module. Effortlessly deploy your trained Diffusion Models for inference tasks, enabling quick and efficient decision-making based on the insights derived from your models.
 
@@ -51,7 +51,7 @@ DiffEngine makes training easy through its pre-defined configs. These configs pr
 mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
 ```
 
-3. **Monitor Progress and get resutls**: The training process will begin, and you will monitor the progress of your training as it proceeds. The outputs of training will be located in the `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` directory, specifically in the case of using the `stable_diffusion_v15_dreambooth_lora_dog` config.
+3. **Monitor Progress and get results**: The training process will begin, and you will monitor the progress of your training as it proceeds. The outputs of training will be located in the `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` directory, specifically in the case of using the `stable_diffusion_v15_dreambooth_lora_dog` config.
 
 ```
 work_dirs/stable_diffusion_v15_dreambooth_lora_dog

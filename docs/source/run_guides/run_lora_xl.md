@@ -96,4 +96,4 @@ $ mim run diffengine demo_lora "yoda pokemon" work_dirs/stable_diffusion_xl_lora
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/22d1f3c0-05d8-413f-b0ac-d6bb72283945)
 
-You can check [`configs/stable_diffusion_xl_lora/README.md`](../../../configs/stable_diffusion_xl_lora/README.md#results-example) for more deitals.
+You can check [`configs/stable_diffusion_xl_lora/README.md`](../../../configs/stable_diffusion_xl_lora/README.md#results-example) for more details.

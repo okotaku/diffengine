@@ -91,4 +91,4 @@ $ mim run diffengine demo_controlnet "cyan circle with brown floral background" 
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/a14cc9a6-3a40-4577-bd5a-2ddbab60970d)
 
-You can check [`configs/stable_diffusion_controlnet/README.md`](../../../configs/stable_diffusion_controlnet/README.md#results-example) for more deitals.
+You can check [`configs/stable_diffusion_controlnet/README.md`](../../../configs/stable_diffusion_controlnet/README.md#results-example) for more details.
