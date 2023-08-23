@@ -23,7 +23,7 @@ DiffEngine makes training easy through its pre-defined configs. These configs pr
 mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
 ```
 
-3. **Monitor Progress and get resutls**: The training process will begin, and you will see output similar to the provided example. You can monitor the progress of your training as it proceeds. The outputs of training is in `work_dirs/${CONFIG_NAME}`, `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` in this case.
+3. **Monitor Progress and get results**: The training process will begin, and you will see output similar to the provided example. You can monitor the progress of your training as it proceeds. The outputs of training is in `work_dirs/${CONFIG_NAME}`, `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` in this case.
 
 ```
 work_dirs/stable_diffusion_v15_dreambooth_lora_dog
@@ -50,7 +50,7 @@ For a more hands-on introduction to DiffEngine, you can refer to the [Example No
 
 # Docker
 
-Below are quick steps for installation and run dreambooh training by docker:
+Below are quick steps for installation and run dreambooth training by docker:
 
 ```
 git clone https://github.com/okotaku/diffengine
