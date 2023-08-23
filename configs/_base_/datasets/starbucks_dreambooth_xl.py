@@ -32,5 +32,4 @@ custom_hooks = [
         by_epoch=False,
         interval=100),
     dict(type='LoRASaveHook'),
-    dict(type='UnetEMAHook', momentum=1e-4, priority='ABOVE_NORMAL')
 ]
