@@ -114,4 +114,4 @@ You can check [inference docs](inference.md) for inferencing other settings like
 
 ![exampledog](https://github.com/okotaku/diffengine/assets/24734142/ae1e4072-d2a3-445a-b11f-23d1f178a029)
 
-You can check [`configs/stable_diffusion_xl_dreambooth/README.md`](../../../configs/stable_diffusion_xl_dreambooth/README.md#results-example) for more deitals.
+You can check [`configs/stable_diffusion_xl_dreambooth/README.md`](../../../configs/stable_diffusion_xl_dreambooth/README.md#results-example) for more details.
