@@ -78,7 +78,6 @@ Transforms
    :nosignatures:
    :template: classtemplate.rst
 
-   BaseTransform
    PackInputs
    SaveImageShape
    RandomCrop
