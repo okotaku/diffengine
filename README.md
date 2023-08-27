@@ -44,15 +44,15 @@ pip install git+https://github.com/okotaku/diffengine.git
 
 DiffEngine makes training easy through its pre-defined configs. These configs provide a streamlined way to start your training process. Here's how you can get started using one of the pre-defined configs:
 
-1. **Choose a config**: You can find various pre-defined configs in the [`configs`](configs/) directory of the DiffEngine repository. For example, if you're interested in training a model for DreamBooth using the Stable Diffusion algorithm, you can use the [`configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py`](configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py).
+1. **Choose a config**: You can find various pre-defined configs in the [`configs`](configs/) directory of the DiffEngine repository. For example, if you wish to train a DreamBooth model using the Stable Diffusion algorithm, you can use the [`configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py`](configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py).
 
-2. **Start Training**: Open a terminal and use the following command to start training with the chosen config:
+2. **Start Training**: Open a terminal and run the following command to start training with the selected config:
 
 ```bash
 mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
 ```
 
-3. **Monitor Progress and get results**: The training process will begin, and you will monitor the progress of your training as it proceeds. The outputs of training will be located in the `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` directory, specifically in the case of using the `stable_diffusion_v15_dreambooth_lora_dog` config.
+3. **Monitor Progress and get results**: The training process will begin, and you can track its progress. The outputs of the training will be located in the `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` directory, specifically when using the `stable_diffusion_v15_dreambooth_lora_dog` config.
 
 ```
 work_dirs/stable_diffusion_v15_dreambooth_lora_dog
@@ -73,7 +73,7 @@ An illustrative output example is provided below:
 
 ![img](https://github.com/okotaku/diffengine/assets/24734142/e4576779-e05f-42d0-a709-d6481eea87a9)
 
-4. **Inference with diffusers.pipeline**: Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
+4. **Inference with diffusers.pipeline**: Once you have trained a model, simply specify the path to the saved model and inference by the `diffusers.pipeline` module.
 
 ```py
 import torch
