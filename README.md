@@ -62,9 +62,9 @@ work_dirs/stable_diffusion_v15_dreambooth_lora_dog
 |         ├── 20230802_033741.json  # log json file
 |         ├── config.py  # config file for each experiment
 |         └── vis_image  # visualized image from each step
-├── step1199
+├── step999
 |   └── pytorch_lora_weights.bin  # weight for inferencing with diffusers.pipeline
-├── iter_1200.pth  # checkpoint from each step
+├── iter_1000.pth  # checkpoint from each step
 ├── last_checkpoint  # last checkpoint, it can be used for resuming
 └── stable_diffusion_v15_dreambooth_lora_dog.py  # latest config file
 ```
@@ -79,8 +79,8 @@ An illustrative output example is provided below:
 import torch
 from diffusers import DiffusionPipeline
 
-checkpoint = 'work_dirs/stable_diffusion_v15_lora_pokemon_blip/step10450'
-prompt = 'yoda pokemon'
+checkpoint = 'work_dirs/stable_diffusion_v15_dreambooth_lora_dog/step999'
+prompt = 'A photo of sks dog in a bucket'
 
 pipe = DiffusionPipeline.from_pretrained(
     'runwayml/stable-diffusion-v1-5', torch_dtype=torch.float16)
