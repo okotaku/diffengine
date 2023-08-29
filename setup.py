@@ -164,9 +164,11 @@ if __name__ == '__main__':
         description='diffengine',
         long_description=readme(),
         long_description_content_type='text/markdown',
-        keywords='computer vision, image classification',
+        keywords='computer vision, deep learning, diffusion, stable diffusion,'
+        ' pytorch',
         packages=find_packages(
-            exclude=('configs', 'tools', 'demo', 'work_dirs', 'examples')),
+            exclude=('configs', 'tools', 'demo', 'work_dirs', 'examples',
+                     'data')),
         include_package_data=True,
         url='',
         author='diffengine Contributors',
