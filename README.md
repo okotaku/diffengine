@@ -24,6 +24,7 @@ DiffEngine is the toolbox for training state-of-the-art Diffusion Models with Di
 - [🙌 Contributing](#-contributing-)
 - [🎫 License](#-license-)
 - [🖊️ Citation](#-citation-)
+- [💻 Sponsors](#-sponsors-)
 - [🤝 Acknowledgement](#-acknowledgement-)
 
 ## 📖 Introduction [🔝](#-table-of-contents)
@@ -154,6 +155,10 @@ If DiffEngine is helpful to your research, please cite it as below.
     year = {2023}
 }
 ```
+
+## 💻 Sponsors
+
+[takuoko](https://github.com/okotaku) is a member of Z by HP Data Science Global Ambassadors. Special Thanks to Z by HP for sponsoring me a Z8G4 Workstation with dual A6000 GPU and a ZBook with RTX5000 GPU.
 
 ## 🤝 Acknowledgement [🔝](#-table-of-contents)
 
