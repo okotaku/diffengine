@@ -3,6 +3,8 @@
   <div>&nbsp;</div>
 </div>
 
+DiffEngine is the open-source toolbox for training state-of-the-art Diffusion Models. The logo is created by [Ideogram](https://ideogram.ai/).
+
 [![build](https://github.com/okotaku/diffengine/actions/workflows/build.yml/badge.svg)](https://github.com/okotaku/diffengine/actions/workflows/build.yml)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://diffengine.readthedocs.io/en/latest/)
 [![license](https://img.shields.io/github/license/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/blob/main/LICENSE)
