@@ -1,9 +1,4 @@
-<div align="center">
-  <img src="https://github.com/okotaku/diffengine/assets/24734142/fdb24d49-3a0f-4364-aded-06c49815eb3a" width="600"/>
-  <div>&nbsp;</div>
-</div>
-
-DiffEngine is the toolbox for training state-of-the-art Diffusion Models with Diffusers and MMEngine. The logo was created by [Ideogram](https://ideogram.ai/).
+# DiffEngine
 
 [![build](https://github.com/okotaku/diffengine/actions/workflows/build.yml/badge.svg)](https://github.com/okotaku/diffengine/actions/workflows/build.yml)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://diffengine.readthedocs.io/en/latest/)
