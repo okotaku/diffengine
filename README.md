@@ -3,7 +3,7 @@
   <div>&nbsp;</div>
 </div>
 
-DiffEngine is the toolbox for training state-of-the-art Diffusion Models with Diffusers and MMEngine. The logo is created by [Ideogram](https://ideogram.ai/).
+DiffEngine is the toolbox for training state-of-the-art Diffusion Models with Diffusers and MMEngine. The logo was created by [Ideogram](https://ideogram.ai/).
 
 [![build](https://github.com/okotaku/diffengine/actions/workflows/build.yml/badge.svg)](https://github.com/okotaku/diffengine/actions/workflows/build.yml)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://diffengine.readthedocs.io/en/latest/)
