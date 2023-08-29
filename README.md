@@ -5,12 +5,16 @@
 
 DiffEngine is the toolbox for training state-of-the-art Diffusion Models with Diffusers and MMEngine. The logo was created by [Ideogram](https://ideogram.ai/).
 
+<div id="shields" align="center">
+
 [![build](https://github.com/okotaku/diffengine/actions/workflows/build.yml/badge.svg)](https://github.com/okotaku/diffengine/actions/workflows/build.yml)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://diffengine.readthedocs.io/en/latest/)
 [![license](https://img.shields.io/github/license/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/blob/main/LICENSE)
 [![open issues](https://isitmaintained.com/badge/open/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/issues)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/gist/okotaku/cfca8baf57938f193c212dcb43c02fac/diffengine-example.ipynb)
 [![](https://img.shields.io/badge/Incubated_by-100.builders-9146ff?logo=gamejolt&logoColor=white&labelColor=464646&style=for-the-badge)](https://100.builders)
+
+</div>
 
 [📘 Documentation](https://diffengine.readthedocs.io/en/latest/) |
 [🤔 Reporting Issues](https://github.com/okotaku/diffengine/issues/new/choose)
