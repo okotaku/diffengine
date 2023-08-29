@@ -2,3 +2,5 @@ include diffengine/.mim/model-index.yml
 recursive-include diffengine/.mim/configs *.py *.yml
 recursive-include diffengine/.mim/tools *.sh *.py
 recursive-include diffengine/.mim/demo *.sh *.py
+recursive-exclude work_dirs *
+recursive-exclude data *
