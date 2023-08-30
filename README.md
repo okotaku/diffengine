@@ -154,7 +154,7 @@ If DiffEngine is helpful to your research, please cite it as below.
 
 This repo borrows the architecture design and part of the code from [mmengine](https://github.com/open-mmlab/mmengine), [mmagic](https://github.com/open-mmlab/mmagic) and [diffusers](https://github.com/huggingface/diffusers).
 
-Also, please check the following openmmlab projects and the corresponding Documentation.
+Also, please check the following openmmlab and huggingface projects and the corresponding Documentation.
 
 - [OpenMMLab](https://openmmlab.com/)
 - [HuggingFace](https://huggingface.co/)

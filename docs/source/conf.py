@@ -29,7 +29,6 @@ author = 'diffengine Contributors'
 # The full version, including alpha/beta/rc tags
 release = '2023'
 
-# The full version, including alpha/beta/rc tags
 version_file = '../../diffengine/version.py'
 
 
