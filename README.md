@@ -1,16 +1,10 @@
-<div align="center">
-  <img src="https://github.com/okotaku/diffengine/assets/24734142/fdb24d49-3a0f-4364-aded-06c49815eb3a" width="600"/>
-  <div>&nbsp;</div>
-</div>
-
-DiffEngine is the toolbox for training state-of-the-art Diffusion Models with Diffusers and MMEngine. The logo was created by [Ideogram](https://ideogram.ai/).
+# DiffEngine
 
 [![build](https://github.com/okotaku/diffengine/actions/workflows/build.yml/badge.svg)](https://github.com/okotaku/diffengine/actions/workflows/build.yml)
 [![Docs](https://img.shields.io/badge/docs-latest-blue)](https://diffengine.readthedocs.io/en/latest/)
 [![license](https://img.shields.io/github/license/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/blob/main/LICENSE)
 [![open issues](https://isitmaintained.com/badge/open/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/issues)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/gist/okotaku/cfca8baf57938f193c212dcb43c02fac/diffengine-example.ipynb)
-[![](https://img.shields.io/badge/Incubated_by-100.builders-9146ff?logo=gamejolt&logoColor=white&labelColor=464646&style=for-the-badge)](https://100.builders)
 
 [📘 Documentation](https://diffengine.readthedocs.io/en/latest/) |
 [🤔 Reporting Issues](https://github.com/okotaku/diffengine/issues/new/choose)
@@ -160,7 +154,7 @@ If DiffEngine is helpful to your research, please cite it as below.
 
 This repo borrows the architecture design and part of the code from [mmengine](https://github.com/open-mmlab/mmengine), [mmagic](https://github.com/open-mmlab/mmagic) and [diffusers](https://github.com/huggingface/diffusers).
 
-Also, please check the following openmmlab projects and the corresponding Documentation.
+Also, please check the following openmmlab and huggingface projects and the corresponding Documentation.
 
 - [OpenMMLab](https://openmmlab.com/)
 - [HuggingFace](https://huggingface.co/)
