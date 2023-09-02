@@ -5,11 +5,10 @@ _base_ = [
     '../../configs/_base_/default_runtime.py'
 ]
 
-train_dataloader = dict(batch_size=1)
+train_dataloader = dict(batch_size=2)
 
-optim_wrapper = dict(optimizer=dict(lr=1e-4))
+optim_wrapper = dict(optimizer=dict(lr=1e-4), accumulative_counts=2)
 
-model = dict(
-    model='Linaqruf/animagine-xl', vae_model=None, lora_config=dict(rank=128))
+model = dict(model='gsdf/CounterfeitXL', lora_config=dict(rank=32))
 
-train_cfg = dict(by_epoch=True, max_epochs=100)
+train_cfg = dict(by_epoch=True, max_epochs=50)
