@@ -20,6 +20,8 @@ class HFDataset(Dataset):
         dataset (str): Dataset name or path to dataset.
         image_column (str): Image column name. Defaults to 'image'.
         caption_column (str): Caption column name. Defaults to 'text'.
+        csv (str): Caption csv file name when loading local folder.
+            Defaults to 'metadata.csv'.
         pipeline (Sequence): Processing pipeline. Defaults to an empty tuple.
         cache_dir (str, optional): The directory where the downloaded datasets
             will be stored.Defaults to None.
@@ -29,12 +31,13 @@ class HFDataset(Dataset):
                  dataset: str,
                  image_column: str = 'image',
                  caption_column: str = 'text',
+                 csv: str = 'metadata.csv',
                  pipeline: Sequence = (),
                  cache_dir: Optional[str] = None):
         self.dataset_name = dataset
         if Path(dataset).exists():
             # load local folder
-            data_file = os.path.join(dataset, 'metadata.csv')
+            data_file = os.path.join(dataset, csv)
             self.dataset = load_dataset(
                 'csv', data_files=data_file, cache_dir=cache_dir)['train']
         else:
