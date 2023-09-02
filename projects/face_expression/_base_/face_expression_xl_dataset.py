@@ -5,6 +5,7 @@ train_pipeline = [
     dict(type='RandomHorizontalFlip', p=0.5),
     dict(type='ComputeTimeIds'),
     dict(type='torchvision/ToTensor'),
+    dict(type='DumpImage', max_imgs=10, dump_dir='work_dirs/dump'),
     dict(type='torchvision/Normalize', mean=[0.5], std=[0.5]),
     dict(type='PackInputs', input_keys=['img', 'text', 'time_ids']),
 ]

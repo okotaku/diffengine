@@ -70,6 +70,4 @@ You can see more details on [LoRA docs](../../docs/source/run_guides/run_lora.md
 
 #### stable_diffusion_xl_lora_face_expression
 
-![example1](https://github.com/okotaku/diffengine/assets/24734142/68c7569b-f62c-4228-a00d-997f2d963ad0)
-
-Note that training failed. We should improve SDXL LoRA training.
+![example1](https://github.com/okotaku/diffengine/assets/24734142/0d6e3434-4ba6-4c90-8457-06595ad9183d)
