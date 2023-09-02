@@ -22,6 +22,8 @@ class HFControlNetDataset(Dataset):
         condition_column (str): Condition column name for ControlNet.
             Defaults to 'condition'.
         caption_column (str): Caption column name. Defaults to 'text'.
+        csv (str): Caption csv file name when loading local folder.
+            Defaults to 'metadata.csv'.
         pipeline (Sequence): Processing pipeline. Defaults to an empty tuple.
         cache_dir (str, optional): The directory where the downloaded datasets
             will be stored.Defaults to None.
@@ -32,12 +34,13 @@ class HFControlNetDataset(Dataset):
                  image_column: str = 'image',
                  condition_column: str = 'condition',
                  caption_column: str = 'text',
+                 csv: str = 'metadata.csv',
                  pipeline: Sequence = (),
                  cache_dir: Optional[str] = None):
         self.dataset_name = dataset
         if Path(dataset).exists():
             # load local folder
-            data_file = os.path.join(dataset, 'metadata.csv')
+            data_file = os.path.join(dataset, csv)
             self.dataset = load_dataset(
                 'csv', data_files=data_file, cache_dir=cache_dir)['train']
         else:

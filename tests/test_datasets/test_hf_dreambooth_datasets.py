@@ -61,7 +61,7 @@ class TestHFDreamBoothDataset(RunnerTestCase):
 
     def test_dataset_from_local(self):
         dataset = HFDreamBoothDataset(
-            dataset='tests/testdata/dataset',
+            dataset='tests/testdata/dataset_db',
             instance_prompt='a photo of sks dog')
         assert len(dataset) == 1
 

@@ -15,3 +15,14 @@ class TestHFDataset(RunnerTestCase):
         assert data['text'] == 'a dog'
         self.assertIsInstance(data['img'], Image.Image)
         assert data['img'].width == 400
+
+        dataset = HFDataset(
+            dataset='tests/testdata/dataset',
+            image_column='file_name',
+            csv='metadata2.csv')
+        assert len(dataset) == 1
+
+        data = dataset[0]
+        assert data['text'] == 'a cat'
+        self.assertIsInstance(data['img'], Image.Image)
+        assert data['img'].width == 400
