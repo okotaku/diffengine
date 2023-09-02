@@ -22,6 +22,10 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
             better numerical stability. More details:
             https://github.com/huggingface/diffusers/pull/4038.
             Defaults to None.
+        transformer_layers_per_block (List[int], optional):
+            The number of layers per block in the transformer. More details:
+            https://huggingface.co/diffusers/controlnet-canny-sdxl-1.0-small.
+            Defaults to None.
         lora_config (dict, optional): The LoRA config dict. This should be
             `None` when training ControlNet. Defaults to None.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
@@ -34,6 +38,7 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
     def __init__(self,
                  *args,
                  controlnet_model: Optional[str] = None,
+                 transformer_layers_per_block: Optional[List[int]] = None,
                  lora_config: Optional[dict] = None,
                  finetune_text_encoder: bool = False,
                  data_preprocessor: Optional[Union[dict, nn.Module]] = dict(
@@ -45,6 +50,7 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
             '`finetune_text_encoder` should be False when training ControlNet'
 
         self.controlnet_model = controlnet_model
+        self.transformer_layers_per_block = transformer_layers_per_block
 
         super().__init__(
             *args,
@@ -63,10 +69,26 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
         Disable gradient for some models.
         """
         if self.controlnet_model is not None:
-            self.controlnet = ControlNetModel.from_pretrained(
+            pre_controlnet = ControlNetModel.from_pretrained(
                 self.controlnet_model)
         else:
-            self.controlnet = ControlNetModel.from_unet(self.unet)
+            pre_controlnet = ControlNetModel.from_unet(self.unet)
+
+        if self.transformer_layers_per_block is not None:
+            down_block_types = [
+                ('DownBlock2D' if i == 0 else 'CrossAttnDownBlock2D')
+                for i in self.transformer_layers_per_block
+            ]
+            self.controlnet = ControlNetModel.from_config(
+                pre_controlnet.config,
+                down_block_types=down_block_types,
+                transformer_layers_per_block=self.transformer_layers_per_block,
+            )
+            self.controlnet.load_state_dict(
+                pre_controlnet.state_dict(), strict=False)
+            del pre_controlnet
+        else:
+            self.controlnet = pre_controlnet
 
         if self.gradient_checkpointing:
             self.controlnet.enable_gradient_checkpointing()
