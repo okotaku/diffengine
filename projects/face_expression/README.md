@@ -34,7 +34,7 @@ $ mim train diffengine ${CONFIG_FILE}
 $ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 
 # Example.
-$ mim train diffengine projects/face_expression/stable_diffusion_v15_lora_face_expression.py
+$ mim train diffengine projects/face_expression/configs/stable_diffusion_v15_lora_face_expression.py
 ```
 
 ## Inference with diffusers
