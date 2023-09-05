@@ -69,7 +69,7 @@ checkpoint = 'work_dirs/stable_diffusion_xl_controlnet_fill50k/step25000'
 prompt = 'cyan circle with brown floral background'
 condition_image = load_image(
     'https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg'
-)
+).resize((1024, 1024))
 
 controlnet = ControlNetModel.from_pretrained(
         checkpoint, subfolder='controlnet', torch_dtype=torch.float16)
@@ -93,9 +93,9 @@ image.save('demo.png')
 We also provide inference demo scripts, it can run with `--use_sdxl`:
 
 ```
-$ mim run diffengine demo_controlnet ${PROMPT} ${CONDITION_IMAGE} ${CHECKPOINT} --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --use_sdxl
+$ mim run diffengine demo_controlnet ${PROMPT} ${CONDITION_IMAGE} ${CHECKPOINT} --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --use_sdxl --height 1024 --width 1024
 # Example
-$ mim run diffengine demo_controlnet "cyan circle with brown floral background" https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg work_dirs/stable_diffusion_xl_controlnet_fill50k/step25000 --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --use_sdxl
+$ mim run diffengine demo_controlnet "cyan circle with brown floral background" https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg work_dirs/stable_diffusion_xl_controlnet_fill50k/step25000 --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --use_sdxl --height 1024 --width 1024
 ```
 
 ## Results Example

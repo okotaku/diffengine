@@ -26,6 +26,13 @@ def main():
     )
     parser.add_argument('--out', help='Output path', default='demo.png')
     parser.add_argument(
+        '--height',
+        help='The height for output images.',
+        default=None,
+        type=int)
+    parser.add_argument(
+        '--width', help='The width for output images.', default=None, type=int)
+    parser.add_argument(
         '--device', help='Device used for inference', default='cuda')
     args = parser.parse_args()
 
@@ -80,6 +87,8 @@ def main():
     image = pipe(
         args.prompt,
         num_inference_steps=50,
+        height=args.height,
+        width=args.width,
     ).images[0]
     image.save(args.out)
 

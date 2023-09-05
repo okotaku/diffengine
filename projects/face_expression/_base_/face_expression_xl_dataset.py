@@ -31,6 +31,8 @@ custom_hooks = [
         prompt=[
             '1girl, >_<, blue hair', '1girl, X X, blue hair',
             '1girl, @_@, blue hair', '1girl, =_=, blue hair'
-        ]),
+        ],
+        height=1024,
+        width=1024),
     dict(type='LoRASaveHook')
 ]

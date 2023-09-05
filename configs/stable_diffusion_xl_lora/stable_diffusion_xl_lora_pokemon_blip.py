@@ -6,6 +6,10 @@ _base_ = [
 ]
 
 custom_hooks = [
-    dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
+    dict(
+        type='VisualizationHook',
+        prompt=['yoda pokemon'] * 4,
+        height=1024,
+        width=1024),
     dict(type='LoRASaveHook'),
 ]
