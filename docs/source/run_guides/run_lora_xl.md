@@ -80,6 +80,8 @@ pipe.load_lora_weights(checkpoint)
 image = pipe(
     prompt,
     num_inference_steps=50,
+    height=1024,
+    width=1024,
 ).images[0]
 image.save('demo.png')
 ```
@@ -87,7 +89,7 @@ image.save('demo.png')
 We also provide inference demo scripts:
 
 ```bash
-$ mim run diffengine demo_lora "yoda pokemon" work_dirs/stable_diffusion_xl_lora_pokemon_blip/step20850 --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix
+$ mim run diffengine demo_lora "yoda pokemon" work_dirs/stable_diffusion_xl_lora_pokemon_blip/step20850 --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --height 1024 --width 1024
 ```
 
 ## Results Example

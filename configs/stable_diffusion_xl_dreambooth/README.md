@@ -55,6 +55,8 @@ pipe.load_lora_weights(checkpoint)
 image = pipe(
     prompt,
     num_inference_steps=50,
+    width=1024,
+    height=1024,
 ).images[0]
 image.save('demo.png')
 ```

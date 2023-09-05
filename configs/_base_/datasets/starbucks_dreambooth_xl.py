@@ -30,6 +30,8 @@ custom_hooks = [
         type='VisualizationHook',
         prompt=['A photo of sks logo in a bucket'] * 4,
         by_epoch=False,
-        interval=100),
+        interval=100,
+        height=1024,
+        width=1024),
     dict(type='LoRASaveHook'),
 ]

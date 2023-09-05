@@ -29,6 +29,13 @@ def main():
         help='Whether to use SDXL as base model.')
     parser.add_argument('--out', help='Output path', default='demo.png')
     parser.add_argument(
+        '--height',
+        help='The height for output images.',
+        default=None,
+        type=int)
+    parser.add_argument(
+        '--width', help='The width for output images.', default=None, type=int)
+    parser.add_argument(
         '--device', help='Device used for inference', default='cuda')
     args = parser.parse_args()
 
@@ -38,7 +45,6 @@ def main():
         controlnet_cls = StableDiffusionXLControlNetPipeline
     else:
         controlnet_cls = StableDiffusionControlNetPipeline
-    print(controlnet_cls)
     if args.vaemodel is not None:
         vae = AutoencoderKL.from_pretrained(
             args.vaemodel,
@@ -62,14 +68,18 @@ def main():
         image = pipe(
             args.prompt,
             args.prompt,
-            load_image(args.condition_image),
+            load_image(args.condition_image).resize((args.width, args.height)),
             num_inference_steps=50,
+            height=args.height,
+            width=args.width,
         ).images[0]
     else:
         image = pipe(
             args.prompt,
-            load_image(args.condition_image),
+            load_image(args.condition_image).resize((args.width, args.height)),
             num_inference_steps=50,
+            height=args.height,
+            width=args.width,
         ).images[0]
     image.save(args.out)
 

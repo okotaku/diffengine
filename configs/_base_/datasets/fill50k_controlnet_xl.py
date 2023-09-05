@@ -38,6 +38,8 @@ custom_hooks = [
         prompt=['cyan circle with brown floral background'] * 4,
         condition_image=[
             'https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg'  # noqa
-        ] * 4),
+        ] * 4,
+        height=1024,
+        width=1024),
     dict(type='ControlNetSaveHook')
 ]

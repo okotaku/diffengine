@@ -130,6 +130,8 @@ pipe.to('cuda')
 image = pipe(
     prompt,
     num_inference_steps=50,
+    height=1024,
+    width=1024,
 ).images[0]
 image.save('demo.png')
 ```
@@ -137,9 +139,9 @@ image.save('demo.png')
 We also provide inference demo scripts:
 
 ```
-$ mim run diffengine demo ${PROMPT} ${CHECKPOINT}
+$ mim run diffengine demo ${PROMPT} ${CHECKPOINT} --height 1024 --width 1024
 # Example
-$ mim run diffengine demo "yoda pokemon" work_dirs/stable_diffusion_xl_pokemon_blip --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix
+$ mim run diffengine demo "yoda pokemon" work_dirs/stable_diffusion_xl_pokemon_blip --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --height 1024 --width 1024
 ```
 
 ## Inference Text Encoder and Unet finetuned weight with diffusers
