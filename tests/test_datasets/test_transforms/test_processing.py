@@ -282,3 +282,78 @@ class TestRandomHorizontalFlip(TestCase):
             np.array(data['img']),
             np.array(Image.open(img_path).transpose(Image.FLIP_LEFT_RIGHT)))
         np.equal(np.array(data['img']), np.array(data['condition_img']))
+
+
+class TestMultiAspectRatioResizeCenterCrop(TestCase):
+    sizes = [(32, 32), (16, 48)]
+
+    def test_register(self):
+        self.assertIn('MultiAspectRatioResizeCenterCrop', TRANSFORMS)
+
+    def test_transform(self):
+        img_path = osp.join(osp.dirname(__file__), '../../testdata/color.jpg')
+        data = {'img': Image.open(img_path).resize((32, 36))}
+
+        # test transform
+        trans = TRANSFORMS.build(
+            dict(type='MultiAspectRatioResizeCenterCrop', sizes=self.sizes))
+        data = trans(data)
+        self.assertIn('crop_top_left', data)
+        assert len(data['crop_top_left']) == 2
+        self.assertTupleEqual((data['img'].height, data['img'].width),
+                              self.sizes[0])
+        upper, left = data['crop_top_left']
+        lower, right = data['crop_bottom_right']
+        assert lower == upper + self.sizes[0][0]
+        assert right == left + self.sizes[0][1]
+        np.equal(
+            np.array(data['img']),
+            np.array(
+                Image.open(img_path).resize((32, 36)).crop(
+                    (left, upper, right, lower))))
+
+        # test 2nd size
+        data = {'img': Image.open(img_path).resize((55, 16))}
+        data = trans(data)
+        self.assertIn('crop_top_left', data)
+        assert len(data['crop_top_left']) == 2
+        self.assertTupleEqual((data['img'].height, data['img'].width),
+                              self.sizes[1])
+        upper, left = data['crop_top_left']
+        lower, right = data['crop_bottom_right']
+        assert lower == upper + self.sizes[1][0]
+        assert right == left + self.sizes[1][1]
+        np.equal(
+            np.array(data['img']),
+            np.array(
+                Image.open(img_path).resize((55, 16)).crop(
+                    (left, upper, right, lower))))
+
+    def test_transform_multiple_keys(self):
+        img_path = osp.join(osp.dirname(__file__), '../../testdata/color.jpg')
+        data = {
+            'img': Image.open(img_path).resize((32, 36)),
+            'condition_img': Image.open(img_path).resize((32, 36))
+        }
+
+        # test transform
+        trans = TRANSFORMS.build(
+            dict(
+                type='MultiAspectRatioResizeCenterCrop',
+                sizes=self.sizes,
+                keys=['img', 'condition_img']))
+        data = trans(data)
+        self.assertIn('crop_top_left', data)
+        assert len(data['crop_top_left']) == 2
+        self.assertTupleEqual((data['img'].height, data['img'].width),
+                              self.sizes[0])
+        upper, left = data['crop_top_left']
+        lower, right = data['crop_bottom_right']
+        assert lower == upper + self.sizes[0][0]
+        assert right == left + self.sizes[0][1]
+        np.equal(
+            np.array(data['img']),
+            np.array(
+                Image.open(img_path).resize((32, 36)).crop(
+                    (left, upper, right, lower))))
+        np.equal(np.array(data['img']), np.array(data['condition_img']))
