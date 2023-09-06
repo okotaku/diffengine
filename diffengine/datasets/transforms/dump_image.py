@@ -46,7 +46,7 @@ class DumpImage:
             if img.shape[0] in [1, 3]:
                 img = img.permute(1, 2, 0) * 255
             out_file = osp.join(self.dump_dir, f'{dump_id}_image.png')
-            cv2.imwrite(out_file, img.numpy().astype(np.uint8))
+            cv2.imwrite(out_file, img.numpy().astype(np.uint8)[..., ::-1])
 
             if 'condition_img' in results:
                 condition_img = results['condition_img']
@@ -54,6 +54,6 @@ class DumpImage:
                     condition_img = condition_img.permute(1, 2, 0) * 255
                 cond_out_file = osp.join(self.dump_dir, f'{dump_id}_cond.png')
                 cv2.imwrite(cond_out_file,
-                            condition_img.numpy().astype(np.uint8))
+                            condition_img.numpy().astype(np.uint8)[..., ::-1])
 
         return results

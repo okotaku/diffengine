@@ -15,6 +15,8 @@ from tqdm import tqdm
 
 from diffengine.registry import DATASETS
 
+Image.MAX_IMAGE_PIXELS = 1000000000
+
 
 @DATASETS.register_module()
 class HFDreamBoothDataset(Dataset):
