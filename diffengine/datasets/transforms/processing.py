@@ -4,7 +4,9 @@ import re
 from enum import EnumMeta
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
+import numpy as np
 import torchvision
+from mmengine.dataset.base_dataset import Compose
 from torchvision.transforms.functional import crop
 from torchvision.transforms.transforms import InterpolationMode
 
@@ -133,6 +135,8 @@ class RandomCrop(BaseTransform):
                  size: Union[Sequence[int], int],
                  keys: List[str] = ['img'],
                  **kwargs):
+        if not isinstance(size, Sequence):
+            size = (size, size)
         self.size = size
         self.keys = keys
         self.pipeline = torchvision.transforms.RandomCrop(
@@ -149,8 +153,7 @@ class RandomCrop(BaseTransform):
                 point.
         """
         assert all(results['img'].size == results[k].size for k in self.keys)
-        y1, x1, h, w = self.pipeline.get_params(results['img'],
-                                                (self.size, self.size))
+        y1, x1, h, w = self.pipeline.get_params(results['img'], self.size)
         for k in self.keys:
             results[k] = crop(results[k], y1, x1, h, w)
         results['crop_top_left'] = [y1, x1]
@@ -179,6 +182,8 @@ class CenterCrop(BaseTransform):
                  size: Union[Sequence[int], int],
                  keys: List[str] = ['img'],
                  **kwargs):
+        if not isinstance(size, Sequence):
+            size = (size, size)
         self.size = size
         self.keys = keys
         self.pipeline = torchvision.transforms.CenterCrop(
@@ -194,15 +199,59 @@ class CenterCrop(BaseTransform):
             dict: 'crop_top_left' key is added as crop points.
         """
         assert all(results['img'].size == results[k].size for k in self.keys)
-        y1 = max(0, int(round((results['img'].height - self.size) / 2.0)))
-        x1 = max(0, int(round((results['img'].width - self.size) / 2.0)))
-        y2 = max(0, int(round((results['img'].height + self.size) / 2.0)))
-        x2 = max(0, int(round((results['img'].width + self.size) / 2.0)))
+        y1 = max(0, int(round((results['img'].height - self.size[0]) / 2.0)))
+        x1 = max(0, int(round((results['img'].width - self.size[1]) / 2.0)))
+        y2 = max(0, int(round((results['img'].height + self.size[0]) / 2.0)))
+        x2 = max(0, int(round((results['img'].width + self.size[1]) / 2.0)))
         for k in self.keys:
             results[k] = self.pipeline(results[k])
         results['crop_top_left'] = [y1, x1]
         results['crop_bottom_right'] = [y2, x2]
         return results
+
+
+@TRANSFORMS.register_module()
+class MultiAspectRatioResizeCenterCrop(BaseTransform):
+    """Multi Aspect Ratio Resize and Center Crop.
+
+    Args:
+        sizes (List[sequence]): List of desired output size of the crop.
+            Sequence like (h, w).
+        keys (List[str]): `keys` to apply augmentation from results.
+        interpolation (str): Desired interpolation enum defined by
+            torchvision.transforms.InterpolationMode.
+            Defaults to 'bilinear'.
+    """
+
+    def __init__(self,
+                 *args,
+                 sizes: List[Sequence[int]],
+                 keys: List[str] = ['img'],
+                 interpolation: str = 'bilinear',
+                 **kwargs):
+        self.sizes = sizes
+        self.aspect_ratios = np.array([s[0] / s[1] for s in sizes])
+        self.pipelines = []
+        for s in self.sizes:
+            self.pipelines.append(
+                Compose([
+                    TorchVisonTransformWrapper(
+                        torchvision.transforms.Resize,
+                        size=min(s),
+                        interpolation=interpolation,
+                        keys=keys),
+                    CenterCrop(size=s, keys=keys)
+                ]))
+
+    def transform(self,
+                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+        """
+        Args:
+            results (dict): The result dict.
+        """
+        aspect_ratio = results['img'].height / results['img'].width
+        bucked_id = np.argmin(np.abs(aspect_ratio - self.aspect_ratios))
+        return self.pipelines[bucked_id](results)
 
 
 @TRANSFORMS.register_module()
