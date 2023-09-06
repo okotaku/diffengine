@@ -11,6 +11,8 @@ from torch.utils.data import Dataset
 
 from diffengine.registry import DATASETS
 
+Image.MAX_IMAGE_PIXELS = 1000000000
+
 
 @DATASETS.register_module()
 class HFDataset(Dataset):
