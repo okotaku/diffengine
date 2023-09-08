@@ -57,6 +57,7 @@ class HFDreamBoothDataset(Dataset):
                  dataset: str,
                  instance_prompt: str,
                  image_column: str = 'image',
+                 object_name: Optional[str] = None,
                  class_image_config: dict = dict(
                      model='runwayml/stable-diffusion-v1-5',
                      data_dir='work_dirs/class_image',
@@ -76,7 +77,10 @@ class HFDreamBoothDataset(Dataset):
                 dataset, data_files, cache_dir=cache_dir)['train']
         else:
             # load huggingface online
-            self.dataset = load_dataset(dataset, cache_dir=cache_dir)['train']
+            self.dataset = load_dataset(dataset, cache_dir=cache_dir)
+            if object_name is not None:
+                self.dataset = self.dataset[object_name]
+            self.dataset = self.dataset['train']
         self.pipeline = Compose(pipeline)
 
         self.instance_prompt = instance_prompt
