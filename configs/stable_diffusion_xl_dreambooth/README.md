@@ -83,6 +83,10 @@ Note that we use 2 GPUs for training all lora models.
 
 ![exampledog](https://github.com/okotaku/diffengine/assets/24734142/17696122-f0d4-4d61-8be9-ecc4688a33cb)
 
+#### stable_diffusion_xl_dreambooth_lora_google_backpack
+
+![exampleback](https://github.com/okotaku/diffengine/assets/24734142/3dd06582-0eb6-4a10-a065-af5e3d452878)
+
 ## Acknowledgement
 
 These experiments are based on [diffusers docs](https://github.com/huggingface/diffusers/blob/main/examples/dreambooth/README_sdxl.md). Thank you for the great experiments.

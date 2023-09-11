@@ -1,3 +1,4 @@
+import copy
 from os import path as osp
 
 import cv2
@@ -42,7 +43,7 @@ class DumpImage:
                 dump_id = self.num_dumped_imgs.value
 
         if enable_dump:
-            img = results['img']
+            img = copy.deepcopy(results['img'])
             if img.shape[0] in [1, 3]:
                 img = img.permute(1, 2, 0) * 255
             out_file = osp.join(self.dump_dir, f'{dump_id}_image.png')
