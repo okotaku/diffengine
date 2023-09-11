@@ -72,10 +72,7 @@ class HFDreamBoothDataset(Dataset):
 
         if Path(dataset).exists():
             # load local folder
-            data_files = {}
-            data_files['train'] = '**'
-            self.dataset = load_dataset(
-                dataset, data_files, cache_dir=cache_dir)['train']
+            self.dataset = load_dataset(dataset, cache_dir=cache_dir)['train']
         else:
             # load huggingface online
             if dataset_sub_dir is not None:
