@@ -27,6 +27,7 @@ class HFDreamBoothDataset(Dataset):
         instance_prompt (str):
             The prompt with identifier specifying the instance.
         image_column (str): Image column name. Defaults to 'image'.
+        dataset_sub_dir (optional, str): Dataset sub directory name.
         class_image_config (dict):
             model (str): pretrained model name of stable diffusion to
                 create training data of class images.
@@ -57,7 +58,7 @@ class HFDreamBoothDataset(Dataset):
                  dataset: str,
                  instance_prompt: str,
                  image_column: str = 'image',
-                 object_name: Optional[str] = None,
+                 dataset_sub_dir: Optional[str] = None,
                  class_image_config: dict = dict(
                      model='runwayml/stable-diffusion-v1-5',
                      data_dir='work_dirs/class_image',
@@ -77,10 +78,11 @@ class HFDreamBoothDataset(Dataset):
                 dataset, data_files, cache_dir=cache_dir)['train']
         else:
             # load huggingface online
-            self.dataset = load_dataset(dataset, cache_dir=cache_dir)
-            if object_name is not None:
-                self.dataset = self.dataset[object_name]
-            self.dataset = self.dataset['train']
+            if dataset_sub_dir is not None:
+                self.dataset = load_dataset(dataset, dataset_sub_dir, cache_dir=cache_dir)['train']
+            else:
+                self.dataset = load_dataset(dataset, cache_dir=cache_dir)['train']
+
         self.pipeline = Compose(pipeline)
 
         self.instance_prompt = instance_prompt
