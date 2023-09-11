@@ -79,9 +79,11 @@ class HFDreamBoothDataset(Dataset):
         else:
             # load huggingface online
             if dataset_sub_dir is not None:
-                self.dataset = load_dataset(dataset, dataset_sub_dir, cache_dir=cache_dir)['train']
+                self.dataset = load_dataset(
+                    dataset, dataset_sub_dir, cache_dir=cache_dir)['train']
             else:
-                self.dataset = load_dataset(dataset, cache_dir=cache_dir)['train']
+                self.dataset = load_dataset(
+                    dataset, cache_dir=cache_dir)['train']
 
         self.pipeline = Compose(pipeline)
 
