@@ -156,3 +156,4 @@ dump/
 diffengine/.mim/
 build/
 .dist_test/
+.netrc
