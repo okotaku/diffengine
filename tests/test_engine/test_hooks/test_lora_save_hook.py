@@ -68,10 +68,10 @@ class TestLoRASaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f'step{runner.iter}',
-                     'pytorch_lora_weights.bin')).exists
+                     'pytorch_lora_weights.safetensors')).exists()
         os.remove(
             osp.join(runner.work_dir, f'step{runner.iter}',
-                     'pytorch_lora_weights.bin'))
+                     'pytorch_lora_weights.safetensors'))
 
         for key in checkpoint['state_dict'].keys():
             assert key.startswith(tuple(['unet', 'text_encoder']))
@@ -94,10 +94,10 @@ class TestLoRASaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f'step{runner.iter}',
-                     'pytorch_lora_weights.bin')).exists
+                     'pytorch_lora_weights.safetensors')).exists()
         os.remove(
             osp.join(runner.work_dir, f'step{runner.iter}',
-                     'pytorch_lora_weights.bin'))
+                     'pytorch_lora_weights.safetensors'))
 
         for key in checkpoint['state_dict'].keys():
             assert key.startswith(tuple(['unet', 'text_encoder']))
@@ -119,10 +119,10 @@ class TestLoRASaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f'step{runner.iter}',
-                     'pytorch_lora_weights.bin')).exists
+                     'pytorch_lora_weights.safetensors')).exists()
         os.remove(
             osp.join(runner.work_dir, f'step{runner.iter}',
-                     'pytorch_lora_weights.bin'))
+                     'pytorch_lora_weights.safetensors'))
 
         for key in checkpoint['state_dict'].keys():
             assert key.startswith(tuple(['unet', 'text_encoder']))
