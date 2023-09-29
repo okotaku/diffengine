@@ -375,7 +375,7 @@ class TestCLIPImageProcessor(TestCase):
         data = trans(data)
         self.assertIn('clip_img', data)
         self.assertEqual(type(data['clip_img']), torch.Tensor)
-        self.assertEqual(data['clip_img'].size(), (1, 3, 224, 224))
+        self.assertEqual(data['clip_img'].size(), (3, 224, 224))
 
 
 class TestRandomTextDrop(TestCase):
