@@ -25,7 +25,8 @@
           "ms-vscode-remote.remote-ssh-edit",
           "ms-vscode.remote-explorer",
           "wayou.vscode-todo-highlight",
-          "Gruntfuggly.todo-tree"
+          "Gruntfuggly.todo-tree",
+          "streetsidesoftware.code-spell-checker"
         ]
       }
     }

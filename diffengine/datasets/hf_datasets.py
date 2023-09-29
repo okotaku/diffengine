@@ -1,14 +1,22 @@
+import functools
+import gc
 import os
 import random
 from pathlib import Path
 from typing import Optional, Sequence
 
 import numpy as np
+import torch
 from datasets import load_dataset
+from datasets.fingerprint import Hasher
 from mmengine.dataset.base_dataset import Compose
 from PIL import Image
 from torch.utils.data import Dataset
+from transformers import AutoTokenizer
 
+from diffengine.datasets.utils import encode_prompt_sdxl
+from diffengine.models.editors.stable_diffusion_xl.stable_diffusion_xl import \
+    import_model_class_from_model_name_or_path
 from diffengine.registry import DATASETS
 
 Image.MAX_IMAGE_PIXELS = 1000000000
@@ -85,6 +93,87 @@ class HFDataset(Dataset):
                 f'Caption column `{self.caption_column}` should contain either'
                 ' strings or lists of strings.')
         result = dict(img=image, text=caption)
+        result = self.pipeline(result)
+
+        return result
+
+
+@DATASETS.register_module()
+class HFDatasetPreComputeEmbs(HFDataset):
+    """Dataset for huggingface datasets.
+
+    The difference from HFDataset is
+        1. pre-compute Text Encoder embeddings to save memory.
+
+    Args:
+        model (str): pretrained model name of stable diffusion xl.
+            Defaults to 'stabilityai/stable-diffusion-xl-base-1.0'.
+        text_hasher (str): Text embeddings hasher name. Defaults to 'text'.
+        device (str): Device used to compute embeddings. Defaults to 'cuda'.
+        proportion_empty_prompts (float): The probabilities to replace empty
+            text. Defaults to 0.9.
+    """
+
+    def __init__(self,
+                 *args,
+                 model: str = 'stabilityai/stable-diffusion-xl-base-1.0',
+                 text_hasher: str = 'text',
+                 device: str = 'cuda',
+                 proportion_empty_prompts: float = 0.0,
+                 **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        tokenizer_one = AutoTokenizer.from_pretrained(
+            model, subfolder='tokenizer', use_fast=False)
+        tokenizer_two = AutoTokenizer.from_pretrained(
+            model, subfolder='tokenizer_2', use_fast=False)
+
+        text_encoder_cls_one = import_model_class_from_model_name_or_path(
+            model)
+        text_encoder_cls_two = import_model_class_from_model_name_or_path(
+            model, subfolder='text_encoder_2')
+        text_encoder_one = text_encoder_cls_one.from_pretrained(
+            model, subfolder='text_encoder').to(device)
+        text_encoder_two = text_encoder_cls_two.from_pretrained(
+            model, subfolder='text_encoder_2').to(device)
+
+        new_fingerprint = Hasher.hash(text_hasher)
+        compute_embeddings_fn = functools.partial(
+            encode_prompt_sdxl,
+            text_encoders=[text_encoder_one, text_encoder_two],
+            tokenizers=[tokenizer_one, tokenizer_two],
+            proportion_empty_prompts=proportion_empty_prompts,
+            caption_column=self.caption_column,
+        )
+        self.dataset = self.dataset.map(
+            compute_embeddings_fn,
+            batched=True,
+            new_fingerprint=new_fingerprint)
+
+        del text_encoder_one, text_encoder_two, tokenizer_one, tokenizer_two
+        gc.collect()
+        torch.cuda.empty_cache()
+
+    def __getitem__(self, idx: int) -> dict:
+        """Get the idx-th image and data information of dataset after
+        ``self.train_transforms`.
+
+        Args:
+            idx (int): The index of self.data_list.
+
+        Returns:
+            dict: The idx-th image and data information of dataset after
+            ``self.train_transforms``.
+        """
+        data_info = self.dataset[idx]
+        image = data_info[self.image_column]
+        if type(image) == str:
+            image = Image.open(os.path.join(self.dataset_name, image))
+        image = image.convert('RGB')
+        result = dict(
+            img=image,
+            prompt_embeds=data_info['prompt_embeds'],
+            pooled_prompt_embeds=data_info['pooled_prompt_embeds'])
         result = self.pipeline(result)
 
         return result
