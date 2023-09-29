@@ -35,7 +35,8 @@ class TestHFDatasetPreComputeEmbs(RunnerTestCase):
         dataset = HFDatasetPreComputeEmbs(
             dataset='tests/testdata/dataset',
             model='hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-            image_column='file_name')
+            image_column='file_name',
+            device='cpu')
         assert len(dataset) == 1
 
         data = dataset[0]
