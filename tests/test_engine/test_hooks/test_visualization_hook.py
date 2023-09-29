@@ -53,6 +53,16 @@ class TestVisualizationHook(RunnerTestCase):
             prompt=['a dog'], condition_image=['testdata/color.jpg'])
         hook.after_train_epoch(runner)
 
+    def test_after_train_epoch_with_example_iamge(self):
+        runner = MagicMock()
+
+        # test epoch-based
+        runner.train_loop = MagicMock(spec=EpochBasedTrainLoop)
+        runner.epoch = 5
+        hook = VisualizationHook(
+            prompt=['a dog'], example_image=['testdata/color.jpg'])
+        hook.after_train_epoch(runner)
+
     def test_after_train_iter(self):
         cfg = copy.deepcopy(self.iter_based_cfg)
         cfg.train_cfg.max_iters = 100

@@ -14,8 +14,6 @@ class VisualizationHook(Hook):
     Args:
         prompt (`List[str]`):
                 The prompt or prompts to guide the image generation.
-        condition_image (`Optional[List[str]]`):
-                The condition image for ControlNet. Defaults to None.
         interval (int): Visualization interval (every k iterations).
             Defaults to 1.
         by_epoch (bool): Whether to visualize by epoch. Defaults to True.
@@ -30,13 +28,13 @@ class VisualizationHook(Hook):
 
     def __init__(self,
                  prompt: List[str],
-                 condition_image: Optional[List[str]] = None,
                  interval: int = 1,
                  by_epoch: bool = True,
                  height: Optional[int] = None,
-                 width: Optional[int] = None):
+                 width: Optional[int] = None,
+                 **kwargs):
         self.prompt = prompt
-        self.condition_image = condition_image
+        self.kwargs = kwargs
         self.interval = interval
         self.by_epoch = by_epoch
         self.height = height
@@ -58,12 +56,11 @@ class VisualizationHook(Hook):
             model = runner.model
             if is_model_wrapper(model):
                 model = model.module
-            if self.condition_image is None:
-                images = model.infer(self.prompt, self.height, self.width)
-            else:
-                # controlnet
-                images = model.infer(self.prompt, self.condition_image,
-                                     self.height, self.width)
+            images = model.infer(
+                self.prompt,
+                height=self.height,
+                width=self.width,
+                **self.kwargs)
             for i, image in enumerate(images):
                 runner.visualizer.add_image(
                     f'image{i}_step', image, step=runner.iter)
@@ -77,12 +74,11 @@ class VisualizationHook(Hook):
             model = runner.model
             if is_model_wrapper(model):
                 model = model.module
-            if self.condition_image is None:
-                images = model.infer(self.prompt, self.height, self.width)
-            else:
-                # controlnet
-                images = model.infer(self.prompt, self.condition_image,
-                                     self.height, self.width)
+            images = model.infer(
+                self.prompt,
+                height=self.height,
+                width=self.width,
+                **self.kwargs)
             for i, image in enumerate(images):
                 runner.visualizer.add_image(
                     f'image{i}_step', image, step=runner.epoch)
