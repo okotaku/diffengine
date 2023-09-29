@@ -357,3 +357,46 @@ class TestMultiAspectRatioResizeCenterCrop(TestCase):
                 Image.open(img_path).resize((32, 36)).crop(
                     (left, upper, right, lower))))
         np.equal(np.array(data['img']), np.array(data['condition_img']))
+
+
+class TestCLIPImageProcessor(TestCase):
+
+    def test_register(self):
+        self.assertIn('CLIPImageProcessor', TRANSFORMS)
+
+    def test_transform(self):
+        img_path = osp.join(osp.dirname(__file__), '../../testdata/color.jpg')
+        data = {
+            'img': Image.open(img_path),
+        }
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type='CLIPImageProcessor'))
+        data = trans(data)
+        self.assertIn('clip_img', data)
+        self.assertEqual(type(data['clip_img']), torch.Tensor)
+        self.assertEqual(data['clip_img'].size(), (3, 224, 224))
+
+
+class TestRandomTextDrop(TestCase):
+
+    def test_register(self):
+        self.assertIn('RandomTextDrop', TRANSFORMS)
+
+    def test_transform(self):
+        data = {
+            'text': 'a dog',
+        }
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type='RandomTextDrop', p=1.))
+        data = trans(data)
+        assert data['text'] == ''
+
+        # test transform p=0.0
+        data = {
+            'text': 'a dog',
+        }
+        trans = TRANSFORMS.build(dict(type='RandomTextDrop', p=0.))
+        data = trans(data)
+        assert data['text'] == 'a dog'

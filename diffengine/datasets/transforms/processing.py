@@ -9,6 +9,7 @@ import torchvision
 from mmengine.dataset.base_dataset import Compose
 from torchvision.transforms.functional import crop
 from torchvision.transforms.transforms import InterpolationMode
+from transformers import CLIPImageProcessor as HFCLIPImageProcessor
 
 from diffengine.datasets.transforms.base import BaseTransform
 from diffengine.registry import TRANSFORMS
@@ -315,4 +316,57 @@ class ComputeTimeIds(BaseTransform):
         time_ids = results['ori_img_shape'] + results[
             'crop_top_left'] + target_size
         results['time_ids'] = time_ids
+        return results
+
+
+@TRANSFORMS.register_module()
+class CLIPImageProcessor(BaseTransform):
+    """CLIPImageProcessor.
+
+    Args:
+        key (str): `key` to apply augmentation from results. Defaults to 'img'.
+        output_key (str): `output_key` after applying augmentation from
+            results. Defaults to 'clip_img'.
+    """
+
+    def __init__(self, key: str = 'img', output_key: str = 'clip_img') -> None:
+        self.key = key
+        self.output_key = output_key
+        self.pipeline = HFCLIPImageProcessor()
+
+    def transform(self,
+                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+        """
+        Args:
+            results (dict): The result dict.
+        """
+        # (1, 3, 224, 224) -> (3, 224, 224)
+        results[self.output_key] = self.pipeline(
+            images=results[self.key], return_tensors='pt').pixel_values[0]
+        return results
+
+
+@TRANSFORMS.register_module()
+class RandomTextDrop(BaseTransform):
+    """RandomTextDrop. Replace text to empty.
+
+    Args:
+        p (float): probability of the image being flipped.
+            Default value is 0.5.
+        keys (List[str]): `keys` to apply augmentation from results.
+    """
+
+    def __init__(self, p: float = 0.1, keys=['text']):
+        self.p = p
+        self.keys = keys
+
+    def transform(self,
+                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+        """
+        Args:
+            results (dict): The result dict.
+        """
+        if random.random() < self.p:
+            for k in self.keys:
+                results[k] = ''
         return results

@@ -18,7 +18,7 @@ from torch import nn
 def set_unet_lora(unet: nn.Module,
                   config: dict,
                   verbose: bool = True) -> nn.Module:
-    """Set LoRA for module.
+    """Set LoRA for Unet.
 
     Args:
         unet (nn.Module): The unet to set LoRA.
@@ -85,8 +85,10 @@ def unet_attn_processors_state_dict(unet) -> Dict[str, torch.tensor]:
     attn_processors_state_dict = {}
 
     for attn_processor_key, attn_processor in attn_processors.items():
-        for parameter_key, parameter in attn_processor.state_dict().items():
-            attn_processors_state_dict[
-                f'{attn_processor_key}.{parameter_key}'] = parameter
+        # skip 'AttnProcessor2_0'
+        if hasattr(attn_processor, 'state_dict'):
+            for parameter_key, parameter in attn_processor.state_dict().items():  # noqa
+                attn_processors_state_dict[
+                    f'{attn_processor_key}.{parameter_key}'] = parameter
 
     return attn_processors_state_dict
