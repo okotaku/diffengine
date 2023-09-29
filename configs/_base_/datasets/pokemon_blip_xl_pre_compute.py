@@ -19,6 +19,7 @@ train_dataloader = dict(
         type='HFDatasetPreComputeEmbs',
         dataset='lambdalabs/pokemon-blip-captions',
         text_hasher='text_pokemon_blip',
+        model='stabilityai/stable-diffusion-xl-base-1.0',
         pipeline=train_pipeline),
     sampler=dict(type='DefaultSampler', shuffle=True),
 )
