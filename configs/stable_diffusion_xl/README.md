@@ -76,3 +76,7 @@ You can see more details on [`docs/source/run_guides/run_xl.md`](../../docs/sour
 #### stable_diffusion_xl_pokemon_blip
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/dd04fb22-64fb-4c4f-8164-b8391d94abab)
+
+#### stable_diffusion_xl_pokemon_blip_pre_compute
+
+![example2](https://github.com/okotaku/diffengine/assets/24734142/5da59a56-ce36-48cc-b113-007f8b9faeba)

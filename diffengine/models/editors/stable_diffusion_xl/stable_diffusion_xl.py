@@ -57,6 +57,8 @@ class StableDiffusionXL(BaseModel):
         gradient_checkpointing (bool): Whether or not to use gradient
             checkpointing to save memory at the expense of slower backward
             pass. Defaults to False.
+        pre_compute_text_embeddings(bool): Whether or not to pre-compute text
+            embeddings to save memory. Defaults to False.
         noise_offset_weight (bool, optional):
             The weight of noise offset introduced in
             https://www.crosslabs.org/blog/diffusion-with-offset-noise
@@ -73,6 +75,7 @@ class StableDiffusionXL(BaseModel):
         prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
         gradient_checkpointing: bool = False,
+        pre_compute_text_embeddings: bool = False,
         data_preprocessor: Optional[Union[dict, nn.Module]] = dict(
             type='SDXLDataPreprocessor'),
     ):
@@ -82,6 +85,9 @@ class StableDiffusionXL(BaseModel):
         self.finetune_text_encoder = finetune_text_encoder
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
+        self.pre_compute_text_embeddings = pre_compute_text_embeddings
+        if pre_compute_text_embeddings:
+            assert not finetune_text_encoder
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
@@ -90,19 +96,20 @@ class StableDiffusionXL(BaseModel):
         self.enable_noise_offset = noise_offset_weight > 0
         self.noise_offset_weight = noise_offset_weight
 
-        self.tokenizer_one = AutoTokenizer.from_pretrained(
-            model, subfolder='tokenizer', use_fast=False)
-        self.tokenizer_two = AutoTokenizer.from_pretrained(
-            model, subfolder='tokenizer_2', use_fast=False)
+        if not self.pre_compute_text_embeddings:
+            self.tokenizer_one = AutoTokenizer.from_pretrained(
+                model, subfolder='tokenizer', use_fast=False)
+            self.tokenizer_two = AutoTokenizer.from_pretrained(
+                model, subfolder='tokenizer_2', use_fast=False)
 
-        text_encoder_cls_one = import_model_class_from_model_name_or_path(
-            model)
-        text_encoder_cls_two = import_model_class_from_model_name_or_path(
-            model, subfolder='text_encoder_2')
-        self.text_encoder_one = text_encoder_cls_one.from_pretrained(
-            model, subfolder='text_encoder')
-        self.text_encoder_two = text_encoder_cls_two.from_pretrained(
-            model, subfolder='text_encoder_2')
+            text_encoder_cls_one = import_model_class_from_model_name_or_path(
+                model)
+            text_encoder_cls_two = import_model_class_from_model_name_or_path(
+                model, subfolder='text_encoder_2')
+            self.text_encoder_one = text_encoder_cls_one.from_pretrained(
+                model, subfolder='text_encoder')
+            self.text_encoder_two = text_encoder_cls_two.from_pretrained(
+                model, subfolder='text_encoder_2')
 
         self.scheduler = DDPMScheduler.from_pretrained(
             model, subfolder='scheduler')
@@ -139,7 +146,8 @@ class StableDiffusionXL(BaseModel):
 
         self.vae.requires_grad_(False)
         print_log('Set VAE untrainable.', 'current')
-        if not self.finetune_text_encoder:
+        if (not self.finetune_text_encoder) and (
+                not self.pre_compute_text_embeddings):
             self.text_encoder_one.requires_grad_(False)
             self.text_encoder_two.requires_grad_(False)
             print_log('Set Text Encoder untrainable.', 'current')
@@ -165,17 +173,26 @@ class StableDiffusionXL(BaseModel):
                 `self.unet.config.sample_size * self.vae_scale_factor`):
                 The width in pixels of the generated image.
         """
-        pipeline = DiffusionPipeline.from_pretrained(
-            self.model,
-            vae=self.vae,
-            text_encoder_one=self.text_encoder_one,
-            text_encoder_two=self.text_encoder_two,
-            tokenizer_one=self.tokenizer_one,
-            tokenizer_two=self.tokenizer_two,
-            unet=self.unet,
-            safety_checker=None,
-            dtype=torch.float16,
-        )
+        if self.pre_compute_text_embeddings:
+            pipeline = DiffusionPipeline.from_pretrained(
+                self.model,
+                vae=self.vae,
+                unet=self.unet,
+                safety_checker=None,
+                dtype=torch.float16,
+            )
+        else:
+            pipeline = DiffusionPipeline.from_pretrained(
+                self.model,
+                vae=self.vae,
+                text_encoder_one=self.text_encoder_one,
+                text_encoder_two=self.text_encoder_two,
+                tokenizer_one=self.tokenizer_one,
+                tokenizer_two=self.tokenizer_two,
+                unet=self.unet,
+                safety_checker=None,
+                dtype=torch.float16,
+            )
         pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
         images = []
@@ -227,18 +244,6 @@ class StableDiffusionXL(BaseModel):
                 data_samples: Optional[list] = None,
                 mode: str = 'loss'):
         assert mode == 'loss'
-        inputs['text_one'] = self.tokenizer_one(
-            inputs['text'],
-            max_length=self.tokenizer_one.model_max_length,
-            padding='max_length',
-            truncation=True,
-            return_tensors='pt').input_ids.to(self.device)
-        inputs['text_two'] = self.tokenizer_two(
-            inputs['text'],
-            max_length=self.tokenizer_two.model_max_length,
-            padding='max_length',
-            truncation=True,
-            return_tensors='pt').input_ids.to(self.device)
         num_batches = len(inputs['img'])
         if 'result_class_image' in inputs:
             # use prior_loss_weight
@@ -266,8 +271,24 @@ class StableDiffusionXL(BaseModel):
 
         noisy_latents = self.scheduler.add_noise(latents, noise, timesteps)
 
-        prompt_embeds, pooled_prompt_embeds = self.encode_prompt(
-            inputs['text_one'], inputs['text_two'])
+        if not self.pre_compute_text_embeddings:
+            inputs['text_one'] = self.tokenizer_one(
+                inputs['text'],
+                max_length=self.tokenizer_one.model_max_length,
+                padding='max_length',
+                truncation=True,
+                return_tensors='pt').input_ids.to(self.device)
+            inputs['text_two'] = self.tokenizer_two(
+                inputs['text'],
+                max_length=self.tokenizer_two.model_max_length,
+                padding='max_length',
+                truncation=True,
+                return_tensors='pt').input_ids.to(self.device)
+            prompt_embeds, pooled_prompt_embeds = self.encode_prompt(
+                inputs['text_one'], inputs['text_two'])
+        else:
+            prompt_embeds = inputs['prompt_embeds']
+            pooled_prompt_embeds = inputs['pooled_prompt_embeds']
         unet_added_conditions = {
             'time_ids': inputs['time_ids'],
             'text_embeds': pooled_prompt_embeds
