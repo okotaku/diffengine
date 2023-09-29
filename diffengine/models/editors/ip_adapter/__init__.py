@@ -1,4 +1,4 @@
-from .ip_adapter_xl import IPAdapterXL
+from .ip_adapter_xl import IPAdapterXL, IPAdapterXLPlus
 from .ip_adapter_xl_data_preprocessor import IPAdapterXLDataPreprocessor
 
-__all__ = ['IPAdapterXL', 'IPAdapterXLDataPreprocessor']
+__all__ = ['IPAdapterXL', 'IPAdapterXLPlus', 'IPAdapterXLDataPreprocessor']
