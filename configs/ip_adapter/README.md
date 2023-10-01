@@ -82,4 +82,4 @@ You can see more details on [`docs/source/run_guides/run_ip_adapter.md`](../../d
 
 ![input1](https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg)
 
-![example1](https://github.com/okotaku/diffengine/assets/24734142/1052b1c4-2b2b-4cc1-85e5-63912f96dfc7)
+![example1](https://github.com/okotaku/diffengine/assets/24734142/723ad39d-9e0f-441b-80f7-cf9bcfd12853)
