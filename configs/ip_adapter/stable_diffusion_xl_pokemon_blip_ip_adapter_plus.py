@@ -8,3 +8,5 @@ _base_ = [
 train_dataloader = dict(batch_size=1)
 
 optim_wrapper_cfg = dict(accumulative_counts=4)  # update every four times
+
+train_cfg = dict(by_epoch=True, max_epochs=100)
