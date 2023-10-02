@@ -8,8 +8,9 @@ from mmengine.model import BaseModel
 from mmengine.registry import MODELS
 from mmengine.testing import RunnerTestCase
 
-from diffengine.engine.hooks import IPAdapterSaveHook
-from diffengine.models.editors import IPAdapterXL, IPAdapterXLDataPreprocessor
+from diffengine.engine.hooks import T2IAdapterSaveHook
+from diffengine.models.editors import (SDXLControlNetDataPreprocessor,
+                                       StableDiffusionXLT2IAdapter)
 from diffengine.models.losses import L2Loss
 
 
@@ -29,51 +30,45 @@ class TestLoRASaveHook(RunnerTestCase):
 
     def setUp(self) -> None:
         MODELS.register_module(name='DummyWrapper', module=DummyWrapper)
-        MODELS.register_module(name='IPAdapterXL', module=IPAdapterXL)
         MODELS.register_module(
-            name='IPAdapterXLDataPreprocessor',
-            module=IPAdapterXLDataPreprocessor)
+            name='StableDiffusionXLT2IAdapter',
+            module=StableDiffusionXLT2IAdapter)
+        MODELS.register_module(
+            name='SDXLControlNetDataPreprocessor',
+            module=SDXLControlNetDataPreprocessor)
         MODELS.register_module(name='L2Loss', module=L2Loss)
         return super().setUp()
 
     def tearDown(self):
         MODELS.module_dict.pop('DummyWrapper')
-        MODELS.module_dict.pop('IPAdapterXL')
-        MODELS.module_dict.pop('IPAdapterXLDataPreprocessor')
+        MODELS.module_dict.pop('StableDiffusionXLT2IAdapter')
+        MODELS.module_dict.pop('SDXLControlNetDataPreprocessor')
         MODELS.module_dict.pop('L2Loss')
         return super().tearDown()
 
     def test_init(self):
-        IPAdapterSaveHook()
+        T2IAdapterSaveHook()
 
     def test_before_save_checkpoint(self):
         cfg = copy.deepcopy(self.epoch_based_cfg)
-        cfg.model.type = 'IPAdapterXL'
+        cfg.model.type = 'StableDiffusionXLT2IAdapter'
         cfg.model.model = 'hf-internal-testing/tiny-stable-diffusion-xl-pipe'
-        cfg.model.image_encoder = 'hf-internal-testing/unidiffuser-diffusers-test'  # noqa
+        cfg.model.adapter_model = 'hf-internal-testing/tiny-adapter'
         runner = self.build_runner(cfg)
         checkpoint = dict(
-            state_dict=IPAdapterXL(
+            state_dict=StableDiffusionXLT2IAdapter(
                 model='hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-                image_encoder='hf-internal-testing/unidiffuser-diffusers-test'
-            ).state_dict())
-        hook = IPAdapterSaveHook()
+                adapter_model='hf-internal-testing/tiny-adapter').state_dict())
+        hook = T2IAdapterSaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
         assert Path(
-            osp.join(runner.work_dir, f'step{runner.iter}',
-                     'pytorch_lora_weights.safetensors')).exists()
-        os.remove(
-            osp.join(runner.work_dir, f'step{runner.iter}',
-                     'pytorch_lora_weights.safetensors'))
-
-        assert Path(
-            osp.join(runner.work_dir, f'step{runner.iter}/image_projection',
+            osp.join(runner.work_dir, f'step{runner.iter}/adapter',
                      'diffusion_pytorch_model.safetensors')).exists()
         os.remove(
-            osp.join(runner.work_dir, f'step{runner.iter}/image_projection',
+            osp.join(runner.work_dir, f'step{runner.iter}/adapter',
                      'diffusion_pytorch_model.safetensors'))
 
+        assert len(checkpoint['state_dict']) > 0
         for key in checkpoint['state_dict'].keys():
-            assert key.startswith(tuple(['unet', 'image_projection']))
-            assert '.processor.' in key or key.startswith('image_projection')
+            assert key.startswith('adapter')
