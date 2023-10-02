@@ -116,7 +116,7 @@ class IPAdapterXL(StableDiffusionXL):
     def infer(self,
               prompt: List[str],
               example_image: List[Union[str, Image.Image]],
-              negative_prompt: Optional[List[str]] = None,
+              negative_prompt: Optional[str] = None,
               height: Optional[int] = None,
               width: Optional[int] = None) -> List[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
@@ -126,8 +126,9 @@ class IPAdapterXL(StableDiffusionXL):
                 The prompt or prompts to guide the image generation.
             example_image (`List[Union[str, Image.Image]]`):
                 The image prompt or prompts to guide the image generation.
-            negative_prompt (`List[str]`):
+            negative_prompt (`Optional[str]`):
                 The prompt or prompts to guide the image generation.
+                Defaults to None.
             height (`int`, *optional*, defaults to
                 `self.unet.config.sample_size * self.vae_scale_factor`):
                 The height in pixels of the generated image.

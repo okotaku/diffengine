@@ -105,6 +105,7 @@ class StableDiffusionControlNet(StableDiffusion):
     def infer(self,
               prompt: List[str],
               condition_image: List[Union[str, Image.Image]],
+              negative_prompt: Optional[str] = None,
               height: Optional[int] = None,
               width: Optional[int] = None) -> List[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
@@ -114,6 +115,9 @@ class StableDiffusionControlNet(StableDiffusion):
                 The prompt or prompts to guide the image generation.
             condition_image (`List[Union[str, Image.Image]]`):
                 The condition image for ControlNet.
+            negative_prompt (`Optional[str]`):
+                The prompt or prompts to guide the image generation.
+                Defaults to None.
             height (`int`, *optional*, defaults to
                 `self.unet.config.sample_size * self.vae_scale_factor`):
                 The height in pixels of the generated image.
@@ -138,7 +142,11 @@ class StableDiffusionControlNet(StableDiffusion):
                 img = load_image(img)
             img = img.convert('RGB')
             image = pipeline(
-                p, img, num_inference_steps=50, height=height,
+                p,
+                img,
+                negative_prompt=negative_prompt,
+                num_inference_steps=50,
+                height=height,
                 width=width).images[0]
             images.append(np.array(image))
 

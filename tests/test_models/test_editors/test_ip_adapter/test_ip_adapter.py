@@ -45,6 +45,16 @@ class TestIPAdapterXL(TestCase):
         # test device
         assert StableDiffuser.device.type == 'cpu'
 
+        # test infer with negative_prompt
+        result = StableDiffuser.infer(
+            ['an insect robot preparing a delicious meal'],
+            ['tests/testdata/color.jpg'],
+            negative_prompt='noise',
+            height=64,
+            width=64)
+        assert len(result) == 1
+        assert result[0].shape == (64, 64, 3)
+
     def test_train_step(self):
         # test load with loss module
         StableDiffuser = IPAdapterXL(
