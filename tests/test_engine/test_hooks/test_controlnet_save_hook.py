@@ -61,7 +61,7 @@ class TestLoRASaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f'step{runner.iter}', 'controlnet',
-                     'diffusion_pytorch_model.bin')).exists
+                     'diffusion_pytorch_model.safetensors')).exists()
         shutil.rmtree(osp.join(runner.work_dir), ignore_errors=True)
 
         for key in checkpoint['state_dict'].keys():

@@ -2,29 +2,28 @@ from typing import List, Optional, Union
 
 import numpy as np
 import torch
-from diffusers import ControlNetModel, StableDiffusionControlNetPipeline
+from diffusers import StableDiffusionXLAdapterPipeline, T2IAdapter
 from diffusers.utils import load_image
 from mmengine import print_log
 from PIL import Image
 from torch import nn
 
-from diffengine.models.editors.stable_diffusion import StableDiffusion
+from diffengine.models.editors.stable_diffusion_xl import StableDiffusionXL
 from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
 @MODELS.register_module()
-class StableDiffusionControlNet(StableDiffusion):
-    """Stable Diffusion ControlNet.
+class StableDiffusionXLT2IAdapter(StableDiffusionXL):
+    """Stable Diffusion XL T2I Adapter.
 
     Args:
-        controlnet_model (str, optional): Path to pretrained ControlNet model.
-            If None, use the default ControlNet model from Unet.
-            Defaults to None.
-        transformer_layers_per_block (List[int], optional):
-            The number of layers per block in the transformer. More details:
-            https://huggingface.co/diffusers/controlnet-canny-sdxl-1.0-small.
-            Defaults to None.
+        adapter_model (str, optional): Path to pretrained adapter model. If
+            None, use the default adapter model. Defaults to None.
+        adapter_model_channels (List[int]): The channels of adapter.
+            Defaults to [320, 640, 1280, 1280].
+        adapter_downscale_factor (int): The downscale factor of adapter.
+            Defaults to 16.
         lora_config (dict, optional): The LoRA config dict. This should be
             `None` when training ControlNet. Defaults to None.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
@@ -36,20 +35,22 @@ class StableDiffusionControlNet(StableDiffusion):
 
     def __init__(self,
                  *args,
-                 controlnet_model: Optional[str] = None,
-                 transformer_layers_per_block: Optional[List[int]] = None,
+                 adapter_model: Optional[str] = None,
+                 adapter_model_channels: List[int] = [320, 640, 1280, 1280],
+                 adapter_downscale_factor: int = 16,
                  lora_config: Optional[dict] = None,
                  finetune_text_encoder: bool = False,
                  data_preprocessor: Optional[Union[dict, nn.Module]] = dict(
-                     type='SDControlNetDataPreprocessor'),
+                     type='SDXLControlNetDataPreprocessor'),
                  **kwargs):
         assert lora_config is None, \
             '`lora_config` should be None when training ControlNet'
         assert not finetune_text_encoder, \
             '`finetune_text_encoder` should be False when training ControlNet'
 
-        self.controlnet_model = controlnet_model
-        self.transformer_layers_per_block = transformer_layers_per_block
+        self.adapter_model = adapter_model
+        self.adapter_model_channels = adapter_model_channels
+        self.adapter_downscale_factor = adapter_downscale_factor
 
         super().__init__(
             *args,
@@ -67,35 +68,24 @@ class StableDiffusionControlNet(StableDiffusion):
 
         Disable gradient for some models.
         """
-        if self.controlnet_model is not None:
-            pre_controlnet = ControlNetModel.from_pretrained(
-                self.controlnet_model)
+        if self.adapter_model is not None:
+            self.adapter = T2IAdapter.from_pretrained(self.adapter_model)
         else:
-            pre_controlnet = ControlNetModel.from_unet(self.unet)
-
-        if self.transformer_layers_per_block is not None:
-            down_block_types = [
-                ('DownBlock2D' if i == 0 else 'CrossAttnDownBlock2D')
-                for i in self.transformer_layers_per_block
-            ]
-            self.controlnet = ControlNetModel.from_config(
-                pre_controlnet.config,
-                down_block_types=down_block_types,
-                transformer_layers_per_block=self.transformer_layers_per_block,
+            self.adapter = T2IAdapter(
+                in_channels=3,
+                channels=self.adapter_model_channels,
+                num_res_blocks=2,
+                downscale_factor=self.adapter_downscale_factor,
+                adapter_type='full_adapter_xl',
             )
-            self.controlnet.load_state_dict(
-                pre_controlnet.state_dict(), strict=False)
-            del pre_controlnet
-        else:
-            self.controlnet = pre_controlnet
 
         if self.gradient_checkpointing:
-            self.controlnet.enable_gradient_checkpointing()
             self.unet.enable_gradient_checkpointing()
 
         self.vae.requires_grad_(False)
         print_log('Set VAE untrainable.', 'current')
-        self.text_encoder.requires_grad_(False)
+        self.text_encoder_one.requires_grad_(False)
+        self.text_encoder_two.requires_grad_(False)
         print_log('Set Text Encoder untrainable.', 'current')
         self.unet.requires_grad_(False)
         print_log('Set Unet untrainable.', 'current')
@@ -125,15 +115,19 @@ class StableDiffusionControlNet(StableDiffusion):
                 The width in pixels of the generated image.
         """
         assert len(prompt) == len(condition_image)
-        pipeline = StableDiffusionControlNetPipeline.from_pretrained(
+        pipeline = StableDiffusionXLAdapterPipeline.from_pretrained(
             self.model,
             vae=self.vae,
-            text_encoder=self.text_encoder,
-            tokenizer=self.tokenizer,
+            text_encoder_one=self.text_encoder_one,
+            text_encoder_two=self.text_encoder_two,
+            tokenizer_one=self.tokenizer_one,
+            tokenizer_two=self.tokenizer_two,
             unet=self.unet,
-            controlnet=self.controlnet,
+            adapter=self.adapter,
             safety_checker=None,
-            dtype=torch.float16)
+            dtype=torch.float16,
+        )
+        pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
         images = []
         for p, img in zip(prompt, condition_image):
@@ -141,6 +135,7 @@ class StableDiffusionControlNet(StableDiffusion):
                 img = load_image(img)
             img = img.convert('RGB')
             image = pipeline(
+                p,
                 p,
                 img,
                 negative_prompt=negative_prompt,
@@ -159,9 +154,15 @@ class StableDiffusionControlNet(StableDiffusion):
                 data_samples: Optional[list] = None,
                 mode: str = 'loss'):
         assert mode == 'loss'
-        inputs['text'] = self.tokenizer(
+        inputs['text_one'] = self.tokenizer_one(
             inputs['text'],
-            max_length=self.tokenizer.model_max_length,
+            max_length=self.tokenizer_one.model_max_length,
+            padding='max_length',
+            truncation=True,
+            return_tensors='pt').input_ids.to(self.device)
+        inputs['text_two'] = self.tokenizer_two(
+            inputs['text'],
+            max_length=self.tokenizer_two.model_max_length,
             padding='max_length',
             truncation=True,
             return_tensors='pt').input_ids.to(self.device)
@@ -171,7 +172,7 @@ class StableDiffusionControlNet(StableDiffusion):
             weight = torch.cat([
                 torch.ones((num_batches // 2, )),
                 torch.ones((num_batches // 2, )) * self.prior_loss_weight
-            ]).to(self.device).float().reshape(-1, 1, 1, 1)
+            ]).float().reshape(-1, 1, 1, 1)
         else:
             weight = None
 
@@ -184,16 +185,24 @@ class StableDiffusionControlNet(StableDiffusion):
             noise = noise + self.noise_offset_weight * torch.randn(
                 latents.shape[0], latents.shape[1], 1, 1, device=noise.device)
 
-        num_batches = latents.shape[0]
-        timesteps = torch.randint(
-            0,
-            self.scheduler.num_train_timesteps, (num_batches, ),
-            device=self.device)
+        # Cubic sampling to sample a random time step for each image.
+        # For more details about why cubic sampling is used, refer to section
+        # 3.4 of https://arxiv.org/abs/2302.08453
+        timesteps = torch.rand((num_batches, ), device=self.device)
+        timesteps = (1 -
+                     timesteps**3) * self.scheduler.config.num_train_timesteps
         timesteps = timesteps.long()
+        timesteps = timesteps.clamp(
+            0, self.scheduler.config.num_train_timesteps - 1)
 
         noisy_latents = self.scheduler.add_noise(latents, noise, timesteps)
 
-        encoder_hidden_states = self.text_encoder(inputs['text'])[0]
+        prompt_embeds, pooled_prompt_embeds = self.encode_prompt(
+            inputs['text_one'], inputs['text_two'])
+        unet_added_conditions = {
+            'time_ids': inputs['time_ids'],
+            'text_embeds': pooled_prompt_embeds
+        }
 
         if self.scheduler.config.prediction_type == 'epsilon':
             gt = noise
@@ -203,20 +212,15 @@ class StableDiffusionControlNet(StableDiffusion):
             raise ValueError('Unknown prediction type '
                              f'{self.scheduler.config.prediction_type}')
 
-        down_block_res_samples, mid_block_res_sample = self.controlnet(
-            noisy_latents,
-            timesteps,
-            encoder_hidden_states=encoder_hidden_states,
-            controlnet_cond=inputs['condition_img'],
-            return_dict=False,
-        )
+        down_block_additional_residuals = self.adapter(inputs['condition_img'])
 
         model_pred = self.unet(
             noisy_latents,
             timesteps,
-            encoder_hidden_states=encoder_hidden_states,
-            down_block_additional_residuals=down_block_res_samples,
-            mid_block_additional_residual=mid_block_res_sample).sample
+            prompt_embeds,
+            added_cond_kwargs=unet_added_conditions,
+            down_block_additional_residuals=down_block_additional_residuals
+        ).sample
 
         loss_dict = dict()
         # calculate loss in FP32

@@ -18,9 +18,8 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
     """Stable Diffusion XL ControlNet.
 
     Args:
-        controlnet_model (str, optional): Path to pretrained VAE model with
-            better numerical stability. More details:
-            https://github.com/huggingface/diffusers/pull/4038.
+        controlnet_model (str, optional): Path to pretrained ControlNet model.
+            If None, use the default ControlNet model from Unet.
             Defaults to None.
         transformer_layers_per_block (List[int], optional):
             The number of layers per block in the transformer. More details:

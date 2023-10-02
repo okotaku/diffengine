@@ -119,6 +119,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 - [Run Stable Diffusion ControlNet](https://diffengine.readthedocs.io/en/latest/run_guides/run_controlnet.html)
 - [Run Stable Diffusion XL ControlNet](https://diffengine.readthedocs.io/en/latest/run_guides/run_controlnet_xl.html)
 - [Run IP Adapter](https://diffengine.readthedocs.io/en/latest/run_guides/run_ip_adapter.html)
+- [Run T2I Adapter](https://diffengine.readthedocs.io/en/latest/run_guides/run_t2i_adapter.html)
 - [Inference](https://diffengine.readthedocs.io/en/latest/run_guides/inference.html)
 
 </details>
