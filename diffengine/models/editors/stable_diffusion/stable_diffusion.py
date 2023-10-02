@@ -112,12 +112,15 @@ class StableDiffusion(BaseModel):
     @torch.no_grad()
     def infer(self,
               prompt: List[str],
+              negative_prompt: Optional[str] = None,
               height: Optional[int] = None,
               width: Optional[int] = None) -> List[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
 
         Args:
             prompt (`List[str]`):
+                The prompt or prompts to guide the image generation.
+            negative_prompt (`Optional[str]`):
                 The prompt or prompts to guide the image generation.
             height (`int`, *optional*, defaults to
                 `self.unet.config.sample_size * self.vae_scale_factor`):
@@ -138,7 +141,10 @@ class StableDiffusion(BaseModel):
         images = []
         for p in prompt:
             image = pipeline(
-                p, num_inference_steps=50, height=height,
+                p,
+                negative_prompt=negative_prompt,
+                num_inference_steps=50,
+                height=height,
                 width=width).images[0]
             images.append(np.array(image))
 

@@ -26,6 +26,15 @@ class TestStableDiffusionXL(TestCase):
         # test device
         assert StableDiffuser.device.type == 'cpu'
 
+        # test infer with negative_prompt
+        result = StableDiffuser.infer(
+            ['an insect robot preparing a delicious meal'],
+            negative_prompt='noise',
+            height=64,
+            width=64)
+        assert len(result) == 1
+        assert result[0].shape == (64, 64, 3)
+
     def test_infer_with_pre_compute_embs(self):
         StableDiffuser = StableDiffusionXL(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
