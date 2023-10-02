@@ -128,6 +128,7 @@ class IPAdapterXL(StableDiffusionXL):
                 The image prompt or prompts to guide the image generation.
             negative_prompt (`Optional[str]`):
                 The prompt or prompts to guide the image generation.
+                Defaults to None.
             height (`int`, *optional*, defaults to
                 `self.unet.config.sample_size * self.vae_scale_factor`):
                 The height in pixels of the generated image.
