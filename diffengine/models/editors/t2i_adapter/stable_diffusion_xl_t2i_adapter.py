@@ -131,7 +131,8 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
             tokenizer_2=self.tokenizer_two,
             unet=self.unet,
             adapter=self.adapter,
-            torch_dtype=torch.float16,
+            torch_dtype=(torch.float16 if self.device != torch.device('cpu')
+                         else torch.float32),
         )
         pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)

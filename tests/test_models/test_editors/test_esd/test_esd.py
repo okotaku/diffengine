@@ -51,6 +51,9 @@ class TestESDXL(TestCase):
         # test load with loss module
         StableDiffuser = ESDXL(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
+            train_method='xattn',
+            height=64,
+            width=64,
             loss=L2Loss(),
             data_preprocessor=ESDXLDataPreprocessor())
 
@@ -58,9 +61,9 @@ class TestESDXL(TestCase):
         data = dict(
             inputs=dict(
                 text=['dog'],
-                prompt_embeds=[torch.zeros((77, 64))],
+                prompt_embeds=[torch.zeros((2, 64))],
                 pooled_prompt_embeds=[torch.zeros((32))],
-                null_prompt_embeds=[torch.zeros((77, 64))],
+                null_prompt_embeds=[torch.zeros((2, 64))],
                 null_pooled_prompt_embeds=[torch.zeros((32))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)

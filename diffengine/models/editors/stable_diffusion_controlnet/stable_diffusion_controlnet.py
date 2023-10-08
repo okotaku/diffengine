@@ -140,7 +140,9 @@ class StableDiffusionControlNet(StableDiffusion):
             unet=self.unet,
             controlnet=self.controlnet,
             safety_checker=None,
-            torch_dtype=torch.float16)
+            torch_dtype=(torch.float16 if self.device != torch.device('cpu')
+                         else torch.float32),
+        )
         pipeline.set_progress_bar_config(disable=True)
         images = []
         for p, img in zip(prompt, condition_image):

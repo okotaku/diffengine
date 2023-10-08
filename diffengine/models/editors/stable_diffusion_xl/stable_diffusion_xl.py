@@ -190,7 +190,9 @@ class StableDiffusionXL(BaseModel):
                 vae=self.vae,
                 unet=self.unet,
                 safety_checker=None,
-                torch_dtype=torch.float16,
+                torch_dtype=(torch.float16
+                             if self.device != torch.device('cpu') else
+                             torch.float32),
             )
         else:
             pipeline = DiffusionPipeline.from_pretrained(
@@ -201,7 +203,9 @@ class StableDiffusionXL(BaseModel):
                 tokenizer=self.tokenizer_one,
                 tokenizer_2=self.tokenizer_two,
                 unet=self.unet,
-                torch_dtype=torch.float16,
+                torch_dtype=(torch.float16
+                             if self.device != torch.device('cpu') else
+                             torch.float32),
             )
         pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)

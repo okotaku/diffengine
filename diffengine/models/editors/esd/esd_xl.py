@@ -46,6 +46,7 @@ class ESDXL(StableDiffusionXL):
         super().__init__(
             *args,
             finetune_text_encoder=finetune_text_encoder,
+            pre_compute_text_embeddings=pre_compute_text_embeddings,
             data_preprocessor=data_preprocessor,
             **kwargs)
 
