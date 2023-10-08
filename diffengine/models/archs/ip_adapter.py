@@ -279,12 +279,12 @@ class CNAttnProcessor:
     """Default processor for performing attention-related computations.
 
     Args:
-        text_context_len (int):
-            The context length of the text features. Defaults to 77.
+        clip_extra_context_tokens (int): The number of expansion ratio of proj
+            network hidden layer channels Defaults to 4.
     """
 
-    def __init__(self, text_context_len: int = 77) -> None:
-        self.text_context_len = text_context_len
+    def __init__(self, clip_extra_context_tokens: int = 4) -> None:
+        self.clip_extra_context_tokens = clip_extra_context_tokens
 
     def __call__(
         self,
@@ -324,8 +324,8 @@ class CNAttnProcessor:
             encoder_hidden_states = hidden_states
         elif attn.norm_cross:
             # only use text
-            encoder_hidden_states = encoder_hidden_states[:, :self.
-                                                          text_context_len]
+            encoder_hidden_states = (
+                encoder_hidden_states[:, :self.clip_extra_context_tokens])
             encoder_hidden_states = attn.norm_encoder_hidden_states(
                 encoder_hidden_states)
 
@@ -362,16 +362,16 @@ class CNAttnProcessor2_0:
     default if you're using PyTorch 2.0).
 
     Args:
-        text_context_len (int):
-            The context length of the text features. Defaults to 77.
+        clip_extra_context_tokens (int): The number of expansion ratio of proj
+            network hidden layer channels Defaults to 4.
     """
 
-    def __init__(self, text_context_len: int = 77) -> None:
+    def __init__(self, clip_extra_context_tokens: int = 4) -> None:
         if not hasattr(F, 'scaled_dot_product_attention'):
             raise ImportError(
                 'AttnProcessor2_0 requires PyTorch 2.0, to use it, please '
                 'upgrade PyTorch to 2.0.')
-        self.text_context_len = text_context_len
+        self.clip_extra_context_tokens = clip_extra_context_tokens
 
     def __call__(
         self,
@@ -415,8 +415,8 @@ class CNAttnProcessor2_0:
         if encoder_hidden_states is None:
             encoder_hidden_states = hidden_states
         elif attn.norm_cross:
-            encoder_hidden_states = encoder_hidden_states[:, :self.
-                                                          text_context_len]
+            encoder_hidden_states = (
+                encoder_hidden_states[:, :self.clip_extra_context_tokens])
             encoder_hidden_states = attn.norm_encoder_hidden_states(
                 encoder_hidden_states)
 
@@ -468,7 +468,7 @@ def set_unet_ip_adapter(unet: nn.Module) -> None:
     """Set IP-Adapter for Unet.
 
     Args:
-        unet (nn.Module): The unet to set LoRA.
+        unet (nn.Module): The unet to set IP-Adapter.
     """
     attn_procs = {}
     for name in unet.attn_processors.keys():
@@ -497,3 +497,19 @@ def set_unet_ip_adapter(unet: nn.Module) -> None:
                 hidden_size=hidden_size,
                 cross_attention_dim=cross_attention_dim)
     unet.set_attn_processor(attn_procs)
+
+
+def set_controlnet_ip_adapter(controlnet, clip_extra_context_tokens: int = 4):
+    """Set IP-Adapter for Unet.
+
+    Args:
+        controlnet (nn.Module): The ControlNet to set IP-Adapter.
+        clip_extra_context_tokens (int): The number of expansion ratio of proj
+            network hidden layer channels Defaults to 4.
+    """
+    attn_processor_class = (
+        CNAttnProcessor2_0
+        if hasattr(F, 'scaled_dot_product_attention') else CNAttnProcessor)
+    controlnet.set_attn_processor(
+        attn_processor_class(
+            clip_extra_context_tokens=clip_extra_context_tokens))
