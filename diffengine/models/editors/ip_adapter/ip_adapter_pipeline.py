@@ -191,7 +191,18 @@ class IPAdapterXLPipeline(BaseModel):
 
 @MODELS.register_module()
 class IPAdapterXLPlusPipeline(IPAdapterXLPipeline):
-    """IPAdapterXLPlusPipeline."""
+    """IPAdapterXLPlusPipeline.
+
+    Args:
+        clip_extra_context_tokens (int): The number of expansion ratio of proj
+            network hidden layer channels Defaults to 16.
+    """
+
+    def __init__(self, *args, clip_extra_context_tokens: int = 16, **kwargs):
+        super().__init__(
+            *args,
+            clip_extra_context_tokens=clip_extra_context_tokens,
+            **kwargs)
 
     def prepare_model(self) -> None:
         """Prepare model for training.
