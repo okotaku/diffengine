@@ -68,14 +68,14 @@ class HFDataset(Dataset):
 
     def __getitem__(self, idx: int) -> dict:
         """Get the idx-th image and data information of dataset after
-        ``self.train_transforms`.
+        ``self.pipeline`.
 
         Args:
             idx (int): The index of self.data_list.
 
         Returns:
             dict: The idx-th image and data information of dataset after
-            ``self.train_transforms``.
+            ``self.pipeline``.
         """
         data_info = self.dataset[idx]
         image = data_info[self.image_column]

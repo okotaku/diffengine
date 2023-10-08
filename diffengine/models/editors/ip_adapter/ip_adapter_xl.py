@@ -118,7 +118,10 @@ class IPAdapterXL(StableDiffusionXL):
               example_image: List[Union[str, Image.Image]],
               negative_prompt: Optional[str] = None,
               height: Optional[int] = None,
-              width: Optional[int] = None) -> List[np.ndarray]:
+              width: Optional[int] = None,
+              num_inference_steps: int = 50,
+              output_type: str = 'pil',
+              **kwargs) -> List[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
 
         Args:
@@ -135,19 +138,22 @@ class IPAdapterXL(StableDiffusionXL):
             width (`int`, *optional*, defaults to
                 `self.unet.config.sample_size * self.vae_scale_factor`):
                 The width in pixels of the generated image.
+            num_inference_steps (int): Number of inference steps.
+                Defaults to 50.
+            output_type (str): The output format of the generate image.
+                Choose between 'pil' and 'latent'. Defaults to 'pil'.
         """
         assert len(prompt) == len(example_image)
 
         pipeline = DiffusionPipeline.from_pretrained(
             self.model,
             vae=self.vae,
-            text_encoder_one=self.text_encoder_one,
-            text_encoder_two=self.text_encoder_two,
-            tokenizer_one=self.tokenizer_one,
-            tokenizer_two=self.tokenizer_two,
+            text_encoder=self.text_encoder_one,
+            text_encoder_2=self.text_encoder_two,
+            tokenizer=self.tokenizer_one,
+            tokenizer_2=self.tokenizer_two,
             unet=self.unet,
-            safety_checker=None,
-            dtype=torch.float16,
+            torch_dtype=torch.float16,
         )
         pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
@@ -173,10 +179,15 @@ class IPAdapterXL(StableDiffusionXL):
                 negative_prompt_embeds=negative_prompt_embeds,
                 pooled_prompt_embeds=pooled_prompt_embeds,
                 negative_pooled_prompt_embeds=negative_pooled_prompt_embeds,
-                num_inference_steps=50,
+                num_inference_steps=num_inference_steps,
                 height=height,
-                width=width).images[0]
-            images.append(np.array(image))
+                width=width,
+                output_type=output_type,
+                **kwargs).images[0]
+            if output_type == 'latent':
+                images.append(image)
+            else:
+                images.append(np.array(image))
 
         del pipeline
         torch.cuda.empty_cache()
@@ -221,7 +232,7 @@ class IPAdapterXL(StableDiffusionXL):
 
         timesteps = torch.randint(
             0,
-            self.scheduler.num_train_timesteps, (num_batches, ),
+            self.scheduler.config.num_train_timesteps, (num_batches, ),
             device=self.device)
         timesteps = timesteps.long()
 
@@ -369,7 +380,7 @@ class IPAdapterXLPlus(IPAdapterXL):
 
         timesteps = torch.randint(
             0,
-            self.scheduler.num_train_timesteps, (num_batches, ),
+            self.scheduler.config.num_train_timesteps, (num_batches, ),
             device=self.device)
         timesteps = timesteps.long()
 

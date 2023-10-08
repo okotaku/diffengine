@@ -59,6 +59,17 @@ class TestStableDiffusionXLControlNet(TestCase):
         assert len(result) == 1
         assert result[0].shape == (64, 64, 3)
 
+        # output_type = 'latent'
+        result = StableDiffuser.infer(
+            ['an insect robot preparing a delicious meal'],
+            ['tests/testdata/color.jpg'],
+            output_type='latent',
+            height=64,
+            width=64)
+        assert len(result) == 1
+        self.assertEqual(type(result[0]), torch.Tensor)
+        self.assertEqual(result[0].shape, (4, 32, 32))
+
         # test controlnet small
         StableDiffuser = StableDiffusionXLControlNet(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',

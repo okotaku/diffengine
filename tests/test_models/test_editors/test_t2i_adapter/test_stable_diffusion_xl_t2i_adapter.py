@@ -46,6 +46,17 @@ class TestStableDiffusionXLControlNet(TestCase):
         # test device
         assert StableDiffuser.device.type == 'cpu'
 
+        # output_type = 'latent'
+        result = StableDiffuser.infer(
+            ['an insect robot preparing a delicious meal'],
+            ['tests/testdata/color.jpg'],
+            output_type='latent',
+            height=64,
+            width=64)
+        assert len(result) == 1
+        self.assertEqual(type(result[0]), torch.Tensor)
+        self.assertEqual(result[0].shape, (4, 32, 32))
+
         # test adapter model is None
         StableDiffuser = StableDiffusionXLT2IAdapter(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
