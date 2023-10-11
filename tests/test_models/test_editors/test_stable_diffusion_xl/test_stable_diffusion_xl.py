@@ -123,7 +123,7 @@ class TestStableDiffusionXL(TestCase):
         data = dict(
             inputs=dict(
                 img=[torch.zeros((3, 64, 64))],
-                prompt_embeds=[torch.zeros((77, 64))],
+                prompt_embeds=[torch.zeros((2, 64))],
                 pooled_prompt_embeds=[torch.zeros((32))],
                 time_ids=[torch.zeros((1, 6))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)

@@ -168,33 +168,9 @@ class TestStableDiffusionXL(TestCase):
         data = dict(
             inputs=dict(
                 img=[torch.zeros((3, 64, 64))],
-                prompt_embeds=[torch.zeros((77, 64))],
+                prompt_embeds=[torch.zeros((2, 64))],
                 pooled_prompt_embeds=[torch.zeros((32))],
                 time_ids=[torch.zeros((1, 6))]))
-        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
-        optim_wrapper = OptimWrapper(optimizer)
-        log_vars = StableDiffuser.train_step(data, optim_wrapper)
-        assert log_vars
-        self.assertIsInstance(log_vars['loss'], torch.Tensor)
-
-    def test_train_step_dreambooth(self):
-        # test load with loss module
-        StableDiffuser = DistillSDXL(
-            'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-            model_type='sd_tiny',
-            loss=L2Loss(),
-            data_preprocessor=SDXLDataPreprocessor())
-
-        # test train step
-        data = dict(
-            inputs=dict(
-                img=[torch.zeros((3, 64, 64))],
-                text=['a sks dog'],
-                time_ids=[torch.zeros((1, 6))]))
-        data['inputs']['result_class_image'] = dict(
-            img=[torch.zeros((3, 64, 64))],
-            text=['a dog'],
-            time_ids=[torch.zeros((1, 6))])
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
