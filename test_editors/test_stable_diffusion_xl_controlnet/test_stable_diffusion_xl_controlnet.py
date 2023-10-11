@@ -1,32 +1,46 @@
 from unittest import TestCase
 
 import torch
+from diffusers.models.unet_2d_blocks import CrossAttnDownBlock2D, DownBlock2D
 from mmengine.optim import OptimWrapper
 from torch.optim import SGD
 
-from diffengine.models.editors import DistillSDXL, SDXLDataPreprocessor
+from diffengine.models.editors import (SDXLControlNetDataPreprocessor,
+                                       StableDiffusionXLControlNet)
 from diffengine.models.losses import L2Loss
 
 
-class TestStableDiffusionXL(TestCase):
+class TestStableDiffusionXLControlNet(TestCase):
 
     def test_init(self):
         with self.assertRaisesRegex(AssertionError,
-                                    '`model_type`=dummy should not be'):
-            _ = DistillSDXL(
+                                    '`lora_config` should be None'):
+            _ = StableDiffusionXLControlNet(
                 'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-                model_type='dummy',
-                data_preprocessor=SDXLDataPreprocessor())
+                controlnet_model='hf-internal-testing/tiny-controlnet-sdxl',
+                data_preprocessor=SDXLControlNetDataPreprocessor(),
+                lora_config=dict(rank=4))
+
+        with self.assertRaisesRegex(AssertionError,
+                                    '`finetune_text_encoder` should be False'):
+            _ = StableDiffusionXLControlNet(
+                'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
+                controlnet_model='hf-internal-testing/tiny-controlnet-sdxl',
+                data_preprocessor=SDXLControlNetDataPreprocessor(),
+                finetune_text_encoder=True)
 
     def test_infer(self):
-        StableDiffuser = DistillSDXL(
+        StableDiffuser = StableDiffusionXLControlNet(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-            model_type='sd_tiny',
-            data_preprocessor=SDXLDataPreprocessor())
+            controlnet_model='hf-internal-testing/tiny-controlnet-sdxl',
+            data_preprocessor=SDXLControlNetDataPreprocessor())
+        assert isinstance(StableDiffuser.controlnet.down_blocks[1],
+                          CrossAttnDownBlock2D)
 
         # test infer
         result = StableDiffuser.infer(
             ['an insect robot preparing a delicious meal'],
+            ['tests/testdata/color.jpg'],
             height=64,
             width=64)
         assert len(result) == 1
@@ -38,6 +52,7 @@ class TestStableDiffusionXL(TestCase):
         # test infer with negative_prompt
         result = StableDiffuser.infer(
             ['an insect robot preparing a delicious meal'],
+            ['tests/testdata/color.jpg'],
             negative_prompt='noise',
             height=64,
             width=64)
@@ -47,6 +62,7 @@ class TestStableDiffusionXL(TestCase):
         # output_type = 'latent'
         result = StableDiffuser.infer(
             ['an insect robot preparing a delicious meal'],
+            ['tests/testdata/color.jpg'],
             output_type='latent',
             height=64,
             width=64)
@@ -54,34 +70,18 @@ class TestStableDiffusionXL(TestCase):
         self.assertEqual(type(result[0]), torch.Tensor)
         self.assertEqual(result[0].shape, (4, 32, 32))
 
-        # test model_type='sd_small'
-        StableDiffuser = DistillSDXL(
+        # test controlnet small
+        StableDiffuser = StableDiffusionXLControlNet(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-            model_type='sd_small',
-            data_preprocessor=SDXLDataPreprocessor())
+            controlnet_model='hf-internal-testing/tiny-controlnet-sdxl',
+            data_preprocessor=SDXLControlNetDataPreprocessor(),
+            transformer_layers_per_block=[0, 0])
+        assert isinstance(StableDiffuser.controlnet.down_blocks[1],
+                          DownBlock2D)
 
         result = StableDiffuser.infer(
             ['an insect robot preparing a delicious meal'],
-            height=64,
-            width=64)
-        assert len(result) == 1
-        assert result[0].shape == (64, 64, 3)
-
-    def test_infer_with_pre_compute_embs(self):
-        StableDiffuser = DistillSDXL(
-            'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-            model_type='sd_tiny',
-            pre_compute_text_embeddings=True,
-            data_preprocessor=SDXLDataPreprocessor())
-
-        assert not hasattr(StableDiffuser, 'tokenizer_one')
-        assert not hasattr(StableDiffuser, 'text_encoder_one')
-        assert not hasattr(StableDiffuser, 'tokenizer_two')
-        assert not hasattr(StableDiffuser, 'text_encoder_two')
-
-        # test infer
-        result = StableDiffuser.infer(
-            ['an insect robot preparing a delicious meal'],
+            ['tests/testdata/color.jpg'],
             height=64,
             width=64)
         assert len(result) == 1
@@ -92,37 +92,43 @@ class TestStableDiffusionXL(TestCase):
 
     def test_train_step(self):
         # test load with loss module
-        StableDiffuser = DistillSDXL(
+        StableDiffuser = StableDiffusionXLControlNet(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-            model_type='sd_tiny',
+            controlnet_model='hf-internal-testing/tiny-controlnet-sdxl',
             loss=L2Loss(),
-            data_preprocessor=SDXLDataPreprocessor())
+            data_preprocessor=SDXLControlNetDataPreprocessor())
+        assert isinstance(StableDiffuser.controlnet.down_blocks[1],
+                          CrossAttnDownBlock2D)
 
         # test train step
         data = dict(
             inputs=dict(
                 img=[torch.zeros((3, 64, 64))],
                 text=['a dog'],
-                time_ids=[torch.zeros((1, 6))]))
+                time_ids=[torch.zeros((1, 6))],
+                condition_img=[torch.zeros((3, 64, 64))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
         self.assertIsInstance(log_vars['loss'], torch.Tensor)
 
-    def test_train_step_sd_small(self):
-        # test model_type='sd_small'
-        StableDiffuser = DistillSDXL(
+        # test controlnet small
+        StableDiffuser = StableDiffusionXLControlNet(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-            model_type='sd_small',
-            data_preprocessor=SDXLDataPreprocessor())
+            controlnet_model='hf-internal-testing/tiny-controlnet-sdxl',
+            loss=L2Loss(),
+            data_preprocessor=SDXLControlNetDataPreprocessor(),
+            transformer_layers_per_block=[0, 0])
+        assert isinstance(StableDiffuser.controlnet.down_blocks[1],
+                          DownBlock2D)
 
         data = dict(
             inputs=dict(
                 img=[torch.zeros((3, 64, 64))],
                 text=['a dog'],
-                time_ids=[torch.zeros((1, 6))]))
-        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+                time_ids=[torch.zeros((1, 6))],
+                condition_img=[torch.zeros((3, 64, 64))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
@@ -131,11 +137,11 @@ class TestStableDiffusionXL(TestCase):
 
     def test_train_step_with_gradient_checkpointing(self):
         # test load with loss module
-        StableDiffuser = DistillSDXL(
+        StableDiffuser = StableDiffusionXLControlNet(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-            model_type='sd_tiny',
+            controlnet_model='hf-internal-testing/tiny-controlnet-sdxl',
             loss=L2Loss(),
-            data_preprocessor=SDXLDataPreprocessor(),
+            data_preprocessor=SDXLControlNetDataPreprocessor(),
             gradient_checkpointing=True)
 
         # test train step
@@ -143,34 +149,8 @@ class TestStableDiffusionXL(TestCase):
             inputs=dict(
                 img=[torch.zeros((3, 64, 64))],
                 text=['a dog'],
-                time_ids=[torch.zeros((1, 6))]))
-        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
-        optim_wrapper = OptimWrapper(optimizer)
-        log_vars = StableDiffuser.train_step(data, optim_wrapper)
-        assert log_vars
-        self.assertIsInstance(log_vars['loss'], torch.Tensor)
-
-    def test_train_step_with_pre_compute_embs(self):
-        # test load with loss module
-        StableDiffuser = DistillSDXL(
-            'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-            model_type='sd_tiny',
-            pre_compute_text_embeddings=True,
-            loss=L2Loss(),
-            data_preprocessor=SDXLDataPreprocessor())
-
-        assert not hasattr(StableDiffuser, 'tokenizer_one')
-        assert not hasattr(StableDiffuser, 'text_encoder_one')
-        assert not hasattr(StableDiffuser, 'tokenizer_two')
-        assert not hasattr(StableDiffuser, 'text_encoder_two')
-
-        # test train step
-        data = dict(
-            inputs=dict(
-                img=[torch.zeros((3, 64, 64))],
-                prompt_embeds=[torch.zeros((2, 64))],
-                pooled_prompt_embeds=[torch.zeros((32))],
-                time_ids=[torch.zeros((1, 6))]))
+                time_ids=[torch.zeros((1, 6))],
+                condition_img=[torch.zeros((3, 64, 64))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
@@ -178,11 +158,11 @@ class TestStableDiffusionXL(TestCase):
         self.assertIsInstance(log_vars['loss'], torch.Tensor)
 
     def test_val_and_test_step(self):
-        StableDiffuser = DistillSDXL(
+        StableDiffuser = StableDiffusionXLControlNet(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
-            model_type='sd_tiny',
+            controlnet_model='hf-internal-testing/tiny-controlnet-sdxl',
             loss=L2Loss(),
-            data_preprocessor=SDXLDataPreprocessor())
+            data_preprocessor=SDXLControlNetDataPreprocessor())
 
         # test val_step
         with self.assertRaisesRegex(NotImplementedError, 'val_step is not'):
