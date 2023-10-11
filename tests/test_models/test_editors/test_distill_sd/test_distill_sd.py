@@ -110,6 +110,7 @@ class TestStableDiffusionXL(TestCase):
         assert log_vars
         self.assertIsInstance(log_vars['loss'], torch.Tensor)
 
+    def test_train_step_sd_small(self):
         # test model_type='sd_small'
         StableDiffuser = DistillSDXL(
             'hf-internal-testing/tiny-stable-diffusion-xl-pipe',
