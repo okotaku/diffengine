@@ -136,6 +136,9 @@ class TestStableDiffusionXL(TestCase):
         assert log_vars
         self.assertIsInstance(log_vars['loss'], torch.Tensor)
 
+    @pytest.mark.skipif(
+        IN_GITHUB_ACTIONS,
+        reason='Skip in Github Actions due to memory limit.')
     def test_train_step_with_gradient_checkpointing(self):
         # test load with loss module
         StableDiffuser = DistillSDXL(
@@ -157,6 +160,9 @@ class TestStableDiffusionXL(TestCase):
         assert log_vars
         self.assertIsInstance(log_vars['loss'], torch.Tensor)
 
+    @pytest.mark.skipif(
+        IN_GITHUB_ACTIONS,
+        reason='Skip in Github Actions due to memory limit.')
     def test_train_step_with_pre_compute_embs(self):
         # test load with loss module
         StableDiffuser = DistillSDXL(
