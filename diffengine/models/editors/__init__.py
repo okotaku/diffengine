@@ -1,3 +1,4 @@
+from .distill_sd import *  # noqa: F401, F403
 from .esd import *  # noqa: F401, F403
 from .ip_adapter import *  # noqa: F401, F403
 from .stable_diffusion import *  # noqa: F401, F403
