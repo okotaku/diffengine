@@ -12,6 +12,8 @@ from diffengine.models.losses import L2Loss
 IN_GITHUB_ACTIONS = os.getenv('GITHUB_ACTIONS') == 'true'
 
 
+@pytest.mark.skipif(
+    IN_GITHUB_ACTIONS, reason='Skip in Github Actions due to memory limit.')
 class TestStableDiffusionXL(TestCase):
 
     def test_init(self):
@@ -114,9 +116,6 @@ class TestStableDiffusionXL(TestCase):
         assert log_vars
         self.assertIsInstance(log_vars['loss'], torch.Tensor)
 
-    @pytest.mark.skipif(
-        IN_GITHUB_ACTIONS,
-        reason='Skip in Github Actions due to memory limit.')
     def test_train_step_sd_small(self):
         # test model_type='sd_small'
         StableDiffuser = DistillSDXL(
@@ -136,9 +135,6 @@ class TestStableDiffusionXL(TestCase):
         assert log_vars
         self.assertIsInstance(log_vars['loss'], torch.Tensor)
 
-    @pytest.mark.skipif(
-        IN_GITHUB_ACTIONS,
-        reason='Skip in Github Actions due to memory limit.')
     def test_train_step_with_gradient_checkpointing(self):
         # test load with loss module
         StableDiffuser = DistillSDXL(
@@ -160,9 +156,6 @@ class TestStableDiffusionXL(TestCase):
         assert log_vars
         self.assertIsInstance(log_vars['loss'], torch.Tensor)
 
-    @pytest.mark.skipif(
-        IN_GITHUB_ACTIONS,
-        reason='Skip in Github Actions due to memory limit.')
     def test_train_step_with_pre_compute_embs(self):
         # test load with loss module
         StableDiffuser = DistillSDXL(
