@@ -15,7 +15,7 @@ from diffengine.models.editors import StableDiffusionXL
 class LoRASaveHook(Hook):
     """Save LoRA weights with diffusers format and pick up LoRA weights from
     checkpoint."""
-    priority = 'VERY_LOW'
+    priority = "VERY_LOW"
 
     def before_save_checkpoint(self, runner, checkpoint: dict) -> None:
         """
@@ -28,9 +28,9 @@ class LoRASaveHook(Hook):
         if is_model_wrapper(model):
             model = model.module
         unet_lora_layers_to_save = unet_attn_processors_state_dict(model.unet)
-        ckpt_path = osp.join(runner.work_dir, f'step{runner.iter}')
+        ckpt_path = osp.join(runner.work_dir, f"step{runner.iter}")
         if hasattr(model,
-                   'finetune_text_encoder') and model.finetune_text_encoder:
+                   "finetune_text_encoder") and model.finetune_text_encoder:
             if isinstance(model, StableDiffusionXL):
                 text_encoder_lora_layers = text_encoder_lora_state_dict(
                     model.text_encoder_one)
@@ -57,8 +57,8 @@ class LoRASaveHook(Hook):
 
         # not save no grad key
         new_ckpt = OrderedDict()
-        sd_keys = checkpoint['state_dict'].keys()
+        sd_keys = checkpoint["state_dict"].keys()
         for k in sd_keys:
-            if '.processor.' in k or 'lora_linear_layer' in k:
-                new_ckpt[k] = checkpoint['state_dict'][k]
-        checkpoint['state_dict'] = new_ckpt
+            if ".processor." in k or "lora_linear_layer" in k:
+                new_ckpt[k] = checkpoint["state_dict"][k]
+        checkpoint["state_dict"] = new_ckpt

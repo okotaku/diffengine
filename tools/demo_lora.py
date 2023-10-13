@@ -6,29 +6,29 @@ from diffusers import AutoencoderKL, DiffusionPipeline
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument('prompt', help='Prompt text.')
-    parser.add_argument('checkpoint', help='Path to LoRA weight.')
+    parser.add_argument("prompt", help="Prompt text.")
+    parser.add_argument("checkpoint", help="Path to LoRA weight.")
     parser.add_argument(
-        '--sdmodel',
-        help='Stable Diffusion model name',
-        default='runwayml/stable-diffusion-v1-5')
+        "--sdmodel",
+        help="Stable Diffusion model name",
+        default="runwayml/stable-diffusion-v1-5")
     parser.add_argument(
-        '--vaemodel',
+        "--vaemodel",
         type=str,
         default=None,
-        help='Path to pretrained VAE model with better numerical stability. '
-        'More details: https://github.com/huggingface/diffusers/pull/4038.',
+        help="Path to pretrained VAE model with better numerical stability. "
+        "More details: https://github.com/huggingface/diffusers/pull/4038.",
     )
-    parser.add_argument('--out', help='Output path', default='demo.png')
+    parser.add_argument("--out", help="Output path", default="demo.png")
     parser.add_argument(
-        '--height',
-        help='The height for output images.',
+        "--height",
+        help="The height for output images.",
         default=None,
         type=int)
     parser.add_argument(
-        '--width', help='The width for output images.', default=None, type=int)
+        "--width", help="The width for output images.", default=None, type=int)
     parser.add_argument(
-        '--device', help='Device used for inference', default='cuda')
+        "--device", help="Device used for inference", default="cuda")
     args = parser.parse_args()
 
     if args.vaemodel is not None:
@@ -57,5 +57,5 @@ def main():
     image.save(args.out)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

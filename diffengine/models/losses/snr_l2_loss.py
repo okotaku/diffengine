@@ -1,8 +1,8 @@
 from typing import Optional
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa
+from torch import nn
 
 from diffengine.registry import MODELS
 
@@ -30,8 +30,7 @@ def compute_snr(timesteps, alphas_cumprod):
     sigma = sqrt_one_minus_alphas_cumprod.expand(timesteps.shape)
 
     # Compute SNR.
-    snr = (alpha / sigma)**2
-    return snr
+    return (alpha / sigma)**2
 
 
 @MODELS.register_module()
@@ -52,9 +51,9 @@ class SNRL2Loss(nn.Module):
     def __init__(self,
                  loss_weight: float = 1.0,
                  snr_gamma: float = 5.0,
-                 loss_name: str = 'snrl2') -> None:
+                 loss_name: str = "snrl2") -> None:
 
-        super(SNRL2Loss, self).__init__()
+        super().__init__()
         self.loss_weight = loss_weight
         self.snr_gamma = snr_gamma
         self._loss_name = loss_name
@@ -69,7 +68,7 @@ class SNRL2Loss(nn.Module):
         mse_loss_weights = (
             torch.stack([snr, self.snr_gamma * torch.ones_like(timesteps)],
                         dim=1).min(dim=1)[0] / snr)
-        loss = F.mse_loss(pred, gt, reduction='none')
+        loss = F.mse_loss(pred, gt, reduction="none")
         loss = loss.mean(
             dim=list(range(1, len(loss.shape)))) * mse_loss_weights
         if weight is not None:

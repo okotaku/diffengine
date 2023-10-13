@@ -9,7 +9,9 @@ from diffengine.registry import MODELS
 @MODELS.register_module()
 class ESDXLDataPreprocessor(BaseDataPreprocessor):
 
-    def forward(self, data: dict, training: bool = False) -> Union[dict, list]:
+    def forward(self,
+                data: dict,
+                training: bool = False) -> Union[dict, list]:  # noqa
         """Preprocesses the data into the model input format.
 
         After the data pre-processing of :meth:`cast_data`, ``forward``
@@ -25,12 +27,12 @@ class ESDXLDataPreprocessor(BaseDataPreprocessor):
         """
 
         # pre-compute text embeddings
-        data['inputs']['prompt_embeds'] = torch.stack(
-            data['inputs']['prompt_embeds'])
-        data['inputs']['pooled_prompt_embeds'] = torch.stack(
-            data['inputs']['pooled_prompt_embeds'])
-        data['inputs']['null_prompt_embeds'] = torch.stack(
-            data['inputs']['null_prompt_embeds'])
-        data['inputs']['null_pooled_prompt_embeds'] = torch.stack(
-            data['inputs']['null_pooled_prompt_embeds'])
-        return super().forward(data)  # type: ignore
+        data["inputs"]["prompt_embeds"] = torch.stack(
+            data["inputs"]["prompt_embeds"])
+        data["inputs"]["pooled_prompt_embeds"] = torch.stack(
+            data["inputs"]["pooled_prompt_embeds"])
+        data["inputs"]["null_prompt_embeds"] = torch.stack(
+            data["inputs"]["null_prompt_embeds"])
+        data["inputs"]["null_pooled_prompt_embeds"] = torch.stack(
+            data["inputs"]["null_pooled_prompt_embeds"])
+        return super().forward(data)

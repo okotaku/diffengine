@@ -8,41 +8,46 @@ from mmengine.registry import TRANSFORMS as MMENGINE_TRANSFORMS
 from mmengine.registry import Registry
 
 __all__ = [
-    'MODELS', 'DATASETS', 'HOOKS', 'FUNCTIONS', 'TRANSFORMS', 'DATA_SAMPLERS',
-    'OPTIMIZERS'
+    "MODELS",
+    "DATASETS",
+    "HOOKS",
+    "FUNCTIONS",
+    "TRANSFORMS",
+    "DATA_SAMPLERS",
+    "OPTIMIZERS",
 ]
 
 DATA_SAMPLERS = Registry(
-    'data sampler',
+    "data sampler",
     parent=MMENGINE_DATA_SAMPLERS,
-    locations=['diffengine.datasets.samplers'])
+    locations=["diffengine.datasets.samplers"])
 DATASETS = Registry(
-    'dataset',
+    "dataset",
     parent=MMENGINE_DATASETS,
-    locations=['diffengine.datasets'],
+    locations=["diffengine.datasets"],
 )
 MODELS = Registry(
-    'model',
+    "model",
     parent=MMENGINE_MODELS,
-    locations=['diffengine.models'],
+    locations=["diffengine.models"],
 )
 OPTIMIZERS = Registry(
-    'optimizer',
+    "optimizer",
     parent=MMENGINE_OPTIMIZERS,
-    locations=['diffengine.engine'],
+    locations=["diffengine.engine"],
 )
 HOOKS = Registry(
-    'hook',
+    "hook",
     parent=MMENGINE_HOOKS,
-    locations=['diffengine.engine'],
+    locations=["diffengine.engine"],
 )
 FUNCTIONS = Registry(
-    'function',
+    "function",
     parent=MMENGINE_FUNCTIONS,
-    locations=['diffengine.datasets'],
+    locations=["diffengine.datasets"],
 )
 TRANSFORMS = Registry(
-    'transform',
+    "transform",
     parent=MMENGINE_TRANSFORMS,
-    locations=['diffengine.datasets.transforms'],
+    locations=["diffengine.datasets.transforms"],
 )

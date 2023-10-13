@@ -24,14 +24,15 @@ class VisualizationHook(Hook):
             `self.unet.config.sample_size * self.vae_scale_factor`):
             The width in pixels of the generated image.
     """
-    priority = 'NORMAL'
+    priority = "NORMAL"
 
     def __init__(self,
                  prompt: List[str],
                  interval: int = 1,
-                 by_epoch: bool = True,
                  height: Optional[int] = None,
                  width: Optional[int] = None,
+                 *,
+                 by_epoch: bool = True,
                  **kwargs):
         self.prompt = prompt
         self.kwargs = kwargs
@@ -40,11 +41,12 @@ class VisualizationHook(Hook):
         self.height = height
         self.width = width
 
-    def after_train_iter(self,
-                         runner,
-                         batch_idx: int,
-                         data_batch: DATA_BATCH = None,
-                         outputs: Optional[dict] = None) -> None:
+    def after_train_iter(
+            self,
+            runner,
+            batch_idx: int,
+            data_batch: DATA_BATCH = None,  # noqa
+            outputs: Optional[dict] = None) -> None:  # noqa
         """
         Args:
             runner (Runner): The runner of the training process.
@@ -63,7 +65,7 @@ class VisualizationHook(Hook):
                 **self.kwargs)
             for i, image in enumerate(images):
                 runner.visualizer.add_image(
-                    f'image{i}_step', image, step=runner.iter)
+                    f"image{i}_step", image, step=runner.iter)
 
     def after_train_epoch(self, runner) -> None:
         """
@@ -81,4 +83,4 @@ class VisualizationHook(Hook):
                 **self.kwargs)
             for i, image in enumerate(images):
                 runner.visualizer.add_image(
-                    f'image{i}_step', image, step=runner.epoch)
+                    f"image{i}_step", image, step=runner.epoch)

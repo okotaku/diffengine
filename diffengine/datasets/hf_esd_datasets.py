@@ -1,3 +1,4 @@
+# yapf: disable
 import gc
 from typing import Sequence
 
@@ -8,9 +9,12 @@ from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 
 from diffengine.datasets.utils import encode_prompt_sdxl
-from diffengine.models.editors.stable_diffusion_xl.stable_diffusion_xl import \
-    import_model_class_from_model_name_or_path
+from diffengine.models.editors.stable_diffusion_xl.stable_diffusion_xl import (
+    import_model_class_from_model_name_or_path,
+)
 from diffengine.registry import DATASETS
+
+# yapf: enable
 
 Image.MAX_IMAGE_PIXELS = 1000000000
 
@@ -30,32 +34,32 @@ class HFESDDatasetPreComputeEmbs(Dataset):
 
     def __init__(self,
                  forget_caption: str,
-                 model: str = 'stabilityai/stable-diffusion-xl-base-1.0',
-                 device: str = 'cuda',
+                 model: str = "stabilityai/stable-diffusion-xl-base-1.0",
+                 device: str = "cuda",
                  pipeline: Sequence = ()) -> None:
         self.pipeline = Compose(pipeline)
         self.forget_caption = forget_caption
 
         tokenizer_one = AutoTokenizer.from_pretrained(
-            model, subfolder='tokenizer', use_fast=False)
+            model, subfolder="tokenizer", use_fast=False)
         tokenizer_two = AutoTokenizer.from_pretrained(
-            model, subfolder='tokenizer_2', use_fast=False)
+            model, subfolder="tokenizer_2", use_fast=False)
 
         text_encoder_cls_one = import_model_class_from_model_name_or_path(
             model)
         text_encoder_cls_two = import_model_class_from_model_name_or_path(
-            model, subfolder='text_encoder_2')
+            model, subfolder="text_encoder_2")
         text_encoder_one = text_encoder_cls_one.from_pretrained(
-            model, subfolder='text_encoder').to(device)
+            model, subfolder="text_encoder").to(device)
         text_encoder_two = text_encoder_cls_two.from_pretrained(
-            model, subfolder='text_encoder_2').to(device)
+            model, subfolder="text_encoder_2").to(device)
 
         # null prompt
         self.embs = encode_prompt_sdxl(
-            {'text': [self.forget_caption, '']},
+            {"text": [self.forget_caption, ""]},
             text_encoders=[text_encoder_one, text_encoder_two],
             tokenizers=[tokenizer_one, tokenizer_two],
-            caption_column='text')
+            caption_column="text")
 
         del text_encoder_one, text_encoder_two, tokenizer_one, tokenizer_two
         gc.collect()
@@ -79,12 +83,11 @@ class HFESDDatasetPreComputeEmbs(Dataset):
             dict: The idx-th data information of dataset after
             ``self.pipeline``.
         """
-        result = dict(
-            text=self.forget_caption,
-            prompt_embeds=self.embs['prompt_embeds'][0],
-            pooled_prompt_embeds=self.embs['pooled_prompt_embeds'][0],
-            null_prompt_embeds=self.embs['prompt_embeds'][1],
-            null_pooled_prompt_embeds=self.embs['pooled_prompt_embeds'][1])
-        result = self.pipeline(result)
-
-        return result
+        result = {
+            "text": self.forget_caption,
+            "prompt_embeds": self.embs["prompt_embeds"][0],
+            "pooled_prompt_embeds": self.embs["pooled_prompt_embeds"][0],
+            "null_prompt_embeds": self.embs["prompt_embeds"][1],
+            "null_pooled_prompt_embeds": self.embs["pooled_prompt_embeds"][1],
+        }
+        return self.pipeline(result)

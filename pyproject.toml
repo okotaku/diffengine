@@ -1,0 +1,42 @@
+[tool.ruff]
+select = ["ALL"]
+ignore = [
+    "ANN003",
+    "ANN101",
+    "ANN201",
+    "ANN202",
+    "ANN204",
+    "D",
+    "INP001",
+    "S101",
+    "BLE001",
+    "PLR0913",
+    "PD901",
+    "PGH004",
+    "B028",
+    "ANN001",
+    "FA100",
+    "ANN002",
+    "PTH118",
+    "ERA001",
+]
+
+[tool.ruff.per-file-ignores]
+"setup.py" = ["T201", "PLR2004", "SIM108",
+    "C901", "FIX002", "TD003", "TD002", "PERF401", "FBT002",
+    "S112", "PLW2901", "S112", "PLW2901", "DTZ003",
+    "PD011", "RUF002", "ISC002", "ANN002", "ARG002", "PT018", "ANN205",
+    "N802", "PLR0915", "N806", "FBT001", "PLR5501", "PLR0912", "N803",
+    "N812", "PTH", "S102"]
+"tests/*" = ["T201", "PLR2004", "SIM108",
+    "C901", "FIX002", "TD003", "TD002", "PERF401", "FBT002",
+    "S112", "PLW2901", "S112", "PLW2901", "DTZ003",
+    "PD011", "RUF002", "ISC002", "ANN002", "ARG002", "PT018", "ANN205",
+    "N802", "PLR0915", "N806", "FBT001", "PLR5501", "PLR0912", "N803",
+    "N812", "PTH", "SLF001", "PT009"]
+"tools/*" = ["T201", "PLR2004", "SIM108",
+    "C901", "FIX002", "TD003", "TD002", "PERF401", "FBT002",
+    "S112", "PLW2901", "S112", "PLW2901", "DTZ003",
+    "PD011", "RUF002", "ISC002", "ANN002", "ARG002", "PT018", "ANN205",
+    "N802", "PLR0915", "N806", "FBT001", "PLR5501", "PLR0912", "N803",
+    "N812", "PTH", "SLF001"]

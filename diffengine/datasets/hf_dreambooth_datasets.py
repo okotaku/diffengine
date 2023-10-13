@@ -1,3 +1,4 @@
+# flake8: noqa: S311,RUF012
 import copy
 import hashlib
 import random
@@ -46,41 +47,43 @@ class HFDreamBoothDataset(Dataset):
         cache_dir (str, optional): The directory where the downloaded datasets
             will be stored.Defaults to None.
     """
-    default_class_image_config: dict = dict(
-        model='runwayml/stable-diffusion-v1-5',
-        data_dir='work_dirs/class_image',
-        num_images=200,
-        device='cuda',
-        recreate_class_images=True,
-    )
+    default_class_image_config: dict = {
+        "model": "runwayml/stable-diffusion-v1-5",
+        "data_dir": "work_dirs/class_image",
+        "num_images": 200,
+        "device": "cuda",
+        "recreate_class_images": True,
+    }
 
     def __init__(self,
                  dataset: str,
                  instance_prompt: str,
-                 image_column: str = 'image',
+                 image_column: str = "image",
                  dataset_sub_dir: Optional[str] = None,
-                 class_image_config: dict = dict(
-                     model='runwayml/stable-diffusion-v1-5',
-                     data_dir='work_dirs/class_image',
-                     num_images=200,
-                     device='cuda',
-                     recreate_class_images=True,
-                 ),
+                 class_image_config: Optional[dict] = None,
                  class_prompt: Optional[str] = None,
                  pipeline: Sequence = (),
                  cache_dir: Optional[str] = None):
 
+        if class_image_config is None:
+            class_image_config = {
+                "model": "runwayml/stable-diffusion-v1-5",
+                "data_dir": "work_dirs/class_image",
+                "num_images": 200,
+                "device": "cuda",
+                "recreate_class_images": True,
+            }
         if Path(dataset).exists():
             # load local folder
-            self.dataset = load_dataset(dataset, cache_dir=cache_dir)['train']
-        else:
+            self.dataset = load_dataset(dataset, cache_dir=cache_dir)["train"]
+        else:  # noqa
             # load huggingface online
             if dataset_sub_dir is not None:
                 self.dataset = load_dataset(
-                    dataset, dataset_sub_dir, cache_dir=cache_dir)['train']
+                    dataset, dataset_sub_dir, cache_dir=cache_dir)["train"]
             else:
                 self.dataset = load_dataset(
-                    dataset, cache_dir=cache_dir)['train']
+                    dataset, cache_dir=cache_dir)["train"]
 
         self.pipeline = Compose(pipeline)
 
@@ -91,44 +94,43 @@ class HFDreamBoothDataset(Dataset):
         # generate class image
         if class_prompt is not None:
             essential_keys = {
-                'model', 'data_dir', 'num_images', 'device',
-                'recreate_class_images'
+                "model",
+                "data_dir",
+                "num_images",
+                "device",
+                "recreate_class_images",
             }
             _class_image_config = copy.deepcopy(
                 self.default_class_image_config)
             _class_image_config.update(class_image_config)
             class_image_config = _class_image_config
-            assert isinstance(
-                class_image_config, dict
-                              ) and set(
-                                  class_image_config
-                                  ) == essential_keys, \
-                f'class_image_config needs a dict with keys {essential_keys}'
+            assert set(class_image_config ) == essential_keys, \
+                f"class_image_config needs a dict with keys {essential_keys}"
             self.generate_class_image(class_image_config)
 
     def generate_class_image(self, class_image_config):
-        class_images_dir = Path(class_image_config['data_dir'])
+        class_images_dir = Path(class_image_config["data_dir"])
         if class_images_dir.exists(
-        ) and class_image_config['recreate_class_images']:
+        ) and class_image_config["recreate_class_images"]:
             shutil.rmtree(class_images_dir)
         class_images_dir.mkdir(parents=True, exist_ok=True)
         cur_class_images = list(class_images_dir.iterdir())
         num_cur_images = len(cur_class_images)
 
-        num_new_images = class_image_config['num_images'] - num_cur_images
+        num_new_images = class_image_config["num_images"] - num_cur_images
 
         pipeline = DiffusionPipeline.from_pretrained(
-            class_image_config['model'],
+            class_image_config["model"],
             safety_checker=None,
         )
         pipeline.set_progress_bar_config(disable=True)
-        pipeline.to(class_image_config['device'])
+        pipeline.to(class_image_config["device"])
 
         for i in tqdm(range(num_new_images)):
             image = pipeline(self.class_prompt).images[0]
-            hash_image = hashlib.sha1(image.tobytes()).hexdigest()
+            hash_image = hashlib.sha1(image.tobytes()).hexdigest()  # noqa
             image_filename = (
-                class_images_dir / f'{i + num_cur_images}-{hash_image}.jpg')
+                class_images_dir / f"{i + num_cur_images}-{hash_image}.jpg")
             image.save(image_filename)
             cur_class_images.append(str(image_filename))
 
@@ -158,20 +160,23 @@ class HFDreamBoothDataset(Dataset):
         """
         data_info = self.dataset[idx]
         image = data_info[self.image_column]
-        if type(image) == str:
+        if isinstance(image, str):
             image = Image.open(image)
-        image = image.convert('RGB')
-        result = dict(img=image, text=self.instance_prompt)
+        image = image.convert("RGB")
+        result = {"img": image, "text": self.instance_prompt}
         result = self.pipeline(result)
 
         if self.class_prompt is not None:
             class_image = random.choice(self.class_images)
             class_image = Image.open(class_image)
-            result_class_image = dict(img=class_image, text=self.class_prompt)
+            result_class_image = {
+                "img": class_image,
+                "text": self.class_prompt,
+            }
             result_class_image = self.pipeline(result_class_image)
-            assert 'inputs' in result
-            assert 'inputs' in result_class_image
-            result['inputs']['result_class_image'] = result_class_image[
-                'inputs']
+            assert "inputs" in result
+            assert "inputs" in result_class_image
+            result["inputs"]["result_class_image"] = result_class_image[
+                "inputs"]
 
         return result

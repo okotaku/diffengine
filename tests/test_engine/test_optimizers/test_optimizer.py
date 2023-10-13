@@ -7,6 +7,6 @@ class TestBuilder(TestCase):
 
     def test_torch_optimizers(self):
         torch_optimizers = [
-            'Adafactor',
+            "Adafactor",
         ]
         assert set(torch_optimizers).issubset(set(TRANSFORMER_OPTIMIZERS))

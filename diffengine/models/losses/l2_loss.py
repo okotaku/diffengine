@@ -1,8 +1,8 @@
 from typing import Optional
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+import torch.nn.functional as F  # noqa
+from torch import nn
 
 from diffengine.registry import MODELS
 
@@ -21,9 +21,9 @@ class L2Loss(nn.Module):
 
     def __init__(self,
                  loss_weight: float = 1.0,
-                 loss_name: str = 'l2') -> None:
+                 loss_name: str = "l2") -> None:
 
-        super(L2Loss, self).__init__()
+        super().__init__()
         self.loss_weight = loss_weight
         self._loss_name = loss_name
 
@@ -32,7 +32,7 @@ class L2Loss(nn.Module):
                 gt: torch.Tensor,
                 weight: Optional[torch.Tensor] = None) -> torch.Tensor:
         if weight is not None:
-            loss = F.mse_loss(pred, gt, reduction='none') * weight
+            loss = F.mse_loss(pred, gt, reduction="none") * weight
             return loss.mean() * self.loss_weight
-        else:
-            return F.mse_loss(pred, gt) * self.loss_weight
+
+        return F.mse_loss(pred, gt) * self.loss_weight

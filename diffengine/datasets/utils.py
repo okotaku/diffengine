@@ -1,3 +1,4 @@
+# flake8: noqa: S311
 import random
 from typing import Dict
 
@@ -10,6 +11,7 @@ def encode_prompt_sdxl(batch,
                        tokenizers,
                        caption_column,
                        proportion_empty_prompts: float = 0.0,
+                       *,
                        is_train: bool = True) -> Dict[str, torch.Tensor]:
     # Adapted from pipelines.StableDiffusionXLPipeline.encode_prompt
     prompt_embeds_list = []
@@ -18,7 +20,7 @@ def encode_prompt_sdxl(batch,
     captions = []
     for caption in prompt_batch:
         if random.random() < proportion_empty_prompts:
-            captions.append('')
+            captions.append("")
         elif isinstance(caption, str):
             captions.append(caption)
         elif isinstance(caption, (list, np.ndarray)):
@@ -29,10 +31,10 @@ def encode_prompt_sdxl(batch,
         for tokenizer, text_encoder in zip(tokenizers, text_encoders):
             text_inputs = tokenizer(
                 captions,
-                padding='max_length',
+                padding="max_length",
                 max_length=tokenizer.model_max_length,
                 truncation=True,
-                return_tensors='pt',
+                return_tensors="pt",
             )
             text_input_ids = text_inputs.input_ids
             prompt_embeds = text_encoder(
@@ -51,6 +53,6 @@ def encode_prompt_sdxl(batch,
     prompt_embeds = torch.concat(prompt_embeds_list, dim=-1)
     pooled_prompt_embeds = pooled_prompt_embeds.view(bs_embed, -1)
     return {
-        'prompt_embeds': prompt_embeds.cpu(),
-        'pooled_prompt_embeds': pooled_prompt_embeds.cpu()
+        "prompt_embeds": prompt_embeds.cpu(),
+        "pooled_prompt_embeds": pooled_prompt_embeds.cpu(),
     }

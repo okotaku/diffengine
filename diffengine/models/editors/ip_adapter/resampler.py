@@ -2,9 +2,9 @@
 import math
 
 import torch
-import torch.nn as nn
 from diffusers.configuration_utils import ConfigMixin
 from diffusers.models.modeling_utils import ModelMixin
+from torch import nn
 
 
 def get_ffn(embed_dims, ffn_ratio=4):
@@ -26,8 +26,7 @@ def reshape_tensor(x, heads):
     x = x.transpose(1, 2)
     # (bs, n_heads, length, dim_per_head) -->
     # (bs*n_heads, length, dim_per_head)
-    x = x.reshape(bs, heads, length, -1)
-    return x
+    return x.reshape(bs, heads, length, -1)
 
 
 class PerceiverAttention(nn.Module):
@@ -64,7 +63,7 @@ class PerceiverAttention(nn.Module):
         x = self.norm1(x)
         latents = self.norm2(latents)
 
-        b, l, _ = latents.shape
+        b, len_latents, _ = latents.shape
 
         q = self.to_q(latents)
         kv_input = torch.cat((x, latents), dim=-2)
@@ -81,7 +80,7 @@ class PerceiverAttention(nn.Module):
         weight = torch.softmax(weight.float(), dim=-1).type(weight.dtype)
         out = weight @ v
 
-        out = out.permute(0, 2, 1, 3).reshape(b, l, -1)
+        out = out.permute(0, 2, 1, 3).reshape(b, len_latents, -1)
 
         return self.to_out(out)
 

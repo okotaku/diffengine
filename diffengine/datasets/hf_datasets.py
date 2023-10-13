@@ -1,3 +1,5 @@
+# flake8: noqa: TRY004,S311
+# yapf: disable
 import functools
 import gc
 import os
@@ -15,9 +17,12 @@ from torch.utils.data import Dataset
 from transformers import AutoTokenizer
 
 from diffengine.datasets.utils import encode_prompt_sdxl
-from diffengine.models.editors.stable_diffusion_xl.stable_diffusion_xl import \
-    import_model_class_from_model_name_or_path
+from diffengine.models.editors.stable_diffusion_xl.stable_diffusion_xl import (
+    import_model_class_from_model_name_or_path,
+)
 from diffengine.registry import DATASETS
+
+# yapf: enable
 
 Image.MAX_IMAGE_PIXELS = 1000000000
 
@@ -39,9 +44,9 @@ class HFDataset(Dataset):
 
     def __init__(self,
                  dataset: str,
-                 image_column: str = 'image',
-                 caption_column: str = 'text',
-                 csv: str = 'metadata.csv',
+                 image_column: str = "image",
+                 caption_column: str = "text",
+                 csv: str = "metadata.csv",
                  pipeline: Sequence = (),
                  cache_dir: Optional[str] = None):
         self.dataset_name = dataset
@@ -49,10 +54,10 @@ class HFDataset(Dataset):
             # load local folder
             data_file = os.path.join(dataset, csv)
             self.dataset = load_dataset(
-                'csv', data_files=data_file, cache_dir=cache_dir)['train']
+                "csv", data_files=data_file, cache_dir=cache_dir)["train"]
         else:
             # load huggingface online
-            self.dataset = load_dataset(dataset, cache_dir=cache_dir)['train']
+            self.dataset = load_dataset(dataset, cache_dir=cache_dir)["train"]
         self.pipeline = Compose(pipeline)
 
         self.image_column = image_column
@@ -79,9 +84,9 @@ class HFDataset(Dataset):
         """
         data_info = self.dataset[idx]
         image = data_info[self.image_column]
-        if type(image) == str:
+        if isinstance(image, str):
             image = Image.open(os.path.join(self.dataset_name, image))
-        image = image.convert('RGB')
+        image = image.convert("RGB")
         caption = data_info[self.caption_column]
         if isinstance(caption, str):
             pass
@@ -89,13 +94,11 @@ class HFDataset(Dataset):
             # take a random caption if there are multiple
             caption = random.choice(caption)
         else:
-            raise ValueError(
-                f'Caption column `{self.caption_column}` should contain either'
-                ' strings or lists of strings.')
-        result = dict(img=image, text=caption)
-        result = self.pipeline(result)
-
-        return result
+            msg = (f"Caption column `{self.caption_column}` should "
+                   "contain either strings or lists of strings.")
+            raise ValueError(msg)
+        result = {"img": image, "text": caption}
+        return self.pipeline(result)
 
 
 @DATASETS.register_module()
@@ -116,26 +119,26 @@ class HFDatasetPreComputeEmbs(HFDataset):
 
     def __init__(self,
                  *args,
-                 model: str = 'stabilityai/stable-diffusion-xl-base-1.0',
-                 text_hasher: str = 'text',
-                 device: str = 'cuda',
+                 model: str = "stabilityai/stable-diffusion-xl-base-1.0",
+                 text_hasher: str = "text",
+                 device: str = "cuda",
                  proportion_empty_prompts: float = 0.0,
                  **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         tokenizer_one = AutoTokenizer.from_pretrained(
-            model, subfolder='tokenizer', use_fast=False)
+            model, subfolder="tokenizer", use_fast=False)
         tokenizer_two = AutoTokenizer.from_pretrained(
-            model, subfolder='tokenizer_2', use_fast=False)
+            model, subfolder="tokenizer_2", use_fast=False)
 
         text_encoder_cls_one = import_model_class_from_model_name_or_path(
             model)
         text_encoder_cls_two = import_model_class_from_model_name_or_path(
-            model, subfolder='text_encoder_2')
+            model, subfolder="text_encoder_2")
         text_encoder_one = text_encoder_cls_one.from_pretrained(
-            model, subfolder='text_encoder').to(device)
+            model, subfolder="text_encoder").to(device)
         text_encoder_two = text_encoder_cls_two.from_pretrained(
-            model, subfolder='text_encoder_2').to(device)
+            model, subfolder="text_encoder_2").to(device)
 
         new_fingerprint = Hasher.hash(text_hasher)
         compute_embeddings_fn = functools.partial(
@@ -167,13 +170,12 @@ class HFDatasetPreComputeEmbs(HFDataset):
         """
         data_info = self.dataset[idx]
         image = data_info[self.image_column]
-        if type(image) == str:
+        if isinstance(image, str):
             image = Image.open(os.path.join(self.dataset_name, image))
-        image = image.convert('RGB')
-        result = dict(
-            img=image,
-            prompt_embeds=data_info['prompt_embeds'],
-            pooled_prompt_embeds=data_info['pooled_prompt_embeds'])
-        result = self.pipeline(result)
-
-        return result
+        image = image.convert("RGB")
+        result = {
+            "img": image,
+            "prompt_embeds": data_info["prompt_embeds"],
+            "pooled_prompt_embeds": data_info["pooled_prompt_embeds"],
+        }
+        return self.pipeline(result)
