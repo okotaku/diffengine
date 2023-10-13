@@ -1,10 +1,9 @@
-from typing import List, Optional, Union
+from typing import Optional
 
 from mmengine.hooks import Hook
+from mmengine.hooks.hook import DATA_BATCH
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
-
-DATA_BATCH = Optional[Union[dict, tuple, list]]
 
 
 @HOOKS.register_module()
@@ -27,10 +26,10 @@ class VisualizationHook(Hook):
     priority = "NORMAL"
 
     def __init__(self,
-                 prompt: List[str],
+                 prompt: list[str],
                  interval: int = 1,
-                 height: Optional[int] = None,
-                 width: Optional[int] = None,
+                 height: int | None = None,
+                 width: int | None = None,
                  *,
                  by_epoch: bool = True,
                  **kwargs):

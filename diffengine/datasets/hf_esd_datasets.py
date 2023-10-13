@@ -1,6 +1,6 @@
 # yapf: disable
 import gc
-from typing import Sequence
+from collections.abc import Sequence
 
 import torch
 from mmengine.dataset.base_dataset import Compose

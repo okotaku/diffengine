@@ -22,7 +22,7 @@ class DistillSDXL(StableDiffusionXL):
     def __init__(self,
                  *args,
                  model_type: str,
-                 lora_config: Optional[dict] = None,
+                 lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
                  **kwargs):
         assert lora_config is None, \
@@ -38,7 +38,7 @@ class DistillSDXL(StableDiffusionXL):
             *args,
             lora_config=lora_config,
             finetune_text_encoder=finetune_text_encoder,
-            **kwargs)
+            **kwargs)  # type: ignore[misc]
 
     def set_lora(self):
         """Set LORA for model."""
@@ -87,8 +87,8 @@ class DistillSDXL(StableDiffusionXL):
         gc.collect()
 
     def _cast_hook(self):
-        self.teacher_feats = {}
-        self.student_feats = {}
+        self.teacher_feats: dict = {}
+        self.student_feats: dict = {}
 
         def get_activation(activation, name, residuals_present):
             # the hook signature

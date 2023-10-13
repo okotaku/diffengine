@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import torch
@@ -73,12 +73,12 @@ class StableDiffusionXL(BaseModel):
     def __init__(
         self,
         model: str = "stabilityai/stable-diffusion-xl-base-1.0",
-        vae_model: Optional[str] = None,
-        loss: Optional[dict] = None,
-        lora_config: Optional[dict] = None,
+        vae_model: str | None = None,
+        loss: dict | None = None,
+        lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
-        data_preprocessor: Optional[Union[dict, nn.Module]] = None,
+        data_preprocessor: dict | nn.Module | None = None,
         *,
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
@@ -100,7 +100,7 @@ class StableDiffusionXL(BaseModel):
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
-        self.loss_module = loss
+        self.loss_module: nn.Module = loss
 
         self.enable_noise_offset = noise_offset_weight > 0
         self.noise_offset_weight = noise_offset_weight
@@ -167,13 +167,13 @@ class StableDiffusionXL(BaseModel):
 
     @torch.no_grad()
     def infer(self,
-              prompt: List[str],
-              negative_prompt: Optional[str] = None,
-              height: Optional[int] = None,
-              width: Optional[int] = None,
+              prompt: list[str],
+              negative_prompt: str | None = None,
+              height: int | None = None,
+              width: int | None = None,
               num_inference_steps: int = 50,
               output_type: str = "pil",
-              **kwargs) -> List[np.ndarray]:
+              **kwargs) -> list[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
 
         Args:
@@ -243,7 +243,7 @@ class StableDiffusionXL(BaseModel):
 
         text_encoders = [self.text_encoder_one, self.text_encoder_two]
         texts = [text_one, text_two]
-        for text_encoder, text in zip(text_encoders, texts):
+        for text_encoder, text in zip(text_encoders, texts, strict=True):
 
             prompt_embeds = text_encoder(
                 text,

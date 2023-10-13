@@ -1,5 +1,3 @@
-from typing import Optional
-
 import torch
 import torch.nn.functional as F  # noqa
 from torch import nn
@@ -63,7 +61,7 @@ class SNRL2Loss(nn.Module):
                 gt: torch.Tensor,
                 timesteps: torch.Tensor,
                 alphas_cumprod: torch.Tensor,
-                weight: Optional[torch.Tensor] = None) -> torch.Tensor:
+                weight: torch.Tensor | None = None) -> torch.Tensor:
         snr = compute_snr(timesteps, alphas_cumprod)
         mse_loss_weights = (
             torch.stack([snr, self.snr_gamma * torch.ones_like(timesteps)],

@@ -1,8 +1,8 @@
 # flake8: noqa: TRY004,S311
 import os
 import random
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional, Sequence
 
 import numpy as np
 from datasets import load_dataset
@@ -39,7 +39,7 @@ class HFControlNetDataset(Dataset):
                  caption_column: str = "text",
                  csv: str = "metadata.csv",
                  pipeline: Sequence = (),
-                 cache_dir: Optional[str] = None):
+                 cache_dir: str | None = None):
         self.dataset_name = dataset
         if Path(dataset).exists():
             # load local folder
@@ -89,7 +89,7 @@ class HFControlNetDataset(Dataset):
         caption = data_info[self.caption_column]
         if isinstance(caption, str):
             pass
-        elif isinstance(caption, (list, np.ndarray)):
+        elif isinstance(caption, list | np.ndarray):
             # take a random caption if there are multiple
             caption = random.choice(caption)
         else:

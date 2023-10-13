@@ -1,5 +1,3 @@
-from typing import Union
-
 import torch
 from mmengine.model.base_model.data_preprocessor import BaseDataPreprocessor
 
@@ -13,7 +11,7 @@ class SDDataPreprocessor(BaseDataPreprocessor):
             self,
             data: dict,
             training: bool = False  # noqa
-    ) -> Union[dict, list]:
+    ) -> dict | list:
         """Preprocesses the data into the model input format.
 
         After the data pre-processing of :meth:`cast_data`, ``forward``

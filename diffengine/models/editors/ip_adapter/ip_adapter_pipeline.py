@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import torch
@@ -100,14 +100,14 @@ class IPAdapterXLPipeline(BaseModel):
 
     @torch.no_grad()
     def infer(self,
-              prompt: List[str],
-              example_image: List[Union[str, Image.Image]],
-              negative_prompt: Optional[str] = None,
-              height: Optional[int] = None,
-              width: Optional[int] = None,
+              prompt: list[str],
+              example_image: list[str | Image.Image],
+              negative_prompt: str | None = None,
+              height: int | None = None,
+              width: int | None = None,
               num_inference_steps: int = 50,
               output_type: str = "pil",
-              **kwargs) -> List[np.ndarray]:
+              **kwargs) -> list[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
 
         Args:
@@ -134,7 +134,7 @@ class IPAdapterXLPipeline(BaseModel):
         self.pipeline.to(self.device)
         self.pipeline.set_progress_bar_config(disable=True)
         images = []
-        for p, img in zip(prompt, example_image):
+        for p, img in zip(prompt, example_image, strict=True):
             pil_img = load_image(img) if isinstance(img, str) else img
             pil_img = pil_img.convert("RGB")
 
@@ -171,7 +171,7 @@ class IPAdapterXLPipeline(BaseModel):
             inputs: torch.Tensor,  # noqa
             data_samples: Optional[list] = None,  # noqa
             mode: str = "tensor",  # noqa
-    ) -> Union[Dict[str, torch.Tensor], list]:
+    ) -> dict[str, torch.Tensor] | list:
         msg = "forward is not implemented now, please use infer."
         raise NotImplementedError(msg)
 
@@ -201,7 +201,7 @@ class IPAdapterXLPlusPipeline(IPAdapterXLPipeline):
         super().__init__(
             *args,
             clip_extra_context_tokens=clip_extra_context_tokens,
-            **kwargs)
+            **kwargs)  # type: ignore[misc]
 
     def prepare_model(self) -> None:
         """Prepare model for training.

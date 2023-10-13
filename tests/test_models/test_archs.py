@@ -62,7 +62,7 @@ def test_set_controlnet_ip_adapter():
                for attn_processor in (controlnet.attn_processors.values()))
     set_controlnet_ip_adapter(controlnet)
     assert any(
-        isinstance(attn_processor, (CNAttnProcessor, CNAttnProcessor2_0))
+        isinstance(attn_processor, CNAttnProcessor | CNAttnProcessor2_0)
         for attn_processor in (controlnet.attn_processors.values()))
 
 

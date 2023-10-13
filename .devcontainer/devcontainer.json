@@ -26,7 +26,8 @@
           "ms-vscode.remote-explorer",
           "wayou.vscode-todo-highlight",
           "Gruntfuggly.todo-tree",
-          "streetsidesoftware.code-spell-checker"
+          "streetsidesoftware.code-spell-checker",
+          "charliermarsh.ruff"
         ]
       }
     }

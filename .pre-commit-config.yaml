@@ -39,3 +39,14 @@ repos:
     hooks:
       - id: docformatter
         args: ["--in-place", "--wrap-descriptions", "79"]
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.5.1
+    hooks:
+      - id: mypy
+        additional_dependencies: [pydantic]
+        exclude: |-
+          (?x)(
+              ^docs
+              | ^configs
+              | ^projects
+          )

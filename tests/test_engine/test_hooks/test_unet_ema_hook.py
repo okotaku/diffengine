@@ -84,7 +84,8 @@ class TestEMAHook(RunnerTestCase):
                 parameter.data.copy_(torch.randn(parameter.shape))
 
         ema_hook.after_train_iter(runner, 1)
-        for src, ema in zip(src_model.parameters(), ema_model.parameters()):
+        for src, ema in zip(
+                src_model.parameters(), ema_model.parameters(), strict=True):
             assert_allclose(src.data, ema.data)
 
         with torch.no_grad():
@@ -93,7 +94,8 @@ class TestEMAHook(RunnerTestCase):
 
         ema_hook.after_train_iter(runner, 1)
 
-        for src, ema in zip(src_model.parameters(), ema_model.parameters()):
+        for src, ema in zip(
+                src_model.parameters(), ema_model.parameters(), strict=True):
             assert not (src.data == ema.data).all()
 
     def test_before_save_checkpoint(self):

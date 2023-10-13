@@ -30,7 +30,7 @@ class TestIPAdapterXL(TestCase):
             image_encoder="hf-internal-testing/unidiffuser-diffusers-test")
 
         assert any(
-            isinstance(attn_processor, (IPAttnProcessor, IPAttnProcessor2_0))
+            isinstance(attn_processor, IPAttnProcessor | IPAttnProcessor2_0)
             for attn_processor in (
                 StableDiffuser.pipeline.unet.attn_processors.values()))
 
@@ -78,12 +78,12 @@ class TestIPAdapterXL(TestCase):
             image_encoder="hf-internal-testing/unidiffuser-diffusers-test")
 
         assert any(
-            isinstance(attn_processor, (IPAttnProcessor, IPAttnProcessor2_0))
+            isinstance(attn_processor, IPAttnProcessor | IPAttnProcessor2_0)
             for attn_processor in (
                 StableDiffuser.pipeline.unet.attn_processors.values()))
 
         assert any(
-            isinstance(attn_processor, (CNAttnProcessor, CNAttnProcessor2_0))
+            isinstance(attn_processor, CNAttnProcessor | CNAttnProcessor2_0)
             for attn_processor in (
                 StableDiffuser.pipeline.controlnet.attn_processors.values()))
 
@@ -108,14 +108,14 @@ class TestIPAdapterXL(TestCase):
             image_encoder="hf-internal-testing/unidiffuser-diffusers-test")
 
         assert any(
-            isinstance(attn_processor, (IPAttnProcessor, IPAttnProcessor2_0))
+            isinstance(attn_processor, IPAttnProcessor | IPAttnProcessor2_0)
             for attn_processor in (
                 StableDiffuser.pipeline.unet.attn_processors.values()))
 
         for controlnet in StableDiffuser.pipeline.controlnet.nets:
             assert any(
-                isinstance(attn_processor, (CNAttnProcessor,
-                                            CNAttnProcessor2_0))
+                isinstance(attn_processor, CNAttnProcessor
+                           | CNAttnProcessor2_0)
                 for attn_processor in (controlnet.attn_processors.values()))
 
         # test infer

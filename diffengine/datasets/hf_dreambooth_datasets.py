@@ -3,8 +3,8 @@ import copy
 import hashlib
 import random
 import shutil
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional, Sequence
 
 import torch
 from datasets import load_dataset
@@ -59,11 +59,11 @@ class HFDreamBoothDataset(Dataset):
                  dataset: str,
                  instance_prompt: str,
                  image_column: str = "image",
-                 dataset_sub_dir: Optional[str] = None,
-                 class_image_config: Optional[dict] = None,
-                 class_prompt: Optional[str] = None,
+                 dataset_sub_dir: str | None = None,
+                 class_image_config: dict | None = None,
+                 class_prompt: str | None = None,
                  pipeline: Sequence = (),
-                 cache_dir: Optional[str] = None):
+                 cache_dir: str | None = None):
 
         if class_image_config is None:
             class_image_config = {
@@ -132,7 +132,8 @@ class HFDreamBoothDataset(Dataset):
             image_filename = (
                 class_images_dir / f"{i + num_cur_images}-{hash_image}.jpg")
             image.save(image_filename)
-            cur_class_images.append(str(image_filename))
+            cur_class_images.append(
+                str(image_filename))  # type: ignore[arg-type]
 
         del pipeline
         if torch.cuda.is_available():

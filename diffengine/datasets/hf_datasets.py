@@ -4,8 +4,8 @@ import functools
 import gc
 import os
 import random
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Optional, Sequence
 
 import numpy as np
 import torch
@@ -48,7 +48,7 @@ class HFDataset(Dataset):
                  caption_column: str = "text",
                  csv: str = "metadata.csv",
                  pipeline: Sequence = (),
-                 cache_dir: Optional[str] = None):
+                 cache_dir: str | None = None):
         self.dataset_name = dataset
         if Path(dataset).exists():
             # load local folder
@@ -90,7 +90,7 @@ class HFDataset(Dataset):
         caption = data_info[self.caption_column]
         if isinstance(caption, str):
             pass
-        elif isinstance(caption, (list, np.ndarray)):
+        elif isinstance(caption, list | np.ndarray):
             # take a random caption if there are multiple
             caption = random.choice(caption)
         else:

@@ -1,20 +1,17 @@
 # The code comes from
 # https://github.com/open-mmlab/mmcv/blob/main/mmcv/transforms/base.py
 from abc import ABCMeta, abstractmethod
-from typing import Dict, List, Optional, Tuple, Union
 
 
 class BaseTransform(metaclass=ABCMeta):
     """Base class for all transformations."""
 
-    def __call__(self,
-                 results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+    def __call__(self, results: dict) -> dict | tuple[list, list] | None:
 
         return self.transform(results)
 
     @abstractmethod
-    def transform(self,
-                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
         """The transform function. All subclass of BaseTransform should
         override this method.
 

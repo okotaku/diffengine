@@ -1,6 +1,5 @@
 # flake8: noqa: RET505
 from collections.abc import Sequence
-from typing import List, Optional
 
 import numpy as np
 import torch
@@ -53,8 +52,8 @@ class PackInputs(BaseTransform):
     """
 
     def __init__(self,
-                 input_keys: Optional[List[str]] = None,
-                 skip_to_tensor_key: Optional[List[str]] = None):
+                 input_keys: list[str] | None = None,
+                 skip_to_tensor_key: list[str] | None = None):
         if skip_to_tensor_key is None:
             skip_to_tensor_key = ["text"]
         if input_keys is None:

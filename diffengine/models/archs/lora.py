@@ -1,5 +1,3 @@
-from typing import Dict
-
 import torch
 import torch.nn.functional as F  # noqa
 
@@ -48,8 +46,9 @@ def set_unet_lora(unet: nn.Module,
             hidden_size = unet.config.block_out_channels[block_id]
 
         if isinstance(attn_processor,
-                      (AttnAddedKVProcessor, SlicedAttnAddedKVProcessor,
-                       AttnAddedKVProcessor2_0)):
+                      (AttnAddedKVProcessor | \
+                          SlicedAttnAddedKVProcessor | AttnAddedKVProcessor2_0
+                          )):
             lora_attn_processor_class = LoRAAttnAddedKVProcessor
         else:
             lora_attn_processor_class = (
@@ -80,7 +79,7 @@ def set_text_encoder_lora(text_encoder: nn.Module, config: dict) -> nn.Module:
         text_encoder, dtype=torch.float32, rank=rank)
 
 
-def unet_attn_processors_state_dict(unet) -> Dict[str, torch.tensor]:
+def unet_attn_processors_state_dict(unet) -> dict[str, torch.tensor]:
     """
     Returns:
         a state dict containing just the attention processor parameters.
