@@ -100,7 +100,7 @@ class StableDiffusionXL(BaseModel):
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
-        self.loss_module = loss
+        self.loss_module: nn.Module = loss
 
         self.enable_noise_offset = noise_offset_weight > 0
         self.noise_offset_weight = noise_offset_weight

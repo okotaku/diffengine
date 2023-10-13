@@ -5,6 +5,8 @@
 [![license](https://img.shields.io/github/license/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/blob/main/LICENSE)
 [![open issues](https://isitmaintained.com/badge/open/okotaku/diffengine.svg)](https://github.com/okotaku/diffengine/issues)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/gist/okotaku/cfca8baf57938f193c212dcb43c02fac/diffengine-example.ipynb)
+[![Linting: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 
 [📘 Documentation](https://diffengine.readthedocs.io/en/latest/) |
 [🤔 Reporting Issues](https://github.com/okotaku/diffengine/issues/new/choose)

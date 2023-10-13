@@ -49,7 +49,7 @@ class ESDXL(StableDiffusionXL):
             finetune_text_encoder=finetune_text_encoder,
             pre_compute_text_embeddings=pre_compute_text_embeddings,
             data_preprocessor=data_preprocessor,
-            **kwargs)
+            **kwargs)  # type: ignore[misc]
 
     def prepare_model(self) -> None:
         """Prepare model for training.

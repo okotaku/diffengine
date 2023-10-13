@@ -38,7 +38,7 @@ class DistillSDXL(StableDiffusionXL):
             *args,
             lora_config=lora_config,
             finetune_text_encoder=finetune_text_encoder,
-            **kwargs)
+            **kwargs)  # type: ignore[misc]
 
     def set_lora(self):
         """Set LORA for model."""

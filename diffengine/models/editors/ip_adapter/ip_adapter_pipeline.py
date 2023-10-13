@@ -201,7 +201,7 @@ class IPAdapterXLPlusPipeline(IPAdapterXLPipeline):
         super().__init__(
             *args,
             clip_extra_context_tokens=clip_extra_context_tokens,
-            **kwargs)
+            **kwargs)  # type: ignore[misc]
 
     def prepare_model(self) -> None:
         """Prepare model for training.

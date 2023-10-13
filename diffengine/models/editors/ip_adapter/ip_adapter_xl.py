@@ -61,7 +61,7 @@ class IPAdapterXL(StableDiffusionXL):
             lora_config=lora_config,
             finetune_text_encoder=finetune_text_encoder,
             data_preprocessor=data_preprocessor,
-            **kwargs)
+            **kwargs)  # type: ignore[misc]
 
         self.set_ip_adapter()
 

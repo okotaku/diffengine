@@ -1,5 +1,5 @@
 # based on https://github.com/open-mmlab/mmdetection/blob/f78af7785ada87f1ced75a2313746e4ba3149760/mmdet/datasets/samplers/batch_sampler.py#L12  # noqa
-from typing import Sequence
+from typing import Generator
 
 import numpy as np
 from torch.utils.data import BatchSampler, Sampler
@@ -36,7 +36,7 @@ class AspectRatioBatchSampler(BatchSampler):
         self.batch_size = batch_size
         self.drop_last = drop_last
         # two groups for w < h and w >= h
-        self._aspect_ratio_buckets = {}
+        self._aspect_ratio_buckets: dict = {}
         # calc aspect ratio
         self.bucket_ids = []
         for idx in range(len(self.sampler.dataset)):
@@ -45,7 +45,7 @@ class AspectRatioBatchSampler(BatchSampler):
             )[1] / data_info["inputs"]["img"].size()[2]
             self.bucket_ids.append(bucket_id)
 
-    def __iter__(self) -> Sequence[int]:
+    def __iter__(self) -> Generator:
         for idx in self.sampler:
             bucket_id = self.bucket_ids[idx]
             if bucket_id not in self._aspect_ratio_buckets:
