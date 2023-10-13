@@ -1,4 +1,5 @@
 [tool.ruff]
+target-version = "py311"
 select = ["ALL"]
 ignore = [
     "ANN003",
@@ -40,3 +41,9 @@ ignore = [
     "PD011", "RUF002", "ISC002", "ANN002", "ARG002", "PT018", "ANN205",
     "N802", "PLR0915", "N806", "FBT001", "PLR5501", "PLR0912", "N803",
     "N812", "PTH", "SLF001"]
+
+[tool.mypy]
+python_version = "3.11"
+no_strict_optional = true
+ignore_missing_imports = true
+check_untyped_defs = true

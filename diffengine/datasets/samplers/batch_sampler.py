@@ -1,5 +1,5 @@
 # based on https://github.com/open-mmlab/mmdetection/blob/f78af7785ada87f1ced75a2313746e4ba3149760/mmdet/datasets/samplers/batch_sampler.py#L12  # noqa
-from typing import Generator
+from collections.abc import Generator
 
 import numpy as np
 from torch.utils.data import BatchSampler, Sampler

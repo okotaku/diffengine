@@ -1,5 +1,3 @@
-from typing import Optional
-
 import torch
 import torch.nn.functional as F  # noqa
 from torch import nn
@@ -30,7 +28,7 @@ class L2Loss(nn.Module):
     def forward(self,
                 pred: torch.Tensor,
                 gt: torch.Tensor,
-                weight: Optional[torch.Tensor] = None) -> torch.Tensor:
+                weight: torch.Tensor | None = None) -> torch.Tensor:
         if weight is not None:
             loss = F.mse_loss(pred, gt, reduction="none") * weight
             return loss.mean() * self.loss_weight

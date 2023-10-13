@@ -158,7 +158,7 @@ class TestStableDiffusionXL(TestCase):
             "img": [torch.zeros((3, 64, 64))],
             "text": ["a dog"],
             "time_ids": [torch.zeros((1, 6))],
-        }
+        }  # type: ignore[assignment]
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)

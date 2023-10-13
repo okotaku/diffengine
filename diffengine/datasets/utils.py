@@ -1,6 +1,5 @@
 # flake8: noqa: S311
 import random
-from typing import Dict
 
 import numpy as np
 import torch
@@ -12,7 +11,7 @@ def encode_prompt_sdxl(batch,
                        caption_column,
                        proportion_empty_prompts: float = 0.0,
                        *,
-                       is_train: bool = True) -> Dict[str, torch.Tensor]:
+                       is_train: bool = True) -> dict[str, torch.Tensor]:
     # Adapted from pipelines.StableDiffusionXLPipeline.encode_prompt
     prompt_embeds_list = []
     prompt_batch = batch[caption_column]
@@ -23,12 +22,13 @@ def encode_prompt_sdxl(batch,
             captions.append("")
         elif isinstance(caption, str):
             captions.append(caption)
-        elif isinstance(caption, (list, np.ndarray)):
+        elif isinstance(caption, list | np.ndarray):
             # take a random caption if there are multiple
             captions.append(random.choice(caption) if is_train else caption[0])
 
     with torch.no_grad():
-        for tokenizer, text_encoder in zip(tokenizers, text_encoders):
+        for tokenizer, text_encoder in zip(
+                tokenizers, text_encoders, strict=True):
             text_inputs = tokenizer(
                 captions,
                 padding="max_length",

@@ -1,5 +1,3 @@
-from typing import Optional
-
 import torch
 import torch.nn.functional as F  # noqa
 from diffusers.models.attention_processor import (
@@ -25,7 +23,7 @@ class IPAttnProcessor(nn.Module):
 
     def __init__(self,
                  hidden_size: int,
-                 cross_attention_dim: Optional[int] = None,
+                 cross_attention_dim: int | None = None,
                  text_context_len: int = 77) -> None:
         super().__init__()
 
@@ -42,9 +40,9 @@ class IPAttnProcessor(nn.Module):
         self,
         attn: Attention,
         hidden_states: torch.Tensor,
-        encoder_hidden_states: Optional[torch.Tensor] = None,
-        attention_mask: Optional[torch.Tensor] = None,
-        temb: Optional[torch.Tensor] = None,
+        encoder_hidden_states: torch.Tensor | None = None,
+        attention_mask: torch.Tensor | None = None,
+        temb: torch.Tensor | None = None,
         scale: float = 1.0,
     ) -> torch.Tensor:
         residual = hidden_states
@@ -139,7 +137,7 @@ class IPAttnProcessor2_0(nn.Module):  # noqa
 
     def __init__(self,
                  hidden_size: int,
-                 cross_attention_dim: Optional[int] = None,
+                 cross_attention_dim: int | None = None,
                  text_context_len: int = 77) -> None:
         super().__init__()
 
@@ -161,9 +159,9 @@ class IPAttnProcessor2_0(nn.Module):  # noqa
         self,
         attn: Attention,
         hidden_states: torch.Tensor,
-        encoder_hidden_states: Optional[torch.Tensor] = None,
-        attention_mask: Optional[torch.Tensor] = None,
-        temb: Optional[torch.Tensor] = None,
+        encoder_hidden_states: torch.Tensor | None = None,
+        attention_mask: torch.Tensor | None = None,
+        temb: torch.Tensor | None = None,
         scale: float = 1.0,
     ) -> torch.Tensor:
         residual = hidden_states
@@ -291,9 +289,9 @@ class CNAttnProcessor:
             self,
             attn: Attention,
             hidden_states: torch.Tensor,
-            encoder_hidden_states: Optional[torch.Tensor] = None,
-            attention_mask: Optional[torch.Tensor] = None,
-            temb: Optional[torch.Tensor] = None,
+            encoder_hidden_states: torch.Tensor | None = None,
+            attention_mask: torch.Tensor | None = None,
+            temb: torch.Tensor | None = None,
             scale: float = 1.0,  # noqa
     ) -> torch.Tensor:
         residual = hidden_states
@@ -377,9 +375,9 @@ class CNAttnProcessor2_0:  # noqa
             self,
             attn: Attention,
             hidden_states: torch.Tensor,
-            encoder_hidden_states: Optional[torch.Tensor] = None,
-            attention_mask: Optional[torch.Tensor] = None,
-            temb: Optional[torch.Tensor] = None,
+            encoder_hidden_states: torch.Tensor | None = None,
+            attention_mask: torch.Tensor | None = None,
+            temb: torch.Tensor | None = None,
             scale: float = 1.0,  # noqa
     ) -> torch.Tensor:
         residual = hidden_states

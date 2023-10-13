@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Optional
 
 import numpy as np
 import torch
@@ -35,12 +35,12 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
 
     def __init__(self,
                  *args,
-                 adapter_model: Optional[str] = None,
-                 adapter_model_channels: Optional[List[int]] = None,
+                 adapter_model: str | None = None,
+                 adapter_model_channels: list[int] | None = None,
                  adapter_downscale_factor: int = 16,
-                 lora_config: Optional[dict] = None,
+                 lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
-                 data_preprocessor: Optional[Union[dict, nn.Module]] = None,
+                 data_preprocessor: dict | nn.Module | None = None,
                  **kwargs):
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDXLControlNetDataPreprocessor"}
@@ -94,14 +94,14 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
 
     @torch.no_grad()
     def infer(self,
-              prompt: List[str],
-              condition_image: List[Union[str, Image.Image]],
-              negative_prompt: Optional[str] = None,
-              height: Optional[int] = None,
-              width: Optional[int] = None,
+              prompt: list[str],
+              condition_image: list[str | Image.Image],
+              negative_prompt: str | None = None,
+              height: int | None = None,
+              width: int | None = None,
               num_inference_steps: int = 50,
               output_type: str = "pil",
-              **kwargs) -> List[np.ndarray]:
+              **kwargs) -> list[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
 
         Args:
@@ -139,7 +139,7 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
         pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
         images = []
-        for p, img in zip(prompt, condition_image):
+        for p, img in zip(prompt, condition_image, strict=True):
             pil_img = load_image(img) if isinstance(img, str) else img
             pil_img = pil_img.convert("RGB")
             image = pipeline(

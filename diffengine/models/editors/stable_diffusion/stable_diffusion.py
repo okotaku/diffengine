@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 import torch
@@ -48,11 +48,11 @@ class StableDiffusion(BaseModel):
     def __init__(
         self,
         model: str = "runwayml/stable-diffusion-v1-5",
-        loss: Optional[dict] = None,
-        lora_config: Optional[dict] = None,
+        loss: dict | None = None,
+        lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
-        data_preprocessor: Optional[Union[dict, nn.Module]] = None,
+        data_preprocessor: dict | nn.Module | None = None,
         *,
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
@@ -119,13 +119,13 @@ class StableDiffusion(BaseModel):
 
     @torch.no_grad()
     def infer(self,
-              prompt: List[str],
-              negative_prompt: Optional[str] = None,
-              height: Optional[int] = None,
-              width: Optional[int] = None,
+              prompt: list[str],
+              negative_prompt: str | None = None,
+              height: int | None = None,
+              width: int | None = None,
               num_inference_steps: int = 50,
               output_type: str = "pil",
-              **kwargs) -> List[np.ndarray]:
+              **kwargs) -> list[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
 
         Args:

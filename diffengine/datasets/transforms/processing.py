@@ -2,8 +2,8 @@
 import inspect
 import random
 import re
+from collections.abc import Sequence
 from enum import EnumMeta
-from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import torchvision
@@ -51,7 +51,7 @@ class TorchVisonTransformWrapper:
     def __init__(self,
                  transform,
                  *args,
-                 keys: Optional[List[str]] = None,
+                 keys: list[str] | None = None,
                  **kwargs):
         if keys is None:
             keys = ["img"]
@@ -73,7 +73,7 @@ class TorchVisonTransformWrapper:
         return f"TorchVision{self.t!r}"
 
 
-def register_vision_transforms() -> List[str]:
+def register_vision_transforms() -> list[str]:
     """Register transforms in ``torchvision.transforms`` to the ``TRANSFORMS``
     registry.
 
@@ -105,8 +105,7 @@ VISION_TRANSFORMS = register_vision_transforms()
 class SaveImageShape(BaseTransform):
     """Save image shape as 'ori_img_shape' in results."""
 
-    def transform(self,
-                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
         """
         Args:
             results (dict): The result dict.
@@ -141,8 +140,8 @@ class RandomCrop(BaseTransform):
 
     def __init__(self,
                  *args,
-                 size: Union[Sequence[int], int],
-                 keys: Optional[List[str]] = None,
+                 size: Sequence[int] | int,
+                 keys: list[str] | None = None,
                  **kwargs):
         if keys is None:
             keys = ["img"]
@@ -153,8 +152,7 @@ class RandomCrop(BaseTransform):
         self.pipeline = torchvision.transforms.RandomCrop(
             *args, size, **kwargs)
 
-    def transform(self,
-                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
         """
         Args:
             results (dict): The result dict.
@@ -190,8 +188,8 @@ class CenterCrop(BaseTransform):
 
     def __init__(self,
                  *args,
-                 size: Union[Sequence[int], int],
-                 keys: Optional[List[str]] = None,
+                 size: Sequence[int] | int,
+                 keys: list[str] | None = None,
                  **kwargs):
         if keys is None:
             keys = ["img"]
@@ -202,8 +200,7 @@ class CenterCrop(BaseTransform):
         self.pipeline = torchvision.transforms.CenterCrop(
             *args, size, **kwargs)
 
-    def transform(self,
-                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
         """
         Args:
             results (dict): The result dict.
@@ -239,8 +236,8 @@ class MultiAspectRatioResizeCenterCrop(BaseTransform):
     def __init__(
             self,
             *args,  # noqa
-            sizes: List[Sequence[int]],
-            keys: Optional[List[str]] = None,
+            sizes: list[Sequence[int]],
+            keys: list[str] | None = None,
             interpolation: str = "bilinear",
             **kwargs):  # noqa
         if keys is None:
@@ -259,8 +256,7 @@ class MultiAspectRatioResizeCenterCrop(BaseTransform):
                     CenterCrop(size=s, keys=keys),
                 ]))
 
-    def transform(self,
-                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
         """
         Args:
             results (dict): The result dict.
@@ -293,8 +289,7 @@ class RandomHorizontalFlip(BaseTransform):
         self.pipeline = torchvision.transforms.RandomHorizontalFlip(
             *args, p=1.0, **kwargs)
 
-    def transform(self,
-                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
         """
         Args:
             results (dict): The result dict.
@@ -318,8 +313,7 @@ class RandomHorizontalFlip(BaseTransform):
 class ComputeTimeIds(BaseTransform):
     """Compute time ids as 'time_ids' in results."""
 
-    def transform(self,
-                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
         """
         Args:
             results (dict): The result dict.
@@ -351,8 +345,7 @@ class CLIPImageProcessor(BaseTransform):
         self.output_key = output_key
         self.pipeline = HFCLIPImageProcessor()
 
-    def transform(self,
-                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
         """
         Args:
             results (dict): The result dict.
@@ -379,8 +372,7 @@ class RandomTextDrop(BaseTransform):
         self.p = p
         self.keys = keys
 
-    def transform(self,
-                  results: Dict) -> Optional[Union[Dict, Tuple[List, List]]]:
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
         """
         Args:
             results (dict): The result dict.

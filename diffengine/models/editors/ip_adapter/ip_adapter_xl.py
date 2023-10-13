@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Optional
 
 import numpy as np
 import torch
@@ -40,10 +40,10 @@ class IPAdapterXL(StableDiffusionXL):
                  *args,
                  image_encoder: str = "takuoko/IP-Adapter-XL-test",
                  clip_extra_context_tokens: int = 4,
-                 lora_config: Optional[dict] = None,
+                 lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
                  zeros_image_embeddings_prob: float = 0.1,
-                 data_preprocessor: Optional[Union[dict, nn.Module]] = None,
+                 data_preprocessor: dict | nn.Module | None = None,
                  **kwargs):
         if data_preprocessor is None:
             data_preprocessor = {"type": "IPAdapterXLDataPreprocessor"}
@@ -114,14 +114,14 @@ class IPAdapterXL(StableDiffusionXL):
 
     @torch.no_grad()
     def infer(self,
-              prompt: List[str],
-              example_image: List[Union[str, Image.Image]],
-              negative_prompt: Optional[str] = None,
-              height: Optional[int] = None,
-              width: Optional[int] = None,
+              prompt: list[str],
+              example_image: list[str | Image.Image],
+              negative_prompt: str | None = None,
+              height: int | None = None,
+              width: int | None = None,
               num_inference_steps: int = 50,
               output_type: str = "pil",
-              **kwargs) -> List[np.ndarray]:
+              **kwargs) -> list[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
 
         Args:
@@ -159,7 +159,7 @@ class IPAdapterXL(StableDiffusionXL):
         pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
         images = []
-        for p, img in zip(prompt, example_image):
+        for p, img in zip(prompt, example_image, strict=True):
             pil_img = load_image(img) if isinstance(img, str) else img
             pil_img = pil_img.convert("RGB")
 

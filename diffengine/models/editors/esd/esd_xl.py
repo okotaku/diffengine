@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional, Union
+from typing import Optional
 
 import torch
 from torch import nn
@@ -29,7 +29,7 @@ class ESDXL(StableDiffusionXL):
                  width: int = 1024,
                  negative_guidance: float = 1.0,
                  train_method: str = "full",
-                 data_preprocessor: Optional[Union[dict, nn.Module]] = None,
+                 data_preprocessor: dict | nn.Module | None = None,
                  **kwargs):
         if data_preprocessor is None:
             data_preprocessor = {"type": "ESDXLDataPreprocessor"}
