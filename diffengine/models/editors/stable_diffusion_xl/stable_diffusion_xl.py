@@ -3,8 +3,12 @@ from typing import List, Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (AutoencoderKL, DDPMScheduler, DiffusionPipeline,
-                       UNet2DConditionModel)
+from diffusers import (
+    AutoencoderKL,
+    DDPMScheduler,
+    DiffusionPipeline,
+    UNet2DConditionModel,
+)
 from mmengine import print_log
 from mmengine.model import BaseModel
 from torch import nn
@@ -16,21 +20,22 @@ from diffengine.registry import MODELS
 
 
 def import_model_class_from_model_name_or_path(
-        pretrained_model_name_or_path: str, subfolder: str = 'text_encoder'):
+        pretrained_model_name_or_path: str, subfolder: str = "text_encoder"):
     text_encoder_config = PretrainedConfig.from_pretrained(
         pretrained_model_name_or_path, subfolder=subfolder)
     model_class = text_encoder_config.architectures[0]
 
-    if model_class == 'CLIPTextModel':
+    if model_class == "CLIPTextModel":
         from transformers import CLIPTextModel
 
         return CLIPTextModel
-    elif model_class == 'CLIPTextModelWithProjection':
+    elif model_class == "CLIPTextModelWithProjection":  # noqa
         from transformers import CLIPTextModelWithProjection
 
         return CLIPTextModelWithProjection
     else:
-        raise ValueError(f'{model_class} is not supported.')
+        msg = f"{model_class} is not supported."
+        raise ValueError(msg)
 
 
 @MODELS.register_module()
@@ -67,18 +72,22 @@ class StableDiffusionXL(BaseModel):
 
     def __init__(
         self,
-        model: str = 'stabilityai/stable-diffusion-xl-base-1.0',
+        model: str = "stabilityai/stable-diffusion-xl-base-1.0",
         vae_model: Optional[str] = None,
-        loss: dict = dict(type='L2Loss', loss_weight=1.0),
+        loss: Optional[dict] = None,
         lora_config: Optional[dict] = None,
-        finetune_text_encoder: bool = False,
         prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
+        data_preprocessor: Optional[Union[dict, nn.Module]] = None,
+        *,
+        finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
         pre_compute_text_embeddings: bool = False,
-        data_preprocessor: Optional[Union[dict, nn.Module]] = dict(
-            type='SDXLDataPreprocessor'),
     ):
+        if data_preprocessor is None:
+            data_preprocessor = {"type": "SDXLDataPreprocessor"}
+        if loss is None:
+            loss = {"type": "L2Loss", "loss_weight": 1.0}
         super().__init__(data_preprocessor=data_preprocessor)
         self.model = model
         self.lora_config = deepcopy(lora_config)
@@ -98,27 +107,27 @@ class StableDiffusionXL(BaseModel):
 
         if not self.pre_compute_text_embeddings:
             self.tokenizer_one = AutoTokenizer.from_pretrained(
-                model, subfolder='tokenizer', use_fast=False)
+                model, subfolder="tokenizer", use_fast=False)
             self.tokenizer_two = AutoTokenizer.from_pretrained(
-                model, subfolder='tokenizer_2', use_fast=False)
+                model, subfolder="tokenizer_2", use_fast=False)
 
             text_encoder_cls_one = import_model_class_from_model_name_or_path(
                 model)
             text_encoder_cls_two = import_model_class_from_model_name_or_path(
-                model, subfolder='text_encoder_2')
+                model, subfolder="text_encoder_2")
             self.text_encoder_one = text_encoder_cls_one.from_pretrained(
-                model, subfolder='text_encoder')
+                model, subfolder="text_encoder")
             self.text_encoder_two = text_encoder_cls_two.from_pretrained(
-                model, subfolder='text_encoder_2')
+                model, subfolder="text_encoder_2")
 
         self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder='scheduler')
+            model, subfolder="scheduler")
 
         vae_path = model if vae_model is None else vae_model
         self.vae = AutoencoderKL.from_pretrained(
-            vae_path, subfolder='vae' if vae_model is None else None)
+            vae_path, subfolder="vae" if vae_model is None else None)
         self.unet = UNet2DConditionModel.from_pretrained(
-            model, subfolder='unet')
+            model, subfolder="unet")
         self.prepare_model()
         self.set_lora()
 
@@ -126,11 +135,11 @@ class StableDiffusionXL(BaseModel):
         """Set LORA for model."""
         if self.lora_config is not None:
             if self.finetune_text_encoder:
-                self.text_encoder_one.requires_grad_(False)
-                self.text_encoder_two.requires_grad_(False)
+                self.text_encoder_one.requires_grad_(requires_grad=False)
+                self.text_encoder_two.requires_grad_(requires_grad=False)
                 set_text_encoder_lora(self.text_encoder_one, self.lora_config)
                 set_text_encoder_lora(self.text_encoder_two, self.lora_config)
-            self.unet.requires_grad_(False)
+            self.unet.requires_grad_(requires_grad=False)
             set_unet_lora(self.unet, self.lora_config)
 
     def prepare_model(self):
@@ -144,13 +153,13 @@ class StableDiffusionXL(BaseModel):
                 self.text_encoder_one.gradient_checkpointing_enable()
                 self.text_encoder_two.gradient_checkpointing_enable()
 
-        self.vae.requires_grad_(False)
-        print_log('Set VAE untrainable.', 'current')
+        self.vae.requires_grad_(requires_grad=False)
+        print_log("Set VAE untrainable.", "current")
         if (not self.finetune_text_encoder) and (
                 not self.pre_compute_text_embeddings):
-            self.text_encoder_one.requires_grad_(False)
-            self.text_encoder_two.requires_grad_(False)
-            print_log('Set Text Encoder untrainable.', 'current')
+            self.text_encoder_one.requires_grad_(requires_grad=False)
+            self.text_encoder_two.requires_grad_(requires_grad=False)
+            print_log("Set Text Encoder untrainable.", "current")
 
     @property
     def device(self):
@@ -163,7 +172,7 @@ class StableDiffusionXL(BaseModel):
               height: Optional[int] = None,
               width: Optional[int] = None,
               num_inference_steps: int = 50,
-              output_type: str = 'pil',
+              output_type: str = "pil",
               **kwargs) -> List[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
 
@@ -191,7 +200,7 @@ class StableDiffusionXL(BaseModel):
                 unet=self.unet,
                 safety_checker=None,
                 torch_dtype=(torch.float16
-                             if self.device != torch.device('cpu') else
+                             if self.device != torch.device("cpu") else
                              torch.float32),
             )
         else:
@@ -204,7 +213,7 @@ class StableDiffusionXL(BaseModel):
                 tokenizer_2=self.tokenizer_two,
                 unet=self.unet,
                 torch_dtype=(torch.float16
-                             if self.device != torch.device('cpu') else
+                             if self.device != torch.device("cpu") else
                              torch.float32),
             )
         pipeline.to(self.device)
@@ -219,7 +228,7 @@ class StableDiffusionXL(BaseModel):
                 width=width,
                 output_type=output_type,
                 **kwargs).images[0]
-            if output_type == 'latent':
+            if output_type == "latent":
                 images.append(image)
             else:
                 images.append(np.array(image))
@@ -253,30 +262,37 @@ class StableDiffusionXL(BaseModel):
         pooled_prompt_embeds = pooled_prompt_embeds.view(bs_embed, -1)
         return prompt_embeds, pooled_prompt_embeds
 
-    def val_step(self, data: Union[tuple, dict, list]) -> list:
-        raise NotImplementedError(
-            'val_step is not implemented now, please use infer.')
+    def val_step(
+            self,
+            data: Union[tuple, dict, list]  # noqa
+    ) -> list:
+        msg = "val_step is not implemented now, please use infer."
+        raise NotImplementedError(msg)
 
-    def test_step(self, data: Union[tuple, dict, list]) -> list:
-        raise NotImplementedError(
-            'test_step is not implemented now, please use infer.')
+    def test_step(
+            self,
+            data: Union[tuple, dict, list]  # noqa
+    ) -> list:
+        msg = "test_step is not implemented now, please use infer."
+        raise NotImplementedError(msg)
 
-    def forward(self,
-                inputs: torch.Tensor,
-                data_samples: Optional[list] = None,
-                mode: str = 'loss'):
-        assert mode == 'loss'
-        num_batches = len(inputs['img'])
-        if 'result_class_image' in inputs:
+    def forward(
+            self,
+            inputs: torch.Tensor,
+            data_samples: Optional[list] = None,  # noqa
+            mode: str = "loss"):
+        assert mode == "loss"
+        num_batches = len(inputs["img"])
+        if "result_class_image" in inputs:
             # use prior_loss_weight
             weight = torch.cat([
                 torch.ones((num_batches // 2, )),
-                torch.ones((num_batches // 2, )) * self.prior_loss_weight
+                torch.ones((num_batches // 2, )) * self.prior_loss_weight,
             ]).float().reshape(-1, 1, 1, 1)
         else:
             weight = None
 
-        latents = self.vae.encode(inputs['img']).latent_dist.sample()
+        latents = self.vae.encode(inputs["img"]).latent_dist.sample()
         latents = latents * self.vae.config.scaling_factor
 
         noise = torch.randn_like(latents)
@@ -294,35 +310,35 @@ class StableDiffusionXL(BaseModel):
         noisy_latents = self.scheduler.add_noise(latents, noise, timesteps)
 
         if not self.pre_compute_text_embeddings:
-            inputs['text_one'] = self.tokenizer_one(
-                inputs['text'],
+            inputs["text_one"] = self.tokenizer_one(
+                inputs["text"],
                 max_length=self.tokenizer_one.model_max_length,
-                padding='max_length',
+                padding="max_length",
                 truncation=True,
-                return_tensors='pt').input_ids.to(self.device)
-            inputs['text_two'] = self.tokenizer_two(
-                inputs['text'],
+                return_tensors="pt").input_ids.to(self.device)
+            inputs["text_two"] = self.tokenizer_two(
+                inputs["text"],
                 max_length=self.tokenizer_two.model_max_length,
-                padding='max_length',
+                padding="max_length",
                 truncation=True,
-                return_tensors='pt').input_ids.to(self.device)
+                return_tensors="pt").input_ids.to(self.device)
             prompt_embeds, pooled_prompt_embeds = self.encode_prompt(
-                inputs['text_one'], inputs['text_two'])
+                inputs["text_one"], inputs["text_two"])
         else:
-            prompt_embeds = inputs['prompt_embeds']
-            pooled_prompt_embeds = inputs['pooled_prompt_embeds']
+            prompt_embeds = inputs["prompt_embeds"]
+            pooled_prompt_embeds = inputs["pooled_prompt_embeds"]
         unet_added_conditions = {
-            'time_ids': inputs['time_ids'],
-            'text_embeds': pooled_prompt_embeds
+            "time_ids": inputs["time_ids"],
+            "text_embeds": pooled_prompt_embeds,
         }
 
-        if self.scheduler.config.prediction_type == 'epsilon':
+        if self.scheduler.config.prediction_type == "epsilon":
             gt = noise
-        elif self.scheduler.config.prediction_type == 'v_prediction':
+        elif self.scheduler.config.prediction_type == "v_prediction":
             gt = self.scheduler.get_velocity(latents, noise, timesteps)
         else:
-            raise ValueError('Unknown prediction type '
-                             f'{self.scheduler.config.prediction_type}')
+            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
+            raise ValueError(msg)
 
         model_pred = self.unet(
             noisy_latents,
@@ -330,7 +346,7 @@ class StableDiffusionXL(BaseModel):
             prompt_embeds,
             added_cond_kwargs=unet_added_conditions).sample
 
-        loss_dict = dict()
+        loss_dict = {}
         # calculate loss in FP32
         if isinstance(self.loss_module, SNRL2Loss):
             loss = self.loss_module(
@@ -342,5 +358,5 @@ class StableDiffusionXL(BaseModel):
         else:
             loss = self.loss_module(
                 model_pred.float(), gt.float(), weight=weight)
-        loss_dict['loss'] = loss
+        loss_dict["loss"] = loss
         return loss_dict

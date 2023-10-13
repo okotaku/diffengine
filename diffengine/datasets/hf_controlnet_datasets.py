@@ -1,3 +1,4 @@
+# flake8: noqa: TRY004,S311
 import os
 import random
 from pathlib import Path
@@ -33,10 +34,10 @@ class HFControlNetDataset(Dataset):
 
     def __init__(self,
                  dataset: str,
-                 image_column: str = 'image',
-                 condition_column: str = 'condition',
-                 caption_column: str = 'text',
-                 csv: str = 'metadata.csv',
+                 image_column: str = "image",
+                 condition_column: str = "condition",
+                 caption_column: str = "text",
+                 csv: str = "metadata.csv",
                  pipeline: Sequence = (),
                  cache_dir: Optional[str] = None):
         self.dataset_name = dataset
@@ -44,10 +45,10 @@ class HFControlNetDataset(Dataset):
             # load local folder
             data_file = os.path.join(dataset, csv)
             self.dataset = load_dataset(
-                'csv', data_files=data_file, cache_dir=cache_dir)['train']
+                "csv", data_files=data_file, cache_dir=cache_dir)["train"]
         else:
             # load huggingface online
-            self.dataset = load_dataset(dataset, cache_dir=cache_dir)['train']
+            self.dataset = load_dataset(dataset, cache_dir=cache_dir)["train"]
         self.pipeline = Compose(pipeline)
 
         self.image_column = image_column
@@ -75,15 +76,15 @@ class HFControlNetDataset(Dataset):
         """
         data_info = self.dataset[idx]
         image = data_info[self.image_column]
-        if type(image) == str:
+        if isinstance(image, str):
             image = Image.open(os.path.join(self.dataset_name, image))
-        image = image.convert('RGB')
+        image = image.convert("RGB")
 
         condition_image = data_info[self.condition_column]
-        if type(condition_image) == str:
+        if isinstance(condition_image, str):
             condition_image = Image.open(
                 os.path.join(self.dataset_name, condition_image))
-        condition_image = condition_image.convert('RGB')
+        condition_image = condition_image.convert("RGB")
 
         caption = data_info[self.caption_column]
         if isinstance(caption, str):
@@ -92,10 +93,12 @@ class HFControlNetDataset(Dataset):
             # take a random caption if there are multiple
             caption = random.choice(caption)
         else:
-            raise ValueError(
-                f'Caption column `{self.caption_column}` should contain either'
-                ' strings or lists of strings.')
-        result = dict(img=image, condition_img=condition_image, text=caption)
-        result = self.pipeline(result)
-
-        return result
+            msg = (f"Caption column `{self.caption_column}` should "
+                   "contain either strings or lists of strings.")
+            raise ValueError(msg)
+        result = {
+            "img": image,
+            "condition_img": condition_image,
+            "text": caption,
+        }
+        return self.pipeline(result)

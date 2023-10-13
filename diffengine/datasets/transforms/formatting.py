@@ -1,5 +1,6 @@
+# flake8: noqa: RET505
 from collections.abc import Sequence
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 import torch
@@ -26,10 +27,10 @@ def to_tensor(data):
     elif isinstance(data, float):
         return torch.FloatTensor([data])
     else:
-        raise TypeError(
-            f'Type {type(data)} cannot be converted to tensor.'
-            'Supported types are: `numpy.ndarray`, `torch.Tensor`, '
-            '`Sequence`, `int` and `float`')
+        msg = (f"Type {type(data)} cannot be converted to "
+               "tensor.Supported types are: `numpy.ndarray`, `torch.Tensor`,"
+               " `Sequence`, `int` and `float`")
+        raise TypeError(msg)
 
 
 @TRANSFORMS.register_module()
@@ -52,15 +53,19 @@ class PackInputs(BaseTransform):
     """
 
     def __init__(self,
-                 input_keys: List[str] = ['img', 'text'],
-                 skip_to_tensor_key: List[str] = ['text']):
+                 input_keys: Optional[List[str]] = None,
+                 skip_to_tensor_key: Optional[List[str]] = None):
+        if skip_to_tensor_key is None:
+            skip_to_tensor_key = ["text"]
+        if input_keys is None:
+            input_keys = ["img", "text"]
         self.input_keys = input_keys
         self.skip_to_tensor_key = skip_to_tensor_key
 
     def transform(self, results: dict) -> dict:
         """Method to pack the input data."""
 
-        packed_results = dict()
+        packed_results = {}
         for k in self.input_keys:
             if k in results and k not in self.skip_to_tensor_key:
                 packed_results[k] = to_tensor(results[k])
@@ -68,4 +73,4 @@ class PackInputs(BaseTransform):
                 # text skip to_tensor
                 packed_results[k] = results[k]
 
-        return dict(inputs=packed_results)
+        return {"inputs": packed_results}

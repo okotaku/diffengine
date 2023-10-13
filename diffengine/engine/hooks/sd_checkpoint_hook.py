@@ -8,7 +8,7 @@ from mmengine.registry import HOOKS
 @HOOKS.register_module()
 class SDCheckpointHook(Hook):
     """Delete 'vae' from checkpoint for efficient save."""
-    priority = 'VERY_LOW'
+    priority = "VERY_LOW"
 
     def before_save_checkpoint(self, runner, checkpoint: dict) -> None:
         """
@@ -22,13 +22,14 @@ class SDCheckpointHook(Hook):
             model = model.module
 
         new_ckpt = OrderedDict()
-        sd_keys = checkpoint['state_dict'].keys()
+        sd_keys = checkpoint["state_dict"].keys()
         for k in sd_keys:
-            if k.startswith('unet'):
-                new_ckpt[k] = checkpoint['state_dict'][k]
-            elif k.startswith('text_encoder'):
+            if k.startswith("unet"):
+                new_ckpt[k] = checkpoint["state_dict"][k]
+            elif k.startswith("text_encoder") and hasattr(
+                    model,
+                    "finetune_text_encoder",
+            ) and model.finetune_text_encoder:
                 # if not finetune text_encoder, then not save
-                if hasattr(model, 'finetune_text_encoder'
-                           ) and model.finetune_text_encoder:
-                    new_ckpt[k] = checkpoint['state_dict'][k]
-        checkpoint['state_dict'] = new_ckpt
+                new_ckpt[k] = checkpoint["state_dict"][k]
+        checkpoint["state_dict"] = new_ckpt

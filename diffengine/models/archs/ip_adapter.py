@@ -1,10 +1,13 @@
 from typing import Optional
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from diffusers.models.attention_processor import (Attention, AttnProcessor,
-                                                  AttnProcessor2_0)
+import torch.nn.functional as F  # noqa
+from diffusers.models.attention_processor import (
+    Attention,
+    AttnProcessor,
+    AttnProcessor2_0,
+)
+from torch import nn
 
 
 class IPAttnProcessor(nn.Module):
@@ -50,8 +53,9 @@ class IPAttnProcessor(nn.Module):
             hidden_states = attn.spatial_norm(hidden_states, temb)
 
         input_ndim = hidden_states.ndim
+        image_input_ndim = 4
 
-        if input_ndim == 4:
+        if input_ndim == image_input_ndim:
             batch_size, channel, height, width = hidden_states.shape
             hidden_states = hidden_states.view(batch_size, channel,
                                                height * width).transpose(1, 2)
@@ -110,19 +114,17 @@ class IPAttnProcessor(nn.Module):
         # dropout
         hidden_states = attn.to_out[1](hidden_states)
 
-        if input_ndim == 4:
+        if input_ndim == image_input_ndim:
             hidden_states = hidden_states.transpose(-1, -2).reshape(
                 batch_size, channel, height, width)
 
         if attn.residual_connection:
             hidden_states = hidden_states + residual
 
-        hidden_states = hidden_states / attn.rescale_output_factor
-
-        return hidden_states
+        return hidden_states / attn.rescale_output_factor
 
 
-class IPAttnProcessor2_0(nn.Module):
+class IPAttnProcessor2_0(nn.Module):  # noqa
     """Attention processor for IP-Adapater for PyTorch 2.0.
 
     Args:
@@ -141,10 +143,10 @@ class IPAttnProcessor2_0(nn.Module):
                  text_context_len: int = 77) -> None:
         super().__init__()
 
-        if not hasattr(F, 'scaled_dot_product_attention'):
-            raise ImportError(
-                'AttnProcessor2_0 requires PyTorch 2.0, to use it, please '
-                'upgrade PyTorch to 2.0.')
+        if not hasattr(F, "scaled_dot_product_attention"):
+            msg = ("AttnProcessor2_0 requires PyTorch 2.0, to use it,"
+                   " please upgrade PyTorch to 2.0.")
+            raise ImportError(msg)
 
         self.hidden_size = hidden_size
         self.cross_attention_dim = cross_attention_dim
@@ -170,8 +172,9 @@ class IPAttnProcessor2_0(nn.Module):
             hidden_states = attn.spatial_norm(hidden_states, temb)
 
         input_ndim = hidden_states.ndim
+        image_input_ndim = 4
 
-        if input_ndim == 4:
+        if input_ndim == image_input_ndim:
             batch_size, channel, height, width = hidden_states.shape
             hidden_states = hidden_states.view(batch_size, channel,
                                                height * width).transpose(1, 2)
@@ -220,7 +223,7 @@ class IPAttnProcessor2_0(nn.Module):
                            head_dim).transpose(1, 2)
 
         # the output of sdp = (batch, num_heads, seq_len, head_dim)
-        # TODO: add support for attn.scale when we move to Torch 2.1
+        # TODO(takuoko): add support for attn.scale when we move to Torch 2.1  # noqa
         hidden_states = F.scaled_dot_product_attention(
             query,
             key,
@@ -243,7 +246,7 @@ class IPAttnProcessor2_0(nn.Module):
                                  head_dim).transpose(1, 2)
 
         # the output of sdp = (batch, num_heads, seq_len, head_dim)
-        # TODO: add support for attn.scale when we move to Torch 2.1
+        # TODO(takuoko): add support for attn.scale when we move to Torch 2.1  # noqa
         ip_hidden_states = F.scaled_dot_product_attention(
             query,
             ip_key,
@@ -263,16 +266,14 @@ class IPAttnProcessor2_0(nn.Module):
         # dropout
         hidden_states = attn.to_out[1](hidden_states)
 
-        if input_ndim == 4:
+        if input_ndim == image_input_ndim:
             hidden_states = hidden_states.transpose(-1, -2).reshape(
                 batch_size, channel, height, width)
 
         if attn.residual_connection:
             hidden_states = hidden_states + residual
 
-        hidden_states = hidden_states / attn.rescale_output_factor
-
-        return hidden_states
+        return hidden_states / attn.rescale_output_factor
 
 
 class CNAttnProcessor:
@@ -287,13 +288,13 @@ class CNAttnProcessor:
         self.clip_extra_context_tokens = clip_extra_context_tokens
 
     def __call__(
-        self,
-        attn: Attention,
-        hidden_states: torch.Tensor,
-        encoder_hidden_states: Optional[torch.Tensor] = None,
-        attention_mask: Optional[torch.Tensor] = None,
-        temb: Optional[torch.Tensor] = None,
-        scale: float = 1.0,
+            self,
+            attn: Attention,
+            hidden_states: torch.Tensor,
+            encoder_hidden_states: Optional[torch.Tensor] = None,
+            attention_mask: Optional[torch.Tensor] = None,
+            temb: Optional[torch.Tensor] = None,
+            scale: float = 1.0,  # noqa
     ) -> torch.Tensor:
         residual = hidden_states
 
@@ -301,8 +302,9 @@ class CNAttnProcessor:
             hidden_states = attn.spatial_norm(hidden_states, temb)
 
         input_ndim = hidden_states.ndim
+        image_input_ndim = 4
 
-        if input_ndim == 4:
+        if input_ndim == image_input_ndim:
             batch_size, channel, height, width = hidden_states.shape
             hidden_states = hidden_states.view(batch_size, channel,
                                                height * width).transpose(1, 2)
@@ -345,19 +347,17 @@ class CNAttnProcessor:
         # dropout
         hidden_states = attn.to_out[1](hidden_states)
 
-        if input_ndim == 4:
+        if input_ndim == image_input_ndim:
             hidden_states = hidden_states.transpose(-1, -2).reshape(
                 batch_size, channel, height, width)
 
         if attn.residual_connection:
             hidden_states = hidden_states + residual
 
-        hidden_states = hidden_states / attn.rescale_output_factor
-
-        return hidden_states
+        return hidden_states / attn.rescale_output_factor
 
 
-class CNAttnProcessor2_0:
+class CNAttnProcessor2_0:  # noqa
     """Processor for implementing scaled dot-product attention (enabled by
     default if you're using PyTorch 2.0).
 
@@ -367,20 +367,20 @@ class CNAttnProcessor2_0:
     """
 
     def __init__(self, clip_extra_context_tokens: int = 4) -> None:
-        if not hasattr(F, 'scaled_dot_product_attention'):
-            raise ImportError(
-                'AttnProcessor2_0 requires PyTorch 2.0, to use it, please '
-                'upgrade PyTorch to 2.0.')
+        if not hasattr(F, "scaled_dot_product_attention"):
+            msg = ("AttnProcessor2_0 requires PyTorch 2.0, to use it,"
+                   " please upgrade PyTorch to 2.0.")
+            raise ImportError(msg)
         self.clip_extra_context_tokens = clip_extra_context_tokens
 
     def __call__(
-        self,
-        attn: Attention,
-        hidden_states: torch.Tensor,
-        encoder_hidden_states: Optional[torch.Tensor] = None,
-        attention_mask: Optional[torch.Tensor] = None,
-        temb: Optional[torch.Tensor] = None,
-        scale: float = 1.0,
+            self,
+            attn: Attention,
+            hidden_states: torch.Tensor,
+            encoder_hidden_states: Optional[torch.Tensor] = None,
+            attention_mask: Optional[torch.Tensor] = None,
+            temb: Optional[torch.Tensor] = None,
+            scale: float = 1.0,  # noqa
     ) -> torch.Tensor:
         residual = hidden_states
 
@@ -388,8 +388,9 @@ class CNAttnProcessor2_0:
             hidden_states = attn.spatial_norm(hidden_states, temb)
 
         input_ndim = hidden_states.ndim
+        image_input_ndim = 4
 
-        if input_ndim == 4:
+        if input_ndim == image_input_ndim:
             batch_size, channel, height, width = hidden_states.shape
             hidden_states = hidden_states.view(batch_size, channel,
                                                height * width).transpose(1, 2)
@@ -434,7 +435,7 @@ class CNAttnProcessor2_0:
                            head_dim).transpose(1, 2)
 
         # the output of sdp = (batch, num_heads, seq_len, head_dim)
-        # TODO: add support for attn.scale when we move to Torch 2.1
+        # TODO(takuoko): add support for attn.scale when we move to Torch 2.1  # noqa
         hidden_states = F.scaled_dot_product_attention(
             query,
             key,
@@ -452,16 +453,14 @@ class CNAttnProcessor2_0:
         # dropout
         hidden_states = attn.to_out[1](hidden_states)
 
-        if input_ndim == 4:
+        if input_ndim == image_input_ndim:
             hidden_states = hidden_states.transpose(-1, -2).reshape(
                 batch_size, channel, height, width)
 
         if attn.residual_connection:
             hidden_states = hidden_states + residual
 
-        hidden_states = hidden_states / attn.rescale_output_factor
-
-        return hidden_states
+        return hidden_states / attn.rescale_output_factor
 
 
 def set_unet_ip_adapter(unet: nn.Module) -> None:
@@ -471,28 +470,28 @@ def set_unet_ip_adapter(unet: nn.Module) -> None:
         unet (nn.Module): The unet to set IP-Adapter.
     """
     attn_procs = {}
-    for name in unet.attn_processors.keys():
+    for name in unet.attn_processors:
         cross_attention_dim = None if name.endswith(
-            'attn1.processor') else unet.config.cross_attention_dim
-        if name.startswith('mid_block'):
+            "attn1.processor") else unet.config.cross_attention_dim
+        if name.startswith("mid_block"):
             hidden_size = unet.config.block_out_channels[-1]
-        elif name.startswith('up_blocks'):
-            block_id = int(name[len('up_blocks.')])
+        elif name.startswith("up_blocks"):
+            block_id = int(name[len("up_blocks.")])
             hidden_size = list(reversed(
                 unet.config.block_out_channels))[block_id]
-        elif name.startswith('down_blocks'):
-            block_id = int(name[len('down_blocks.')])
+        elif name.startswith("down_blocks"):
+            block_id = int(name[len("down_blocks.")])
             hidden_size = unet.config.block_out_channels[block_id]
 
         if cross_attention_dim is None:
             attn_processor_class = (
-                AttnProcessor2_0 if hasattr(F, 'scaled_dot_product_attention')
+                AttnProcessor2_0 if hasattr(F, "scaled_dot_product_attention")
                 else AttnProcessor)
             attn_procs[name] = attn_processor_class()
         else:
             attn_processor_class = (
                 IPAttnProcessor2_0 if hasattr(
-                    F, 'scaled_dot_product_attention') else IPAttnProcessor)
+                    F, "scaled_dot_product_attention") else IPAttnProcessor)
             attn_procs[name] = attn_processor_class(
                 hidden_size=hidden_size,
                 cross_attention_dim=cross_attention_dim)
@@ -509,7 +508,7 @@ def set_controlnet_ip_adapter(controlnet, clip_extra_context_tokens: int = 4):
     """
     attn_processor_class = (
         CNAttnProcessor2_0
-        if hasattr(F, 'scaled_dot_product_attention') else CNAttnProcessor)
+        if hasattr(F, "scaled_dot_product_attention") else CNAttnProcessor)
     controlnet.set_attn_processor(
         attn_processor_class(
             clip_extra_context_tokens=clip_extra_context_tokens))

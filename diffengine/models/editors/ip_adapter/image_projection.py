@@ -33,5 +33,4 @@ class ImageProjModel(ModelMixin, ConfigMixin):
         embeds = image_embeds
         clip_extra_context_tokens = self.proj(embeds).reshape(
             -1, self.clip_extra_context_tokens, self.cross_attention_dim)
-        clip_extra_context_tokens = self.norm(clip_extra_context_tokens)
-        return clip_extra_context_tokens
+        return self.norm(clip_extra_context_tokens)

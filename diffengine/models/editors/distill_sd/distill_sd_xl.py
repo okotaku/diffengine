@@ -1,3 +1,4 @@
+# flake8: noqa: PLR0915, PLR0912, C901
 import gc
 from copy import deepcopy
 from typing import Optional
@@ -25,11 +26,11 @@ class DistillSDXL(StableDiffusionXL):
                  finetune_text_encoder: bool = False,
                  **kwargs):
         assert lora_config is None, \
-            '`lora_config` should be None when training DistillSDXL'
+            "`lora_config` should be None when training DistillSDXL"
         assert not finetune_text_encoder, \
-            '`finetune_text_encoder` should be False when training DistillSDXL'
-        assert model_type in ['sd_tiny', 'sd_small'], \
-            f'`model_type`={model_type} should not be supported in DistillSDXL'
+            "`finetune_text_encoder` should be False when training DistillSDXL"
+        assert model_type in ["sd_tiny", "sd_small"], \
+            f"`model_type`={model_type} should not be supported in DistillSDXL"
 
         self.model_type = model_type
 
@@ -41,14 +42,14 @@ class DistillSDXL(StableDiffusionXL):
 
     def set_lora(self):
         """Set LORA for model."""
-        pass
 
     def prepare_model(self):
         """Prepare model for training.
 
         Disable gradient for some models.
         """
-        self.orig_unet = deepcopy(self.unet).requires_grad_(False)
+        self.orig_unet = deepcopy(
+            self.unet).requires_grad_(requires_grad=False)
 
         # prepare student model
         self._prepare_student()
@@ -58,29 +59,29 @@ class DistillSDXL(StableDiffusionXL):
     def _prepare_student(self):
         assert len(self.unet.up_blocks) == len(self.unet.down_blocks)
         self.num_blocks = len(self.unet.up_blocks)
-        config = self.unet._internal_dict
-        config['layers_per_block'] = 1
-        setattr(self.unet._internal_dict, 'layers_per_block', 1)
-        if self.model_type == 'sd_tiny':
+        config = self.unet._internal_dict  # noqa
+        config["layers_per_block"] = 1
+        self.unet._internal_dict.layers_per_block = 1  # noqa
+        if self.model_type == "sd_tiny":
             self.unet.mid_block = None
-            config['mid_block_type'] = None
+            config["mid_block_type"] = None
 
         # Commence deletion of resnets/attentions inside the U-net
         # Handle Down Blocks
         for i in range(self.num_blocks):
-            delattr(self.unet.down_blocks[i].resnets, '1')
-            if hasattr(self.unet.down_blocks[i], 'attentions'):
+            delattr(self.unet.down_blocks[i].resnets, "1")
+            if hasattr(self.unet.down_blocks[i], "attentions"):
                 # i == 0 does not have attentions
-                delattr(self.unet.down_blocks[i].attentions, '1')
+                delattr(self.unet.down_blocks[i].attentions, "1")
 
         for i in range(self.num_blocks):
             self.unet.up_blocks[i].resnets[1] = self.unet.up_blocks[i].resnets[
                 2]
-            delattr(self.unet.up_blocks[i].resnets, '2')
-            if hasattr(self.unet.up_blocks[i], 'attentions'):
+            delattr(self.unet.up_blocks[i].resnets, "2")
+            if hasattr(self.unet.up_blocks[i], "attentions"):
                 self.unet.up_blocks[i].attentions[1] = self.unet.up_blocks[
                     i].attentions[2]
-                delattr(self.unet.up_blocks[i].attentions, '2')
+                delattr(self.unet.up_blocks[i].attentions, "2")
 
         torch.cuda.empty_cache()
         gc.collect()
@@ -89,15 +90,15 @@ class DistillSDXL(StableDiffusionXL):
         self.teacher_feats = {}
         self.student_feats = {}
 
-        def getActivation(activation, name, residuals_present):
+        def get_activation(activation, name, residuals_present):
             # the hook signature
             if residuals_present:
 
-                def hook(model, input, output):
+                def hook(model, input, output):  # noqa
                     activation[name] = output[0]
             else:
 
-                def hook(model, input, output):
+                def hook(model, input, output):  # noqa
                     activation[name] = output
 
             return hook
@@ -105,40 +106,46 @@ class DistillSDXL(StableDiffusionXL):
         # cast teacher
         for i in range(self.num_blocks):
             self.orig_unet.down_blocks[i].register_forward_hook(
-                getActivation(self.teacher_feats, 'd' + str(i), True))
+                get_activation(
+                    self.teacher_feats, "d" + str(i), residuals_present=True))
         self.orig_unet.mid_block.register_forward_hook(
-            getActivation(self.teacher_feats, 'm', False))
+            get_activation(self.teacher_feats, "m", residuals_present=False))
         for i in range(self.num_blocks):
             self.orig_unet.up_blocks[i].register_forward_hook(
-                getActivation(self.teacher_feats, 'u' + str(i), False))
+                get_activation(
+                    self.teacher_feats, "u" + str(i), residuals_present=False))
 
         # cast student
         for i in range(self.num_blocks):
             self.unet.down_blocks[i].register_forward_hook(
-                getActivation(self.student_feats, 'd' + str(i), True))
-        if self.model_type == 'sd_small':
+                get_activation(
+                    self.student_feats, "d" + str(i), residuals_present=True))
+        if self.model_type == "sd_small":
             self.unet.mid_block.register_forward_hook(
-                getActivation(self.student_feats, 'm', False))
+                get_activation(
+                    self.student_feats, "m", residuals_present=False))
         for i in range(self.num_blocks):
             self.unet.up_blocks[i].register_forward_hook(
-                getActivation(self.student_feats, 'u' + str(i), False))
+                get_activation(
+                    self.student_feats, "u" + str(i), residuals_present=False))
 
-    def forward(self,
-                inputs: torch.Tensor,
-                data_samples: Optional[list] = None,
-                mode: str = 'loss'):
-        assert mode == 'loss'
-        num_batches = len(inputs['img'])
-        if 'result_class_image' in inputs:
+    def forward(
+            self,
+            inputs: torch.Tensor,
+            data_samples: Optional[list] = None,  # noqa
+            mode: str = "loss"):
+        assert mode == "loss"
+        num_batches = len(inputs["img"])
+        if "result_class_image" in inputs:
             # use prior_loss_weight
             weight = torch.cat([
                 torch.ones((num_batches // 2, )),
-                torch.ones((num_batches // 2, )) * self.prior_loss_weight
+                torch.ones((num_batches // 2, )) * self.prior_loss_weight,
             ]).float().reshape(-1, 1, 1, 1)
         else:
             weight = None
 
-        latents = self.vae.encode(inputs['img']).latent_dist.sample()
+        latents = self.vae.encode(inputs["img"]).latent_dist.sample()
         latents = latents * self.vae.config.scaling_factor
 
         noise = torch.randn_like(latents)
@@ -156,35 +163,35 @@ class DistillSDXL(StableDiffusionXL):
         noisy_latents = self.scheduler.add_noise(latents, noise, timesteps)
 
         if not self.pre_compute_text_embeddings:
-            inputs['text_one'] = self.tokenizer_one(
-                inputs['text'],
+            inputs["text_one"] = self.tokenizer_one(
+                inputs["text"],
                 max_length=self.tokenizer_one.model_max_length,
-                padding='max_length',
+                padding="max_length",
                 truncation=True,
-                return_tensors='pt').input_ids.to(self.device)
-            inputs['text_two'] = self.tokenizer_two(
-                inputs['text'],
+                return_tensors="pt").input_ids.to(self.device)
+            inputs["text_two"] = self.tokenizer_two(
+                inputs["text"],
                 max_length=self.tokenizer_two.model_max_length,
-                padding='max_length',
+                padding="max_length",
                 truncation=True,
-                return_tensors='pt').input_ids.to(self.device)
+                return_tensors="pt").input_ids.to(self.device)
             prompt_embeds, pooled_prompt_embeds = self.encode_prompt(
-                inputs['text_one'], inputs['text_two'])
+                inputs["text_one"], inputs["text_two"])
         else:
-            prompt_embeds = inputs['prompt_embeds']
-            pooled_prompt_embeds = inputs['pooled_prompt_embeds']
+            prompt_embeds = inputs["prompt_embeds"]
+            pooled_prompt_embeds = inputs["pooled_prompt_embeds"]
         unet_added_conditions = {
-            'time_ids': inputs['time_ids'],
-            'text_embeds': pooled_prompt_embeds
+            "time_ids": inputs["time_ids"],
+            "text_embeds": pooled_prompt_embeds,
         }
 
-        if self.scheduler.config.prediction_type == 'epsilon':
+        if self.scheduler.config.prediction_type == "epsilon":
             gt = noise
-        elif self.scheduler.config.prediction_type == 'v_prediction':
+        elif self.scheduler.config.prediction_type == "v_prediction":
             gt = self.scheduler.get_velocity(latents, noise, timesteps)
         else:
-            raise ValueError('Unknown prediction type '
-                             f'{self.scheduler.config.prediction_type}')
+            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
+            raise ValueError(msg)
 
         model_pred = self.unet(
             noisy_latents,
@@ -199,38 +206,38 @@ class DistillSDXL(StableDiffusionXL):
                 prompt_embeds,
                 added_cond_kwargs=unet_added_conditions).sample
 
-        loss_dict = dict()
+        loss_dict = {}
         # calculate loss in FP32
         if isinstance(self.loss_module, SNRL2Loss):
             loss_features = 0
             num_blocks = (
                 self.num_blocks
-                if self.model_type == 'sd_small' else self.num_blocks - 1)
+                if self.model_type == "sd_small" else self.num_blocks - 1)
             for i in range(num_blocks):
                 loss_features = loss_features + self.loss_module(
-                    self.teacher_feats['d' + str(i)].float(),
-                    self.student_feats['d' + str(i)].float(),
+                    self.teacher_feats["d" + str(i)].float(),
+                    self.student_feats["d" + str(i)].float(),
                     timesteps,
                     self.scheduler.alphas_cumprod,
                     weight=weight)
-            if self.model_type == 'sd_small':
+            if self.model_type == "sd_small":
                 loss_features = loss_features + self.loss_module(
-                    self.teacher_feats['m'].float(),
-                    self.student_feats['m'].float(),
+                    self.teacher_feats["m"].float(),
+                    self.student_feats["m"].float(),
                     timesteps,
                     self.scheduler.alphas_cumprod,
                     weight=weight)
-            elif self.model_type == 'sd_tiny':
+            elif self.model_type == "sd_tiny":
                 loss_features = loss_features + self.loss_module(
-                    self.teacher_feats['m'].float(),
-                    self.student_feats[f'd{self.num_blocks - 1}'].float(),
+                    self.teacher_feats["m"].float(),
+                    self.student_feats[f"d{self.num_blocks - 1}"].float(),
                     timesteps,
                     self.scheduler.alphas_cumprod,
                     weight=weight)
             for i in range(self.num_blocks):
                 loss_features = loss_features + self.loss_module(
-                    self.teacher_feats['u' + str(i)].float(),
-                    self.student_feats['u' + str(i)].float(),
+                    self.teacher_feats["u" + str(i)].float(),
+                    self.student_feats["u" + str(i)].float(),
                     timesteps,
                     self.scheduler.alphas_cumprod,
                     weight=weight)
@@ -251,33 +258,33 @@ class DistillSDXL(StableDiffusionXL):
             loss_features = 0
             num_blocks = (
                 self.num_blocks
-                if self.model_type == 'sd_small' else self.num_blocks - 1)
+                if self.model_type == "sd_small" else self.num_blocks - 1)
             for i in range(num_blocks):
                 loss_features = loss_features + self.loss_module(
-                    self.teacher_feats['d' + str(i)].float(),
-                    self.student_feats['d' + str(i)].float(),
+                    self.teacher_feats["d" + str(i)].float(),
+                    self.student_feats["d" + str(i)].float(),
                     weight=weight)
-            if self.model_type == 'sd_small':
+            if self.model_type == "sd_small":
                 loss_features = loss_features + self.loss_module(
-                    self.teacher_feats['m'].float(),
-                    self.student_feats['m'].float(),
+                    self.teacher_feats["m"].float(),
+                    self.student_feats["m"].float(),
                     weight=weight)
-            elif self.model_type == 'sd_tiny':
+            elif self.model_type == "sd_tiny":
                 loss_features = loss_features + self.loss_module(
-                    self.teacher_feats['m'].float(),
-                    self.student_feats[f'd{self.num_blocks - 1}'].float(),
+                    self.teacher_feats["m"].float(),
+                    self.student_feats[f"d{self.num_blocks - 1}"].float(),
                     weight=weight)
             for i in range(self.num_blocks):
                 loss_features = loss_features + self.loss_module(
-                    self.teacher_feats['u' + str(i)].float(),
-                    self.student_feats['u' + str(i)].float(),
+                    self.teacher_feats["u" + str(i)].float(),
+                    self.student_feats["u" + str(i)].float(),
                     weight=weight)
 
             loss = self.loss_module(
                 model_pred.float(), gt.float(), weight=weight)
             loss_kd = self.loss_module(
                 model_pred.float(), teacher_pred.float(), weight=weight)
-        loss_dict['loss_sd'] = loss
-        loss_dict['loss_kd'] = loss_kd
-        loss_dict['loss_features'] = loss_features
+        loss_dict["loss_sd"] = loss
+        loss_dict["loss_kd"] = loss_kd
+        loss_dict["loss_features"] = loss_features
         return loss_dict

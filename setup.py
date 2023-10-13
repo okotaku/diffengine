@@ -3,23 +3,23 @@ import os.path as osp
 import shutil
 import sys
 import warnings
+
 from setuptools import find_packages, setup
 
 
 def readme():
-    with open('README.md', encoding='utf-8') as f:
-        content = f.read()
-    return content
+    with open("README.md", encoding="utf-8") as f:
+        return f.read()
 
 
 def get_version():
-    version_file = 'diffengine/version.py'
-    with open(version_file, 'r', encoding='utf-8') as f:
-        exec(compile(f.read(), version_file, 'exec'))
-    return locals()['__version__']
+    version_file = "diffengine/version.py"
+    with open(version_file, encoding="utf-8") as f:
+        exec(compile(f.read(), version_file, "exec"))
+    return locals()["__version__"]
 
 
-def parse_requirements(fname='requirements.txt', with_version=True):
+def parse_requirements(fname="requirements.txt", with_version=True):
     """Parse the package dependencies listed in a requirements file but strips
     specific versioning information.
 
@@ -38,62 +38,60 @@ def parse_requirements(fname='requirements.txt', with_version=True):
 
     def parse_line(line):
         """Parse information from a line in a requirements text file."""
-        if line.startswith('-r '):
+        if line.startswith("-r "):
             # Allow specifying requirements in other files
-            target = line.split(' ')[1]
+            target = line.split(" ")[1]
             for info in parse_require_file(target):
                 yield info
         else:
-            info = {'line': line}
-            if line.startswith('-e '):
-                info['package'] = line.split('#egg=')[1]
+            info = {"line": line}
+            if line.startswith("-e "):
+                info["package"] = line.split("#egg=")[1]
             else:
                 # Remove versioning from the package
-                pat = '(' + '|'.join(['>=', '==', '>']) + ')'
+                pat = "(" + ">=|==|>" + ")"
                 parts = re.split(pat, line, maxsplit=1)
                 parts = [p.strip() for p in parts]
 
-                info['package'] = parts[0]
+                info["package"] = parts[0]
                 if len(parts) > 1:
                     op, rest = parts[1:]
-                    if ';' in rest:
+                    if ";" in rest:
                         # Handle platform specific dependencies
                         # http://setuptools.readthedocs.io/en/latest/setuptools.html#declaring-platform-specific-dependencies
                         version, platform_deps = map(str.strip,
-                                                     rest.split(';'))
-                        info['platform_deps'] = platform_deps
+                                                     rest.split(";"))
+                        info["platform_deps"] = platform_deps
                     else:
-                        version = rest  # NOQA
-                    if '--' in version:
+                        version = rest
+                    if "--" in version:
                         # the `extras_require` doesn't accept options.
-                        version = version.split('--')[0].strip()
-                    info['version'] = (op, version)
+                        version = version.split("--")[0].strip()
+                    info["version"] = (op, version)
             yield info
 
     def parse_require_file(fpath):
-        with open(fpath, 'r') as f:
+        with open(fpath) as f:
             for line in f.readlines():
                 line = line.strip()
-                if line and not line.startswith('#'):
-                    for info in parse_line(line):
-                        yield info
+                if line and not line.startswith("#"):
+                    yield from parse_line(line)
 
     def gen_packages_items():
         if exists(require_fpath):
             for info in parse_require_file(require_fpath):
-                parts = [info['package']]
-                if with_version and 'version' in info:
-                    parts.extend(info['version'])
-                if not sys.version.startswith('3.4'):
+                parts = [info["package"]]
+                if with_version and "version" in info:
+                    parts.extend(info["version"])
+                if not sys.version.startswith("3.4"):
                     # apparently package_deps are broken in 3.4
-                    platform_deps = info.get('platform_deps')
+                    platform_deps = info.get("platform_deps")
                     if platform_deps is not None:
-                        parts.append(';' + platform_deps)
-                item = ''.join(parts)
+                        parts.append(";" + platform_deps)
+                item = "".join(parts)
                 yield item
 
-    packages = list(gen_packages_items())
-    return packages
+    return list(gen_packages_items())
 
 
 def add_mim_extension():
@@ -105,19 +103,19 @@ def add_mim_extension():
     """
 
     # parse installment mode
-    if 'develop' in sys.argv:
+    if "develop" in sys.argv:
         # installed by `pip install -e .`
-        mode = 'symlink'
-    elif 'sdist' in sys.argv or 'bdist_wheel' in sys.argv:
+        mode = "symlink"
+    elif "sdist" in sys.argv or "bdist_wheel" in sys.argv:
         # installed by `pip install .`
         # or create source distribution by `python setup.py sdist`
-        mode = 'copy'
+        mode = "copy"
     else:
         return
 
-    filenames = ['tools', 'configs', 'demo', 'model-index.yml']
+    filenames = ["tools", "configs", "demo", "model-index.yml"]
     repo_path = osp.dirname(__file__)
-    mim_path = osp.join(repo_path, 'diffengine', '.mim')
+    mim_path = osp.join(repo_path, "diffengine", ".mim")
     os.makedirs(mim_path, exist_ok=True)
 
     for filename in filenames:
@@ -130,7 +128,7 @@ def add_mim_extension():
             elif osp.isdir(tar_path):
                 shutil.rmtree(tar_path)
 
-            if mode == 'symlink':
+            if mode == "symlink":
                 src_relpath = osp.relpath(src_path, osp.dirname(tar_path))
                 try:
                     os.symlink(src_relpath, tar_path)
@@ -138,39 +136,40 @@ def add_mim_extension():
                     # Creating a symbolic link on windows may raise an
                     # `OSError: [WinError 1314]` due to privilege. If
                     # the error happens, the src file will be copied
-                    mode = 'copy'
+                    mode = "copy"
                     warnings.warn(
-                        f'Failed to create a symbolic link for {src_relpath}, '
-                        f'and it will be copied to {tar_path}')
+                        f"Failed to create a symbolic link for {src_relpath}, "
+                        f"and it will be copied to {tar_path}")
                 else:
                     continue
 
-            if mode == 'copy':
+            if mode == "copy":
                 if osp.isfile(src_path):
                     shutil.copyfile(src_path, tar_path)
                 elif osp.isdir(src_path):
                     shutil.copytree(src_path, tar_path)
                 else:
-                    warnings.warn(f'Cannot copy file {src_path}.')
+                    warnings.warn(f"Cannot copy file {src_path}.")
             else:
-                raise ValueError(f'Invalid mode {mode}')
+                msg = f"Invalid mode {mode}"
+                raise ValueError(msg)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     add_mim_extension()
     setup(
-        name='diffengine',
+        name="diffengine",
         version=get_version(),
-        description='diffengine',
+        description="diffengine",
         long_description=readme(),
-        long_description_content_type='text/markdown',
-        keywords='computer vision, image classification',
+        long_description_content_type="text/markdown",
+        keywords="computer vision, image classification",
         packages=find_packages(
-            exclude=('configs', 'tools', 'demo', 'work_dirs', 'examples')),
+            exclude=("configs", "tools", "demo", "work_dirs", "examples")),
         include_package_data=True,
-        url='',
-        author='diffengine Contributors',
-        author_email='',
-        license='Apache License 2.0',
-        install_requires=parse_requirements('requirements/requirements.txt'),
+        url="",
+        author="diffengine Contributors",
+        author_email="",
+        license="Apache License 2.0",
+        install_requires=parse_requirements("requirements/requirements.txt"),
         zip_safe=False)

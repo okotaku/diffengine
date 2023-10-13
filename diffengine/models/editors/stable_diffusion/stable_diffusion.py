@@ -3,8 +3,12 @@ from typing import List, Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (AutoencoderKL, DDPMScheduler, StableDiffusionPipeline,
-                       UNet2DConditionModel)
+from diffusers import (
+    AutoencoderKL,
+    DDPMScheduler,
+    StableDiffusionPipeline,
+    UNet2DConditionModel,
+)
 from mmengine import print_log
 from mmengine.model import BaseModel
 from torch import nn
@@ -43,16 +47,20 @@ class StableDiffusion(BaseModel):
 
     def __init__(
         self,
-        model: str = 'runwayml/stable-diffusion-v1-5',
-        loss: dict = dict(type='L2Loss', loss_weight=1.0),
+        model: str = "runwayml/stable-diffusion-v1-5",
+        loss: Optional[dict] = None,
         lora_config: Optional[dict] = None,
-        finetune_text_encoder: bool = False,
         prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
+        data_preprocessor: Optional[Union[dict, nn.Module]] = None,
+        *,
+        finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
-        data_preprocessor: Optional[Union[dict, nn.Module]] = dict(
-            type='SDDataPreprocessor'),
     ):
+        if data_preprocessor is None:
+            data_preprocessor = {"type": "SDDataPreprocessor"}
+        if loss is None:
+            loss = {"type": "L2Loss", "loss_weight": 1.0}
         super().__init__(data_preprocessor=data_preprocessor)
         self.model = model
         self.lora_config = deepcopy(lora_config)
@@ -68,15 +76,15 @@ class StableDiffusion(BaseModel):
         self.noise_offset_weight = noise_offset_weight
 
         self.tokenizer = CLIPTokenizer.from_pretrained(
-            model, subfolder='tokenizer')
+            model, subfolder="tokenizer")
         self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder='scheduler')
+            model, subfolder="scheduler")
 
         self.text_encoder = CLIPTextModel.from_pretrained(
-            model, subfolder='text_encoder')
-        self.vae = AutoencoderKL.from_pretrained(model, subfolder='vae')
+            model, subfolder="text_encoder")
+        self.vae = AutoencoderKL.from_pretrained(model, subfolder="vae")
         self.unet = UNet2DConditionModel.from_pretrained(
-            model, subfolder='unet')
+            model, subfolder="unet")
         self.prepare_model()
         self.set_lora()
 
@@ -84,9 +92,9 @@ class StableDiffusion(BaseModel):
         """Set LORA for model."""
         if self.lora_config is not None:
             if self.finetune_text_encoder:
-                self.text_encoder.requires_grad_(False)
+                self.text_encoder.requires_grad_(requires_grad=False)
                 set_text_encoder_lora(self.text_encoder, self.lora_config)
-            self.unet.requires_grad_(False)
+            self.unet.requires_grad_(requires_grad=False)
             set_unet_lora(self.unet, self.lora_config)
 
     def prepare_model(self):
@@ -99,11 +107,11 @@ class StableDiffusion(BaseModel):
             if self.finetune_text_encoder:
                 self.text_encoder.gradient_checkpointing_enable()
 
-        self.vae.requires_grad_(False)
-        print_log('Set VAE untrainable.', 'current')
+        self.vae.requires_grad_(requires_grad=False)
+        print_log("Set VAE untrainable.", "current")
         if not self.finetune_text_encoder:
-            self.text_encoder.requires_grad_(False)
-            print_log('Set Text Encoder untrainable.', 'current')
+            self.text_encoder.requires_grad_(requires_grad=False)
+            print_log("Set Text Encoder untrainable.", "current")
 
     @property
     def device(self):
@@ -116,7 +124,7 @@ class StableDiffusion(BaseModel):
               height: Optional[int] = None,
               width: Optional[int] = None,
               num_inference_steps: int = 50,
-              output_type: str = 'pil',
+              output_type: str = "pil",
               **kwargs) -> List[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
 
@@ -144,7 +152,7 @@ class StableDiffusion(BaseModel):
             tokenizer=self.tokenizer,
             unet=self.unet,
             safety_checker=None,
-            torch_dtype=(torch.float16 if self.device != torch.device('cpu')
+            torch_dtype=(torch.float16 if self.device != torch.device("cpu")
                          else torch.float32),
         )
         pipeline.set_progress_bar_config(disable=True)
@@ -158,7 +166,7 @@ class StableDiffusion(BaseModel):
                 width=width,
                 output_type=output_type,
                 **kwargs).images[0]
-            if output_type == 'latent':
+            if output_type == "latent":
                 images.append(image)
             else:
                 images.append(np.array(image))
@@ -168,36 +176,43 @@ class StableDiffusion(BaseModel):
 
         return images
 
-    def val_step(self, data: Union[tuple, dict, list]) -> list:
-        raise NotImplementedError(
-            'val_step is not implemented now, please use infer.')
+    def val_step(
+            self,
+            data: Union[tuple, dict, list]  # noqa
+    ) -> list:
+        msg = "val_step is not implemented now, please use infer."
+        raise NotImplementedError(msg)
 
-    def test_step(self, data: Union[tuple, dict, list]) -> list:
-        raise NotImplementedError(
-            'test_step is not implemented now, please use infer.')
+    def test_step(
+            self,
+            data: Union[tuple, dict, list]  # noqa
+    ) -> list:
+        msg = "test_step is not implemented now, please use infer."
+        raise NotImplementedError(msg)
 
-    def forward(self,
-                inputs: torch.Tensor,
-                data_samples: Optional[list] = None,
-                mode: str = 'loss'):
-        assert mode == 'loss'
-        inputs['text'] = self.tokenizer(
-            inputs['text'],
+    def forward(
+            self,
+            inputs: torch.Tensor,
+            data_samples: Optional[list] = None,  # noqa
+            mode: str = "loss"):
+        assert mode == "loss"
+        inputs["text"] = self.tokenizer(
+            inputs["text"],
             max_length=self.tokenizer.model_max_length,
-            padding='max_length',
+            padding="max_length",
             truncation=True,
-            return_tensors='pt').input_ids.to(self.device)
-        num_batches = len(inputs['img'])
-        if 'result_class_image' in inputs:
+            return_tensors="pt").input_ids.to(self.device)
+        num_batches = len(inputs["img"])
+        if "result_class_image" in inputs:
             # use prior_loss_weight
             weight = torch.cat([
                 torch.ones((num_batches // 2, )),
-                torch.ones((num_batches // 2, )) * self.prior_loss_weight
+                torch.ones((num_batches // 2, )) * self.prior_loss_weight,
             ]).to(self.device).float().reshape(-1, 1, 1, 1)
         else:
             weight = None
 
-        latents = self.vae.encode(inputs['img']).latent_dist.sample()
+        latents = self.vae.encode(inputs["img"]).latent_dist.sample()
         latents = latents * self.vae.config.scaling_factor
 
         noise = torch.randn_like(latents)
@@ -215,22 +230,22 @@ class StableDiffusion(BaseModel):
 
         noisy_latents = self.scheduler.add_noise(latents, noise, timesteps)
 
-        encoder_hidden_states = self.text_encoder(inputs['text'])[0]
+        encoder_hidden_states = self.text_encoder(inputs["text"])[0]
 
-        if self.scheduler.config.prediction_type == 'epsilon':
+        if self.scheduler.config.prediction_type == "epsilon":
             gt = noise
-        elif self.scheduler.config.prediction_type == 'v_prediction':
+        elif self.scheduler.config.prediction_type == "v_prediction":
             gt = self.scheduler.get_velocity(latents, noise, timesteps)
         else:
-            raise ValueError('Unknown prediction type '
-                             f'{self.scheduler.config.prediction_type}')
+            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
+            raise ValueError(msg)
 
         model_pred = self.unet(
             noisy_latents,
             timesteps,
             encoder_hidden_states=encoder_hidden_states).sample
 
-        loss_dict = dict()
+        loss_dict = {}
         # calculate loss in FP32
         if isinstance(self.loss_module, SNRL2Loss):
             loss = self.loss_module(
@@ -242,5 +257,5 @@ class StableDiffusion(BaseModel):
         else:
             loss = self.loss_module(
                 model_pred.float(), gt.float(), weight=weight)
-        loss_dict['loss'] = loss
+        loss_dict["loss"] = loss
         return loss_dict

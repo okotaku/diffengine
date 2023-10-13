@@ -1,3 +1,4 @@
+# flake8: noqa: S311
 import inspect
 import random
 import re
@@ -17,20 +18,20 @@ from diffengine.registry import TRANSFORMS
 
 def _str_to_torch_dtype(t: str):
     """mapping str format dtype to torch.dtype."""
-    import torch  # noqa: F401,F403
-    return eval(f'torch.{t}')
+    import torch  # noqa: F401
+    return eval(f"torch.{t}")  # noqa
 
 
 def _interpolation_modes_from_str(t: str):
     """mapping str format to Interpolation."""
     t = t.lower()
     inverse_modes_mapping = {
-        'nearest': InterpolationMode.NEAREST,
-        'bilinear': InterpolationMode.BILINEAR,
-        'bicubic': InterpolationMode.BICUBIC,
-        'box': InterpolationMode.BOX,
-        'hammimg': InterpolationMode.HAMMING,
-        'lanczos': InterpolationMode.LANCZOS,
+        "nearest": InterpolationMode.NEAREST,
+        "bilinear": InterpolationMode.BILINEAR,
+        "bicubic": InterpolationMode.BICUBIC,
+        "box": InterpolationMode.BOX,
+        "hammimg": InterpolationMode.HAMMING,
+        "lanczos": InterpolationMode.LANCZOS,
     }
     return inverse_modes_mapping[t]
 
@@ -47,14 +48,20 @@ class TorchVisonTransformWrapper:
         keys (List[str]): `keys` to apply augmentation from results.
     """
 
-    def __init__(self, transform, *args, keys: List[str] = ['img'], **kwargs):
+    def __init__(self,
+                 transform,
+                 *args,
+                 keys: Optional[List[str]] = None,
+                 **kwargs):
+        if keys is None:
+            keys = ["img"]
         self.keys = keys
-        if 'interpolation' in kwargs and isinstance(kwargs['interpolation'],
+        if "interpolation" in kwargs and isinstance(kwargs["interpolation"],
                                                     str):
-            kwargs['interpolation'] = _interpolation_modes_from_str(
-                kwargs['interpolation'])
-        if 'dtype' in kwargs and isinstance(kwargs['dtype'], str):
-            kwargs['dtype'] = _str_to_torch_dtype(kwargs['dtype'])
+            kwargs["interpolation"] = _interpolation_modes_from_str(
+                kwargs["interpolation"])
+        if "dtype" in kwargs and isinstance(kwargs["dtype"], str):
+            kwargs["dtype"] = _str_to_torch_dtype(kwargs["dtype"])
         self.t = transform(*args, **kwargs)
 
     def __call__(self, results):
@@ -63,7 +70,7 @@ class TorchVisonTransformWrapper:
         return results
 
     def __repr__(self) -> str:
-        return f'TorchVision{repr(self.t)}'
+        return f"TorchVision{self.t!r}"
 
 
 def register_vision_transforms() -> List[str]:
@@ -75,7 +82,7 @@ def register_vision_transforms() -> List[str]:
     """
     vision_transforms = []
     for module_name in dir(torchvision.transforms):
-        if not re.match('[A-Z]', module_name):
+        if not re.match("[A-Z]", module_name):
             # must startswith a capital letter
             continue
         _transform = getattr(torchvision.transforms, module_name)
@@ -85,8 +92,8 @@ def register_vision_transforms() -> List[str]:
             TRANSFORMS.register_module(
                 module=partial(
                     TorchVisonTransformWrapper, transform=_transform),
-                name=f'torchvision/{module_name}')
-            vision_transforms.append(f'torchvision/{module_name}')
+                name=f"torchvision/{module_name}")
+            vision_transforms.append(f"torchvision/{module_name}")
     return vision_transforms
 
 
@@ -107,8 +114,9 @@ class SaveImageShape(BaseTransform):
         Returns:
             dict: 'ori_img_shape' key is added as original image shape.
         """
-        results['ori_img_shape'] = [
-            results['img'].height, results['img'].width
+        results["ori_img_shape"] = [
+            results["img"].height,
+            results["img"].width,
         ]
         return results
 
@@ -134,8 +142,10 @@ class RandomCrop(BaseTransform):
     def __init__(self,
                  *args,
                  size: Union[Sequence[int], int],
-                 keys: List[str] = ['img'],
+                 keys: Optional[List[str]] = None,
                  **kwargs):
+        if keys is None:
+            keys = ["img"]
         if not isinstance(size, Sequence):
             size = (size, size)
         self.size = size
@@ -153,12 +163,12 @@ class RandomCrop(BaseTransform):
             dict: 'crop_top_left' and  `crop_bottom_right` key is added as crop
                 point.
         """
-        assert all(results['img'].size == results[k].size for k in self.keys)
-        y1, x1, h, w = self.pipeline.get_params(results['img'], self.size)
+        assert all(results["img"].size == results[k].size for k in self.keys)
+        y1, x1, h, w = self.pipeline.get_params(results["img"], self.size)
         for k in self.keys:
             results[k] = crop(results[k], y1, x1, h, w)
-        results['crop_top_left'] = [y1, x1]
-        results['crop_bottom_right'] = [y1 + h, x1 + w]
+        results["crop_top_left"] = [y1, x1]
+        results["crop_bottom_right"] = [y1 + h, x1 + w]
         return results
 
 
@@ -181,8 +191,10 @@ class CenterCrop(BaseTransform):
     def __init__(self,
                  *args,
                  size: Union[Sequence[int], int],
-                 keys: List[str] = ['img'],
+                 keys: Optional[List[str]] = None,
                  **kwargs):
+        if keys is None:
+            keys = ["img"]
         if not isinstance(size, Sequence):
             size = (size, size)
         self.size = size
@@ -199,15 +211,15 @@ class CenterCrop(BaseTransform):
         Returns:
             dict: 'crop_top_left' key is added as crop points.
         """
-        assert all(results['img'].size == results[k].size for k in self.keys)
-        y1 = max(0, int(round((results['img'].height - self.size[0]) / 2.0)))
-        x1 = max(0, int(round((results['img'].width - self.size[1]) / 2.0)))
-        y2 = max(0, int(round((results['img'].height + self.size[0]) / 2.0)))
-        x2 = max(0, int(round((results['img'].width + self.size[1]) / 2.0)))
+        assert all(results["img"].size == results[k].size for k in self.keys)
+        y1 = max(0, int(round((results["img"].height - self.size[0]) / 2.0)))
+        x1 = max(0, int(round((results["img"].width - self.size[1]) / 2.0)))
+        y2 = max(0, int(round((results["img"].height + self.size[0]) / 2.0)))
+        x2 = max(0, int(round((results["img"].width + self.size[1]) / 2.0)))
         for k in self.keys:
             results[k] = self.pipeline(results[k])
-        results['crop_top_left'] = [y1, x1]
-        results['crop_bottom_right'] = [y2, x2]
+        results["crop_top_left"] = [y1, x1]
+        results["crop_bottom_right"] = [y2, x2]
         return results
 
 
@@ -224,12 +236,15 @@ class MultiAspectRatioResizeCenterCrop(BaseTransform):
             Defaults to 'bilinear'.
     """
 
-    def __init__(self,
-                 *args,
-                 sizes: List[Sequence[int]],
-                 keys: List[str] = ['img'],
-                 interpolation: str = 'bilinear',
-                 **kwargs):
+    def __init__(
+            self,
+            *args,  # noqa
+            sizes: List[Sequence[int]],
+            keys: Optional[List[str]] = None,
+            interpolation: str = "bilinear",
+            **kwargs):  # noqa
+        if keys is None:
+            keys = ["img"]
         self.sizes = sizes
         self.aspect_ratios = np.array([s[0] / s[1] for s in sizes])
         self.pipelines = []
@@ -241,7 +256,7 @@ class MultiAspectRatioResizeCenterCrop(BaseTransform):
                         size=min(s),
                         interpolation=interpolation,
                         keys=keys),
-                    CenterCrop(size=s, keys=keys)
+                    CenterCrop(size=s, keys=keys),
                 ]))
 
     def transform(self,
@@ -250,7 +265,7 @@ class MultiAspectRatioResizeCenterCrop(BaseTransform):
         Args:
             results (dict): The result dict.
         """
-        aspect_ratio = results['img'].height / results['img'].width
+        aspect_ratio = results["img"].height / results["img"].width
         bucked_id = np.argmin(np.abs(aspect_ratio - self.aspect_ratios))
         return self.pipelines[bucked_id](results)
 
@@ -270,7 +285,9 @@ class RandomHorizontalFlip(BaseTransform):
         keys (List[str]): `keys` to apply augmentation from results.
     """
 
-    def __init__(self, *args, p: float = 0.5, keys=['img'], **kwargs):
+    def __init__(self, *args, p: float = 0.5, keys=None, **kwargs):
+        if keys is None:
+            keys = ["img"]
         self.p = p
         self.keys = keys
         self.pipeline = torchvision.transforms.RandomHorizontalFlip(
@@ -286,14 +303,14 @@ class RandomHorizontalFlip(BaseTransform):
             dict: 'crop_top_left' key is fixed.
         """
         if random.random() < self.p:
-            assert all(results['img'].size == results[k].size
+            assert all(results["img"].size == results[k].size
                        for k in self.keys)
             for k in self.keys:
                 results[k] = self.pipeline(results[k])
-            if 'crop_top_left' in results:
-                y1 = results['crop_top_left'][0]
-                x1 = results['img'].width - results['crop_bottom_right'][1]
-                results['crop_top_left'] = [y1, x1]
+            if "crop_top_left" in results:
+                y1 = results["crop_top_left"][0]
+                x1 = results["img"].width - results["crop_bottom_right"][1]
+                results["crop_top_left"] = [y1, x1]
         return results
 
 
@@ -310,12 +327,12 @@ class ComputeTimeIds(BaseTransform):
         Returns:
             dict: 'time_ids' key is added as original image shape.
         """
-        assert 'ori_img_shape' in results
-        assert 'crop_top_left' in results
-        target_size = [results['img'].height, results['img'].width]
-        time_ids = results['ori_img_shape'] + results[
-            'crop_top_left'] + target_size
-        results['time_ids'] = time_ids
+        assert "ori_img_shape" in results
+        assert "crop_top_left" in results
+        target_size = [results["img"].height, results["img"].width]
+        time_ids = results["ori_img_shape"] + results[
+            "crop_top_left"] + target_size
+        results["time_ids"] = time_ids
         return results
 
 
@@ -329,7 +346,7 @@ class CLIPImageProcessor(BaseTransform):
             results. Defaults to 'clip_img'.
     """
 
-    def __init__(self, key: str = 'img', output_key: str = 'clip_img') -> None:
+    def __init__(self, key: str = "img", output_key: str = "clip_img") -> None:
         self.key = key
         self.output_key = output_key
         self.pipeline = HFCLIPImageProcessor()
@@ -342,7 +359,7 @@ class CLIPImageProcessor(BaseTransform):
         """
         # (1, 3, 224, 224) -> (3, 224, 224)
         results[self.output_key] = self.pipeline(
-            images=results[self.key], return_tensors='pt').pixel_values[0]
+            images=results[self.key], return_tensors="pt").pixel_values[0]
         return results
 
 
@@ -356,7 +373,9 @@ class RandomTextDrop(BaseTransform):
         keys (List[str]): `keys` to apply augmentation from results.
     """
 
-    def __init__(self, p: float = 0.1, keys=['text']):
+    def __init__(self, p: float = 0.1, keys=None):
+        if keys is None:
+            keys = ["text"]
         self.p = p
         self.keys = keys
 
@@ -368,5 +387,5 @@ class RandomTextDrop(BaseTransform):
         """
         if random.random() < self.p:
             for k in self.keys:
-                results[k] = ''
+                results[k] = ""
         return results

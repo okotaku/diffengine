@@ -22,7 +22,7 @@ class DumpImage:
         self.max_imgs = max_imgs
         self.dump_dir = dump_dir
         mmengine.mkdir_or_exist(self.dump_dir)
-        self.num_dumped_imgs = Value('i', 0)
+        self.num_dumped_imgs = Value("i", 0)
 
     def __call__(self, results):
         """Dump the input image to the specified directory.
@@ -43,17 +43,17 @@ class DumpImage:
                 dump_id = self.num_dumped_imgs.value
 
         if enable_dump:
-            img = copy.deepcopy(results['img'])
+            img = copy.deepcopy(results["img"])
             if img.shape[0] in [1, 3]:
                 img = img.permute(1, 2, 0) * 255
-            out_file = osp.join(self.dump_dir, f'{dump_id}_image.png')
+            out_file = osp.join(self.dump_dir, f"{dump_id}_image.png")
             cv2.imwrite(out_file, img.numpy().astype(np.uint8)[..., ::-1])
 
-            if 'condition_img' in results:
-                condition_img = results['condition_img']
+            if "condition_img" in results:
+                condition_img = results["condition_img"]
                 if condition_img.shape[0] in [1, 3]:
                     condition_img = condition_img.permute(1, 2, 0) * 255
-                cond_out_file = osp.join(self.dump_dir, f'{dump_id}_cond.png')
+                cond_out_file = osp.join(self.dump_dir, f"{dump_id}_cond.png")
                 cv2.imwrite(cond_out_file,
                             condition_img.numpy().astype(np.uint8)[..., ::-1])
 

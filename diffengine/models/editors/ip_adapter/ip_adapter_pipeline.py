@@ -9,10 +9,8 @@ from mmengine.model import BaseModel
 from PIL import Image
 from transformers import CLIPVisionModelWithProjection
 
-from diffengine.models.archs import (set_controlnet_ip_adapter,
-                                     set_unet_ip_adapter)
-from diffengine.models.editors.ip_adapter.image_projection import \
-    ImageProjModel
+from diffengine.models.archs import set_controlnet_ip_adapter, set_unet_ip_adapter
+from diffengine.models.editors.ip_adapter.image_projection import ImageProjModel
 from diffengine.models.editors.ip_adapter.resampler import Resampler
 from diffengine.registry import MODELS
 
@@ -32,7 +30,7 @@ class IPAdapterXLPipeline(BaseModel):
     def __init__(
         self,
         pipeline: DiffusionPipeline,
-        image_encoder: str = 'takuoko/IP-Adapter-XL-test',
+        image_encoder: str = "takuoko/IP-Adapter-XL-test",
         clip_extra_context_tokens: int = 4,
     ):
         self.image_encoder_name = image_encoder
@@ -53,7 +51,7 @@ class IPAdapterXLPipeline(BaseModel):
         Disable gradient for some models.
         """
         self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
-            self.image_encoder_name, subfolder='image_encoder')
+            self.image_encoder_name, subfolder="image_encoder")
         self.image_projection = ImageProjModel(
             cross_attention_dim=self.pipeline.unet.config.cross_attention_dim,
             clip_embeddings_dim=self.image_encoder.config.projection_dim,
@@ -64,7 +62,7 @@ class IPAdapterXLPipeline(BaseModel):
         """Set IP-Adapter for model."""
         set_unet_ip_adapter(self.pipeline.unet)
 
-        if hasattr(self.pipeline, 'controlnet'):
+        if hasattr(self.pipeline, "controlnet"):
             if isinstance(self.pipeline.controlnet, MultiControlNetModel):
                 for controlnet in self.pipeline.controlnet.nets:
                     set_controlnet_ip_adapter(controlnet,
@@ -77,8 +75,8 @@ class IPAdapterXLPipeline(BaseModel):
         if not isinstance(image, torch.Tensor):
             from transformers import CLIPImageProcessor
             image_processor = CLIPImageProcessor.from_pretrained(
-                self.image_encoder_name, subfolder='image_processor')
-            image = image_processor(image, return_tensors='pt').pixel_values
+                self.image_encoder_name, subfolder="image_processor")
+            image = image_processor(image, return_tensors="pt").pixel_values
 
         image = image.to(device=self.device)
         image_embeddings = self.image_encoder(image).image_embeds
@@ -108,7 +106,7 @@ class IPAdapterXLPipeline(BaseModel):
               height: Optional[int] = None,
               width: Optional[int] = None,
               num_inference_steps: int = 50,
-              output_type: str = 'pil',
+              output_type: str = "pil",
               **kwargs) -> List[np.ndarray]:
         """Function invoked when calling the pipeline for generation.
 
@@ -137,12 +135,11 @@ class IPAdapterXLPipeline(BaseModel):
         self.pipeline.set_progress_bar_config(disable=True)
         images = []
         for p, img in zip(prompt, example_image):
-            if type(img) == str:
-                img = load_image(img)
-            img = img.convert('RGB')
+            pil_img = load_image(img) if isinstance(img, str) else img
+            pil_img = pil_img.convert("RGB")
 
             image_embeddings, uncond_image_embeddings = self._encode_image(
-                img, num_images_per_prompt=1)
+                pil_img, num_images_per_prompt=1)
             (prompt_embeds, negative_prompt_embeds, pooled_prompt_embeds,
              negative_pooled_prompt_embeds) = self.pipeline.encode_prompt(
                  p,
@@ -162,31 +159,33 @@ class IPAdapterXLPipeline(BaseModel):
                 width=width,
                 output_type=output_type,
                 **kwargs).images[0]
-            if output_type == 'latent':
+            if output_type == "latent":
                 images.append(image)
             else:
                 images.append(np.array(image))
 
         return images
 
-    def forward(self,
-                inputs: torch.Tensor,
-                data_samples: Optional[list] = None,
-                mode: str = 'tensor') -> Union[Dict[str, torch.Tensor], list]:
-        raise NotImplementedError(
-            'forward is not implemented now, please use infer.')
+    def forward(
+            self,
+            inputs: torch.Tensor,  # noqa
+            data_samples: Optional[list] = None,  # noqa
+            mode: str = "tensor",  # noqa
+    ) -> Union[Dict[str, torch.Tensor], list]:
+        msg = "forward is not implemented now, please use infer."
+        raise NotImplementedError(msg)
 
-    def train_step(self, data, optim_wrapper_dict):
-        raise NotImplementedError(
-            'train_step is not implemented now, please use infer.')
+    def train_step(self, data, optim_wrapper_dict):  # noqa
+        msg = "train_step is not implemented now, please use infer."
+        raise NotImplementedError(msg)
 
-    def val_step(self, data: Union[tuple, dict, list]) -> list:
-        raise NotImplementedError(
-            'val_step is not implemented now, please use infer.')
+    def val_step(self, data: Union[tuple, dict, list]) -> list:  # noqa
+        msg = "val_step is not implemented now, please use infer."
+        raise NotImplementedError(msg)
 
-    def test_step(self, data: Union[tuple, dict, list]) -> list:
-        raise NotImplementedError(
-            'test_step is not implemented now, please use infer.')
+    def test_step(self, data: Union[tuple, dict, list]) -> list:  # noqa
+        msg = "test_step is not implemented now, please use infer."
+        raise NotImplementedError(msg)
 
 
 @MODELS.register_module()
@@ -210,7 +209,7 @@ class IPAdapterXLPlusPipeline(IPAdapterXLPipeline):
         Disable gradient for some models.
         """
         self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
-            self.image_encoder_name, subfolder='image_encoder')
+            self.image_encoder_name, subfolder="image_encoder")
         self.image_projection = Resampler(
             embed_dims=self.image_encoder.config.hidden_size,
             output_dims=self.pipeline.unet.config.cross_attention_dim,
@@ -225,8 +224,8 @@ class IPAdapterXLPlusPipeline(IPAdapterXLPipeline):
         if not isinstance(image, torch.Tensor):
             from transformers import CLIPImageProcessor
             image_processor = CLIPImageProcessor.from_pretrained(
-                self.image_encoder_name, subfolder='image_processor')
-            image = image_processor(image, return_tensors='pt').pixel_values
+                self.image_encoder_name, subfolder="image_processor")
+            image = image_processor(image, return_tensors="pt").pixel_values
 
         image = image.to(device=self.device)
         image_embeddings = self.image_encoder(

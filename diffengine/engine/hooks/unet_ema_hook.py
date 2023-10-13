@@ -21,18 +21,18 @@ class UnetEMAHook(EMAHook):
             model = model.module
         self.src_model = model.unet
         self.ema_model = MODELS.build(
-            self.ema_cfg, default_args=dict(model=self.src_model))
+            self.ema_cfg, default_args={"model": self.src_model})
 
     def _swap_ema_state_dict(self, checkpoint):
         """Swap the state dict values of model with ema_model."""
-        model_state = checkpoint['state_dict']
-        ema_state = checkpoint['ema_state_dict']
+        model_state = checkpoint["state_dict"]
+        ema_state = checkpoint["ema_state_dict"]
         for k in ema_state:
-            if k[:7] == 'module.':
+            if k[:7] == "module.":
                 tmp = ema_state[k]
                 # 'module.' -> 'unet.'
-                ema_state[k] = model_state['unet.' + k[7:]]
-                model_state['unet.' + k[7:]] = tmp
+                ema_state[k] = model_state["unet." + k[7:]]
+                model_state["unet." + k[7:]] = tmp
 
     def after_load_checkpoint(self, runner, checkpoint: dict) -> None:
         """Resume ema parameters from checkpoint.
@@ -42,24 +42,24 @@ class UnetEMAHook(EMAHook):
             checkpoint (dict): Model's checkpoint.
         """
         from mmengine.runner.checkpoint import load_state_dict
-        if 'ema_state_dict' in checkpoint and runner._resume:
+        if "ema_state_dict" in checkpoint and runner._resume:  # noqa
             # The original model parameters are actually saved in ema
             # field swap the weights back to resume ema state.
             self._swap_ema_state_dict(checkpoint)
             self.ema_model.load_state_dict(
-                checkpoint['ema_state_dict'], strict=self.strict_load)
+                checkpoint["ema_state_dict"], strict=self.strict_load)
 
         # Support load checkpoint without ema state dict.
         else:
-            if runner._resume:
+            if runner._resume:  # noqa
                 print_log(
-                    'There is no `ema_state_dict` in checkpoint. '
-                    '`EMAHook` will make a copy of `state_dict` as the '
-                    'initial `ema_state_dict`', 'current', logging.WARNING)
-            sd = copy.deepcopy(checkpoint['state_dict'])
-            new_sd = dict()
+                    "There is no `ema_state_dict` in checkpoint. "
+                    "`EMAHook` will make a copy of `state_dict` as the "
+                    "initial `ema_state_dict`", "current", logging.WARNING)
+            sd = copy.deepcopy(checkpoint["state_dict"])
+            new_sd = {}
             for k, v in sd.items():
-                if k.startswith('unet.'):
+                if k.startswith("unet."):
                     new_sd[k[5:]] = v
             load_state_dict(
                 self.ema_model.module, new_sd, strict=self.strict_load)

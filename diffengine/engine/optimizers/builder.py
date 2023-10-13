@@ -5,8 +5,8 @@ from diffengine.registry import OPTIMIZERS
 
 def register_transformer_optimizers():
     transformer_optimizers = []
-    OPTIMIZERS.register_module(name='Adafactor')(Adafactor)
-    transformer_optimizers.append('Adafactor')
+    OPTIMIZERS.register_module(name="Adafactor")(Adafactor)
+    transformer_optimizers.append("Adafactor")
     return transformer_optimizers
 
 
