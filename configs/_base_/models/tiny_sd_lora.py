@@ -1,7 +1,2 @@
-model = {
-    "type": "StableDiffusion",
-    "model": "segmind/tiny-sd",
-    "lora_config": {
-        "rank": 8,
-    },
-}
+model = dict(
+    type="StableDiffusion", model="segmind/tiny-sd", lora_config=dict(rank=8))

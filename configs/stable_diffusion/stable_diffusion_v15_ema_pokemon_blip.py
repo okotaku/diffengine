@@ -6,16 +6,7 @@ _base_ = [
 ]
 
 custom_hooks = [
-    {
-        "type": "VisualizationHook",
-        "prompt": ["yoda pokemon"] * 4,
-    },
-    {
-        "type": "SDCheckpointHook",
-    },
-    {
-        "type": "UnetEMAHook",
-        "momentum": 1e-4,
-        "priority": "ABOVE_NORMAL",
-    },
+    dict(type="VisualizationHook", prompt=["yoda pokemon"] * 4),
+    dict(type="SDCheckpointHook"),
+    dict(type="UnetEMAHook", momentum=1e-4, priority="ABOVE_NORMAL"),
 ]

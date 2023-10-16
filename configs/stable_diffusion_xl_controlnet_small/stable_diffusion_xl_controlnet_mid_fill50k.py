@@ -5,13 +5,11 @@ _base_ = [
     "../_base_/default_runtime.py",
 ]
 
-model = {"transformer_layers_per_block": [0, 0, 1]}
+model = dict(transformer_layers_per_block=[0, 0, 1])
 
-train_dataloader = {"batch_size": 4}
+train_dataloader = dict(batch_size=4)
 
-optim_wrapper = {
-    "optimizer": {
-        "lr": 3e-5,
-    },
-    "accumulative_counts": 2,
-}
+optim_wrapper = dict(
+    optimizer=dict(lr=3e-5),
+    accumulative_counts=2,
+)

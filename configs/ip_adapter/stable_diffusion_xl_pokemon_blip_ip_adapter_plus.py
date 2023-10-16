@@ -5,8 +5,8 @@ _base_ = [
     "../_base_/default_runtime.py",
 ]
 
-train_dataloader = {"batch_size": 1}
+train_dataloader = dict(batch_size=1)
 
-optim_wrapper_cfg = {"accumulative_counts": 4}  # update every four times
+optim_wrapper_cfg = dict(accumulative_counts=4)  # update every four times
 
-train_cfg = {"by_epoch": True, "max_epochs": 100}
+train_cfg = dict(by_epoch=True, max_epochs=100)

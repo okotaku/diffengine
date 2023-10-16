@@ -5,6 +5,7 @@ _base_ = [
     "../_base_/default_runtime.py",
 ]
 
-optim_wrapper = {
-    "accumulative_counts": 2,
-}
+optim_wrapper = dict(
+    optimizer=dict(lr=1e-5),
+    accumulative_counts=2,
+)
