@@ -59,17 +59,13 @@ class TestLoRASaveHook(RunnerTestCase):
     def test_before_save_checkpoint(self):
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "StableDiffusion"
-        cfg.model.lora_config = {"rank": 4}
+        cfg.model.lora_config = dict(rank=4)
         cfg.model.model = "diffusers/tiny-stable-diffusion-torch"
         runner = self.build_runner(cfg)
-        checkpoint = {
-            "state_dict":
-            StableDiffusion(
+        checkpoint = dict(
+            state_dict=StableDiffusion(
                 model="diffusers/tiny-stable-diffusion-torch",
-                lora_config={
-                    "rank": 4,
-                }).state_dict(),
-        }
+                lora_config=dict(rank=4)).state_dict())
         hook = LoRASaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
@@ -87,19 +83,15 @@ class TestLoRASaveHook(RunnerTestCase):
         # with text encoder
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "StableDiffusion"
-        cfg.model.lora_config = {"rank": 4}
+        cfg.model.lora_config = dict(rank=4)
         cfg.model.finetune_text_encoder = True
         cfg.model.model = "diffusers/tiny-stable-diffusion-torch"
         runner = self.build_runner(cfg)
-        checkpoint = {
-            "state_dict":
-            StableDiffusion(
+        checkpoint = dict(
+            state_dict=StableDiffusion(
                 model="diffusers/tiny-stable-diffusion-torch",
-                lora_config={
-                    "rank": 4,
-                },
-                finetune_text_encoder=True).state_dict(),
-        }
+                lora_config=dict(rank=4),
+                finetune_text_encoder=True).state_dict())
         hook = LoRASaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
@@ -116,19 +108,15 @@ class TestLoRASaveHook(RunnerTestCase):
         # sdxl
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "StableDiffusionXL"
-        cfg.model.lora_config = {"rank": 4}
+        cfg.model.lora_config = dict(rank=4)
         cfg.model.finetune_text_encoder = True
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
         runner = self.build_runner(cfg)
-        checkpoint = {
-            "state_dict":
-            StableDiffusionXL(
+        checkpoint = dict(
+            state_dict=StableDiffusionXL(
                 model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-                lora_config={
-                    "rank": 4,
-                },
-                finetune_text_encoder=True).state_dict(),
-        }
+                lora_config=dict(rank=4),
+                finetune_text_encoder=True).state_dict())
         hook = LoRASaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 

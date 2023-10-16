@@ -1,5 +1,5 @@
 import torch
-from diffusers import DDPMScheduler
+from diffusers import StableDiffusionPipeline
 
 from diffengine.models.losses import L2Loss, SNRL2Loss
 
@@ -21,8 +21,8 @@ def test_snr_l2_loss():
     gt = torch.Tensor([[1, 0, 1], [0, 1, 0]])
     weight = torch.Tensor([[1], [0.1]])
     timesteps = (torch.ones((pred.shape[0], )) + 10)
-    scheduler = DDPMScheduler.from_pretrained(
-        "runwayml/stable-diffusion-v1-5", subfolder="scheduler")
+    scheduler = StableDiffusionPipeline.from_pretrained(
+        "runwayml/stable-diffusion-v1-5").scheduler
 
     loss = SNRL2Loss()
     assert torch.allclose(

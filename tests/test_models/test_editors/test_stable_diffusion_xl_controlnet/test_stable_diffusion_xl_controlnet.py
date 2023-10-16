@@ -22,7 +22,7 @@ class TestStableDiffusionXLControlNet(TestCase):
                 "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 controlnet_model="hf-internal-testing/tiny-controlnet-sdxl",
                 data_preprocessor=SDXLControlNetDataPreprocessor(),
-                lora_config={"rank": 4})
+                lora_config=dict(rank=4))
 
         with pytest.raises(
                 AssertionError,
@@ -71,8 +71,8 @@ class TestStableDiffusionXLControlNet(TestCase):
             height=64,
             width=64)
         assert len(result) == 1
-        assert type(result[0]) == torch.Tensor
-        assert result[0].shape == (4, 32, 32)
+        self.assertEqual(type(result[0]), torch.Tensor)
+        self.assertEqual(result[0].shape, (4, 32, 32))
 
         # test controlnet small
         StableDiffuser = StableDiffusionXLControlNet(
@@ -105,19 +105,17 @@ class TestStableDiffusionXLControlNet(TestCase):
                           CrossAttnDownBlock2D)
 
         # test train step
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "text": ["a dog"],
-                "time_ids": [torch.zeros((1, 6))],
-                "condition_img": [torch.zeros((3, 64, 64))],
-            },
-        }
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                text=["a dog"],
+                time_ids=[torch.zeros((1, 6))],
+                condition_img=[torch.zeros((3, 64, 64))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
         # test controlnet small
         StableDiffuser = StableDiffusionXLControlNet(
@@ -129,19 +127,17 @@ class TestStableDiffusionXLControlNet(TestCase):
         assert isinstance(StableDiffuser.controlnet.down_blocks[1],
                           DownBlock2D)
 
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "text": ["a dog"],
-                "time_ids": [torch.zeros((1, 6))],
-                "condition_img": [torch.zeros((3, 64, 64))],
-            },
-        }
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                text=["a dog"],
+                time_ids=[torch.zeros((1, 6))],
+                condition_img=[torch.zeros((3, 64, 64))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
     def test_train_step_with_gradient_checkpointing(self):
         # test load with loss module
@@ -153,19 +149,17 @@ class TestStableDiffusionXLControlNet(TestCase):
             gradient_checkpointing=True)
 
         # test train step
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "text": ["a dog"],
-                "time_ids": [torch.zeros((1, 6))],
-                "condition_img": [torch.zeros((3, 64, 64))],
-            },
-        }
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                text=["a dog"],
+                time_ids=[torch.zeros((1, 6))],
+                condition_img=[torch.zeros((3, 64, 64))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
     def test_val_and_test_step(self):
         StableDiffuser = StableDiffusionXLControlNet(

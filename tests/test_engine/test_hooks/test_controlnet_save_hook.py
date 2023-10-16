@@ -55,11 +55,9 @@ class TestLoRASaveHook(RunnerTestCase):
         cfg.model.type = "StableDiffusionControlNet"
         cfg.model.model = "diffusers/tiny-stable-diffusion-torch"
         runner = self.build_runner(cfg)
-        checkpoint = {
-            "state_dict":
-            StableDiffusionControlNet(
-                model="diffusers/tiny-stable-diffusion-torch").state_dict(),
-        }
+        checkpoint = dict(
+            state_dict=StableDiffusionControlNet(
+                model="diffusers/tiny-stable-diffusion-torch").state_dict())
         hook = ControlNetSaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 

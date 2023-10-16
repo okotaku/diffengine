@@ -43,8 +43,8 @@ class TestStableDiffusionXL(TestCase):
             height=64,
             width=64)
         assert len(result) == 1
-        assert type(result[0]) == torch.Tensor
-        assert result[0].shape == (4, 32, 32)
+        self.assertEqual(type(result[0]), torch.Tensor)
+        self.assertEqual(result[0].shape, (4, 32, 32))
 
     def test_infer_with_pre_compute_embs(self):
         StableDiffuser = StableDiffusionXL(
@@ -76,18 +76,16 @@ class TestStableDiffusionXL(TestCase):
             data_preprocessor=SDXLDataPreprocessor())
 
         # test train step
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "text": ["a dog"],
-                "time_ids": [torch.zeros((1, 6))],
-            },
-        }
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                text=["a dog"],
+                time_ids=[torch.zeros((1, 6))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
     def test_train_step_with_gradient_checkpointing(self):
         # test load with loss module
@@ -98,18 +96,16 @@ class TestStableDiffusionXL(TestCase):
             gradient_checkpointing=True)
 
         # test train step
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "text": ["a dog"],
-                "time_ids": [torch.zeros((1, 6))],
-            },
-        }
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                text=["a dog"],
+                time_ids=[torch.zeros((1, 6))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
     def test_train_step_with_pre_compute_embs(self):
         # test load with loss module
@@ -125,19 +121,17 @@ class TestStableDiffusionXL(TestCase):
         assert not hasattr(StableDiffuser, "text_encoder_two")
 
         # test train step
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "prompt_embeds": [torch.zeros((2, 64))],
-                "pooled_prompt_embeds": [torch.zeros(32)],
-                "time_ids": [torch.zeros((1, 6))],
-            },
-        }
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                prompt_embeds=[torch.zeros((77, 64))],
+                pooled_prompt_embeds=[torch.zeros(32)],
+                time_ids=[torch.zeros((1, 6))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
     def test_train_step_dreambooth(self):
         # test load with loss module
@@ -147,23 +141,20 @@ class TestStableDiffusionXL(TestCase):
             data_preprocessor=SDXLDataPreprocessor())
 
         # test train step
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "text": ["a sks dog"],
-                "time_ids": [torch.zeros((1, 6))],
-            },
-        }
-        data["inputs"]["result_class_image"] = {
-            "img": [torch.zeros((3, 64, 64))],
-            "text": ["a dog"],
-            "time_ids": [torch.zeros((1, 6))],
-        }  # type: ignore[assignment]
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                text=["a sks dog"],
+                time_ids=[torch.zeros((1, 6))]))
+        data["inputs"]["result_class_image"] = dict(
+            img=[torch.zeros((3, 64, 64))],
+            text=["a dog"],
+            time_ids=[torch.zeros((1, 6))])  # type: ignore[assignment]
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
     def test_val_and_test_step(self):
         StableDiffuser = StableDiffusionXL(

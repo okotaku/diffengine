@@ -15,9 +15,9 @@ class TestHFControlNetDataset(RunnerTestCase):
 
         data = dataset[0]
         assert data["text"] == "a dog"
-        assert isinstance(data["img"], Image.Image)
+        self.assertIsInstance(data["img"], Image.Image)
         assert data["img"].width == 400
-        assert isinstance(data["img"], Image.Image)
+        self.assertIsInstance(data["img"], Image.Image)
         assert data["img"].width == 400
-        assert isinstance(data["condition_img"], Image.Image)
+        self.assertIsInstance(data["condition_img"], Image.Image)
         assert data["condition_img"].width == 400

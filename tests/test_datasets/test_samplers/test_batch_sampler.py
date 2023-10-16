@@ -20,11 +20,10 @@ class DummyDataset(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        results = {
-            "img": torch.zeros((3, self.shapes[idx][0], self.shapes[idx][1])),
-            "aspect_ratio": self.shapes[idx][0] / self.shapes[idx][1],
-        }
-        return {"inputs": results}
+        results = dict(
+            img=torch.zeros((3, self.shapes[idx][0], self.shapes[idx][1])),
+            aspect_ratio=self.shapes[idx][0] / self.shapes[idx][1])
+        return dict(inputs=results)
 
 
 class TestAspectRatioBatchSampler(TestCase):
@@ -50,36 +49,41 @@ class TestAspectRatioBatchSampler(TestCase):
         batch_size = 5
         batch_sampler = AspectRatioBatchSampler(
             self.sampler, batch_size=batch_size, drop_last=True)
-        assert len(batch_sampler) == self.length / 2 // batch_size * 2
+        self.assertEqual(
+            len(batch_sampler), (self.length / 2 // batch_size) * 2)
         for batch_idxs in batch_sampler:
-            assert len(batch_idxs) == batch_size
+            self.assertEqual(len(batch_idxs), batch_size)
             batch = [
                 self.dataset[idx]["inputs"]["aspect_ratio"]
                 for idx in batch_idxs
             ]
             for i in range(1, batch_size):
-                assert batch[0] == batch[i]
+                self.assertEqual(batch[0], batch[i])
 
     def test_indivisible_batch(self):
         batch_size = 7
         batch_sampler = AspectRatioBatchSampler(
             self.sampler, batch_size=batch_size, drop_last=True)
         all_batch_idxs = list(batch_sampler)
-        assert len(batch_sampler) == self.length / 2 // batch_size * 2
-        assert len(all_batch_idxs) == self.length / 2 // batch_size * 2
+        self.assertEqual(
+            len(batch_sampler), (self.length / 2 // batch_size) * 2)
+        self.assertEqual(
+            len(all_batch_idxs), (self.length / 2 // batch_size) * 2)
 
         batch_sampler = AspectRatioBatchSampler(
             self.sampler, batch_size=batch_size, drop_last=False)
         all_batch_idxs = list(batch_sampler)
-        assert len(batch_sampler) == self.length / 2 // batch_size * 2 + 2
-        assert len(all_batch_idxs) == self.length / 2 // batch_size * 2 + 2
+        self.assertEqual(
+            len(batch_sampler), (self.length / 2 // batch_size) * 2 + 2)
+        self.assertEqual(
+            len(all_batch_idxs), (self.length / 2 // batch_size) * 2 + 2)
 
         # the last batch may not have the same aspect ratio
         for batch_idxs in all_batch_idxs[:-2]:
-            assert len(batch_idxs) == batch_size
+            self.assertEqual(len(batch_idxs), batch_size)
             batch = [
                 self.dataset[idx]["inputs"]["aspect_ratio"]
                 for idx in batch_idxs
             ]
             for i in range(1, batch_size):
-                assert batch[0] == batch[i]
+                self.assertEqual(batch[0], batch[i])
