@@ -20,6 +20,7 @@ ignore = [
     "ANN002",
     "PTH118",
     "ERA001",
+    "C408",
 ]
 
 [tool.ruff.per-file-ignores]
