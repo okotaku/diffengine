@@ -43,8 +43,8 @@ class TestStableDiffusion(TestCase):
             height=64,
             width=64)
         assert len(result) == 1
-        assert type(result[0]) == torch.Tensor
-        assert result[0].shape == (4, 32, 32)
+        self.assertEqual(type(result[0]), torch.Tensor)
+        self.assertEqual(result[0].shape, (4, 32, 32))
 
     def test_train_step(self):
         # test load with loss module
@@ -54,17 +54,13 @@ class TestStableDiffusion(TestCase):
             data_preprocessor=SDDataPreprocessor())
 
         # test train step
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "text": ["a dog"],
-            },
-        }
+        data = dict(
+            inputs=dict(img=[torch.zeros((3, 64, 64))], text=["a dog"]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
     def test_train_step_with_gradient_checkpointing(self):
         # test load with loss module
@@ -75,17 +71,13 @@ class TestStableDiffusion(TestCase):
             gradient_checkpointing=True)
 
         # test train step
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "text": ["a dog"],
-            },
-        }
+        data = dict(
+            inputs=dict(img=[torch.zeros((3, 64, 64))], text=["a dog"]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
     def test_train_step_dreambooth(self):
         # test load with loss module
@@ -95,21 +87,16 @@ class TestStableDiffusion(TestCase):
             data_preprocessor=SDDataPreprocessor())
 
         # test train step
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "text": ["a sks dog"],
-            },
-        }
-        data["inputs"]["result_class_image"] = {
-            "img": [torch.zeros((3, 64, 64))],
-            "text": ["a dog"],
-        }  # type: ignore[assignment]
+        data = dict(
+            inputs=dict(img=[torch.zeros((3, 64, 64))], text=["a sks dog"]))
+        data["inputs"]["result_class_image"] = dict(
+            img=[torch.zeros((3, 64, 64))],
+            text=["a dog"])  # type: ignore[assignment]
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
     def test_val_and_test_step(self):
         StableDiffuser = StableDiffusion(

@@ -52,7 +52,7 @@ class TestSDCheckpointHook(RunnerTestCase):
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "ToyModel2"
         runner = self.build_runner(cfg)
-        checkpoint = {"state_dict": ToyModel2().state_dict()}
+        checkpoint = dict(state_dict=ToyModel2().state_dict())
         hook = SDCheckpointHook()
         hook.before_save_checkpoint(runner, checkpoint)
 

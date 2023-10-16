@@ -57,12 +57,10 @@ class TestLoRASaveHook(RunnerTestCase):
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
         cfg.model.adapter_model = "hf-internal-testing/tiny-adapter"
         runner = self.build_runner(cfg)
-        checkpoint = {
-            "state_dict":
-            StableDiffusionXLT2IAdapter(
+        checkpoint = dict(
+            state_dict=StableDiffusionXLT2IAdapter(
                 model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-                adapter_model="hf-internal-testing/tiny-adapter").state_dict(),
-        }
+                adapter_model="hf-internal-testing/tiny-adapter").state_dict())
         hook = T2IAdapterSaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 

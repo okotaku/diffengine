@@ -1,5 +1,4 @@
 import copy
-import re
 
 import pytest
 import torch
@@ -68,7 +67,7 @@ class TestEMAHook(RunnerTestCase):
     def test_after_train_iter(self):
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "ToyModel2"
-        cfg.custom_hooks = [{"type": "UnetEMAHook"}]
+        cfg.custom_hooks = [dict(type="UnetEMAHook")]
         runner = self.build_runner(cfg)
         ema_hook = self._get_ema_hook(runner)
 
@@ -96,13 +95,13 @@ class TestEMAHook(RunnerTestCase):
 
         for src, ema in zip(
                 src_model.parameters(), ema_model.parameters(), strict=True):
-            assert not (src.data == ema.data).all()
+            self.assertFalse((src.data == ema.data).all())
 
     def test_before_save_checkpoint(self):
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "ToyModel2"
         runner = self.build_runner(cfg)
-        checkpoint = {"state_dict": ToyModel2().state_dict()}
+        checkpoint = dict(state_dict=ToyModel2().state_dict())
         ema_hook = UnetEMAHook()
         ema_hook.before_run(runner)
         ema_hook.before_train(runner)
@@ -125,7 +124,7 @@ class TestEMAHook(RunnerTestCase):
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "ToyModel2"
         runner = self.build_runner(cfg)
-        checkpoint = {"state_dict": ToyModel2().state_dict()}
+        checkpoint = dict(state_dict=ToyModel2().state_dict())
         ema_hook = UnetEMAHook()
         ema_hook.before_run(runner)
         ema_hook.before_train(runner)
@@ -143,17 +142,15 @@ class TestEMAHook(RunnerTestCase):
         ema_hook.after_load_checkpoint(runner, checkpoint)
         with self.assertLogs(runner.logger, level="WARNING") as cm:
             ema_hook.after_load_checkpoint(runner, checkpoint)
-            assert re.search("There is no `ema_state_dict`", cm.records[0].msg)
+            self.assertRegex(cm.records[0].msg, "There is no `ema_state_dict`")
 
         # Check the weight of state_dict and ema_state_dict have been swapped.
         # when runner._resume is True
         runner._resume = True
-        checkpoint = {
-            "state_dict":
-            ToyModel2().state_dict(),
-            "ema_state_dict":
-            ExponentialMovingAverage(ToyModel2().unet).state_dict(),
-        }
+        checkpoint = dict(
+            state_dict=ToyModel2().state_dict(),
+            ema_state_dict=ExponentialMovingAverage(
+                ToyModel2().unet).state_dict())
         ori_checkpoint = copy.deepcopy(checkpoint)
         ema_hook.after_load_checkpoint(runner, checkpoint)
         for key in ori_checkpoint["state_dict"]:

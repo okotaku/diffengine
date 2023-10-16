@@ -64,8 +64,8 @@ class TestIPAdapterXL(TestCase):
             height=64,
             width=64)
         assert len(result) == 1
-        assert type(result[0]) == torch.Tensor
-        assert result[0].shape == (4, 32, 32)
+        self.assertEqual(type(result[0]), torch.Tensor)
+        self.assertEqual(result[0].shape, (4, 32, 32))
 
     def test_infer_controlnet(self):
         controlnet = ControlNetModel.from_pretrained(
@@ -139,14 +139,12 @@ class TestIPAdapterXL(TestCase):
             image_encoder="hf-internal-testing/unidiffuser-diffusers-test")
 
         # test train step
-        data = {
-            "inputs": {
-                "img": [torch.zeros((3, 64, 64))],
-                "text": ["a dog"],
-                "clip_img": [torch.zeros((3, 32, 32))],
-                "time_ids": [torch.zeros((1, 6))],
-            },
-        }
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                text=["a dog"],
+                clip_img=[torch.zeros((3, 32, 32))],
+                time_ids=[torch.zeros((1, 6))]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         with pytest.raises(NotImplementedError, match="train_step is not"):

@@ -14,7 +14,7 @@ class TestHFDataset(RunnerTestCase):
 
         data = dataset[0]
         assert data["text"] == "a dog"
-        assert isinstance(data["img"], Image.Image)
+        self.assertIsInstance(data["img"], Image.Image)
         assert data["img"].width == 400
 
         dataset = HFDataset(
@@ -25,7 +25,7 @@ class TestHFDataset(RunnerTestCase):
 
         data = dataset[0]
         assert data["text"] == "a cat"
-        assert isinstance(data["img"], Image.Image)
+        self.assertIsInstance(data["img"], Image.Image)
         assert data["img"].width == 400
 
 
@@ -41,9 +41,9 @@ class TestHFDatasetPreComputeEmbs(RunnerTestCase):
 
         data = dataset[0]
         assert "text" not in data
-        assert isinstance(data["prompt_embeds"], list)
-        assert isinstance(data["pooled_prompt_embeds"], list)
-        assert np.array(data["prompt_embeds"]).shape == (77, 64)
-        assert np.array(data["pooled_prompt_embeds"]).shape == (32, )
-        assert isinstance(data["img"], Image.Image)
+        self.assertEqual(type(data["prompt_embeds"]), list)
+        self.assertEqual(type(data["pooled_prompt_embeds"]), list)
+        self.assertEqual(np.array(data["prompt_embeds"]).shape, (77, 64))
+        self.assertEqual(np.array(data["pooled_prompt_embeds"]).shape, (32, ))
+        self.assertIsInstance(data["img"], Image.Image)
         assert data["img"].width == 400

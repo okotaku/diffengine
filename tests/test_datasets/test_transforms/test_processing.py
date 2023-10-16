@@ -1,4 +1,3 @@
-# flakes8: noqa: RUF012
 import os.path as osp
 from unittest import TestCase
 
@@ -18,8 +17,8 @@ class TestVisionTransformWrapper(TestCase):
 
     def test_register(self):
         for t in VISION_TRANSFORMS:
-            assert "torchvision/" in t
-            assert t in TRANSFORMS
+            self.assertIn("torchvision/", t)
+            self.assertIn(t, TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -28,10 +27,8 @@ class TestVisionTransformWrapper(TestCase):
         # test normal transform
         vision_trans = transforms.RandomResizedCrop(224)
         vision_transformed_img = vision_trans(data["img"])
-        trans = TRANSFORMS.build({
-            "type": "torchvision/RandomResizedCrop",
-            "size": 224,
-        })
+        trans = TRANSFORMS.build(
+            dict(type="torchvision/RandomResizedCrop", size=224))
         transformed_img = trans(data)["img"]
         np.equal(np.array(vision_transformed_img), np.array(transformed_img))
 
@@ -39,10 +36,8 @@ class TestVisionTransformWrapper(TestCase):
         data = {"img": torch.randn(3, 224, 224)}
         vision_trans = transforms.ConvertImageDtype(torch.float)
         vision_transformed_img = vision_trans(data["img"])
-        trans = TRANSFORMS.build({
-            "type": "torchvision/ConvertImageDtype",
-            "dtype": "float",
-        })
+        trans = TRANSFORMS.build(
+            dict(type="torchvision/ConvertImageDtype", dtype="float"))
         transformed_img = trans(data)["img"]
         np.equal(np.array(vision_transformed_img), np.array(transformed_img))
 
@@ -55,11 +50,8 @@ class TestVisionTransformWrapper(TestCase):
             interpolation_t = Image.NEAREST
         vision_trans = transforms.Resize(224, interpolation_t)
         vision_transformed_img = vision_trans(data["img"])
-        trans = TRANSFORMS.build({
-            "type": "torchvision/Resize",
-            "size": 224,
-            "interpolation": "nearest",
-        })
+        trans = TRANSFORMS.build(
+            dict(type="torchvision/Resize", size=224, interpolation="nearest"))
         transformed_img = trans(data)["img"]
         np.equal(np.array(vision_transformed_img), np.array(transformed_img))
 
@@ -76,25 +68,15 @@ class TestVisionTransformWrapper(TestCase):
         vision_transformed_img = vision_trans(data["img"])
 
         pipeline_cfg = [
-            {
-                "type": "torchvision/Resize",
-                "size": 176,
-            },
-            {
-                "type": "RandomHorizontalFlip",
-            },
-            {
-                "type": "torchvision/PILToTensor",
-            },
-            {
-                "type": "torchvision/ConvertImageDtype",
-                "dtype": "float",
-            },
-            {
-                "type": "torchvision/Normalize",
-                "mean": (0.485, 0.456, 0.406),
-                "std": (0.229, 0.224, 0.225),
-            },
+            dict(type="torchvision/Resize", size=176),
+            dict(type="RandomHorizontalFlip"),
+            dict(type="torchvision/PILToTensor"),
+            dict(type="torchvision/ConvertImageDtype", dtype="float"),
+            dict(
+                type="torchvision/Normalize",
+                mean=(0.485, 0.456, 0.406),
+                std=(0.229, 0.224, 0.225),
+            ),
         ]
         pipeline = [TRANSFORMS.build(t) for t in pipeline_cfg]
         pipe = Compose(transforms=pipeline)
@@ -105,7 +87,7 @@ class TestVisionTransformWrapper(TestCase):
 class TestSaveImageShape(TestCase):
 
     def test_register(self):
-        assert "SaveImageShape" in TRANSFORMS
+        self.assertIn("SaveImageShape", TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -113,7 +95,7 @@ class TestSaveImageShape(TestCase):
         ori_img_shape = [data["img"].height, data["img"].width]
 
         # test transform
-        trans = TRANSFORMS.build({"type": "SaveImageShape"})
+        trans = TRANSFORMS.build(dict(type="SaveImageShape"))
         data = trans(data)
         self.assertListEqual(data["ori_img_shape"], ori_img_shape)
 
@@ -121,7 +103,7 @@ class TestSaveImageShape(TestCase):
 class TestComputeTimeIds(TestCase):
 
     def test_register(self):
-        assert "ComputeTimeIds" in TRANSFORMS
+        self.assertIn("ComputeTimeIds", TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -129,7 +111,7 @@ class TestComputeTimeIds(TestCase):
         data = {"img": img, "ori_img_shape": [32, 32], "crop_top_left": [0, 0]}
 
         # test transform
-        trans = TRANSFORMS.build({"type": "ComputeTimeIds"})
+        trans = TRANSFORMS.build(dict(type="ComputeTimeIds"))
         data = trans(data)
         self.assertListEqual(data["time_ids"],
                              [32, 32, 0, 0, img.height, img.width])
@@ -139,19 +121,16 @@ class TestRandomCrop(TestCase):
     crop_size = 32
 
     def test_register(self):
-        assert "RandomCrop" in TRANSFORMS
+        self.assertIn("RandomCrop", TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
         data = {"img": Image.open(img_path)}
 
         # test transform
-        trans = TRANSFORMS.build({
-            "type": "RandomCrop",
-            "size": self.crop_size,
-        })
+        trans = TRANSFORMS.build(dict(type="RandomCrop", size=self.crop_size))
         data = trans(data)
-        assert "crop_top_left" in data
+        self.assertIn("crop_top_left", data)
         assert len(data["crop_top_left"]) == 2
         assert data["img"].height == data["img"].width == self.crop_size
         upper, left = data["crop_top_left"]
@@ -170,13 +149,13 @@ class TestRandomCrop(TestCase):
         }
 
         # test transform
-        trans = TRANSFORMS.build({
-            "type": "RandomCrop",
-            "size": self.crop_size,
-            "keys": ["img", "condition_img"],
-        })
+        trans = TRANSFORMS.build(
+            dict(
+                type="RandomCrop",
+                size=self.crop_size,
+                keys=["img", "condition_img"]))
         data = trans(data)
-        assert "crop_top_left" in data
+        self.assertIn("crop_top_left", data)
         assert len(data["crop_top_left"]) == 2
         assert data["img"].height == data["img"].width == self.crop_size
         upper, left = data["crop_top_left"]
@@ -193,19 +172,16 @@ class TestCenterCrop(TestCase):
     crop_size = 32
 
     def test_register(self):
-        assert "CenterCrop" in TRANSFORMS
+        self.assertIn("CenterCrop", TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
         data = {"img": Image.open(img_path)}
 
         # test transform
-        trans = TRANSFORMS.build({
-            "type": "CenterCrop",
-            "size": self.crop_size,
-        })
+        trans = TRANSFORMS.build(dict(type="CenterCrop", size=self.crop_size))
         data = trans(data)
-        assert "crop_top_left" in data
+        self.assertIn("crop_top_left", data)
         assert len(data["crop_top_left"]) == 2
         assert data["img"].height == data["img"].width == self.crop_size
         upper, left = data["crop_top_left"]
@@ -224,13 +200,13 @@ class TestCenterCrop(TestCase):
         }
 
         # test transform
-        trans = TRANSFORMS.build({
-            "type": "CenterCrop",
-            "size": self.crop_size,
-            "keys": ["img", "condition_img"],
-        })
+        trans = TRANSFORMS.build(
+            dict(
+                type="CenterCrop",
+                size=self.crop_size,
+                keys=["img", "condition_img"]))
         data = trans(data)
-        assert "crop_top_left" in data
+        self.assertIn("crop_top_left", data)
         assert len(data["crop_top_left"]) == 2
         assert data["img"].height == data["img"].width == self.crop_size
         upper, left = data["crop_top_left"]
@@ -246,7 +222,7 @@ class TestCenterCrop(TestCase):
 class TestRandomHorizontalFlip(TestCase):
 
     def test_register(self):
-        assert "RandomHorizontalFlip" in TRANSFORMS
+        self.assertIn("RandomHorizontalFlip", TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -257,9 +233,9 @@ class TestRandomHorizontalFlip(TestCase):
         }
 
         # test transform
-        trans = TRANSFORMS.build({"type": "RandomHorizontalFlip", "p": 1.})
+        trans = TRANSFORMS.build(dict(type="RandomHorizontalFlip", p=1.))
         data = trans(data)
-        assert "crop_top_left" in data
+        self.assertIn("crop_top_left", data)
         assert len(data["crop_top_left"]) == 2
         self.assertListEqual(data["crop_top_left"],
                              [0, data["img"].width - 10])
@@ -274,9 +250,9 @@ class TestRandomHorizontalFlip(TestCase):
             "crop_top_left": [0, 0],
             "crop_bottom_right": [10, 10],
         }
-        trans = TRANSFORMS.build({"type": "RandomHorizontalFlip", "p": 0.})
+        trans = TRANSFORMS.build(dict(type="RandomHorizontalFlip", p=0.))
         data = trans(data)
-        assert "crop_top_left" in data
+        self.assertIn("crop_top_left", data)
         self.assertListEqual(data["crop_top_left"], [0, 0])
 
         np.equal(np.array(data["img"]), np.array(Image.open(img_path)))
@@ -291,13 +267,13 @@ class TestRandomHorizontalFlip(TestCase):
         }
 
         # test transform
-        trans = TRANSFORMS.build({
-            "type": "RandomHorizontalFlip",
-            "p": 1.,
-            "keys": ["img", "condition_img"],
-        })
+        trans = TRANSFORMS.build(
+            dict(
+                type="RandomHorizontalFlip",
+                p=1.,
+                keys=["img", "condition_img"]))
         data = trans(data)
-        assert "crop_top_left" in data
+        self.assertIn("crop_top_left", data)
         assert len(data["crop_top_left"]) == 2
         self.assertListEqual(data["crop_top_left"],
                              [0, data["img"].width - 10])
@@ -312,19 +288,17 @@ class TestMultiAspectRatioResizeCenterCrop(TestCase):
     sizes = [(32, 32), (16, 48)]  # noqa
 
     def test_register(self):
-        assert "MultiAspectRatioResizeCenterCrop" in TRANSFORMS
+        self.assertIn("MultiAspectRatioResizeCenterCrop", TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
         data = {"img": Image.open(img_path).resize((32, 36))}
 
         # test transform
-        trans = TRANSFORMS.build({
-            "type": "MultiAspectRatioResizeCenterCrop",
-            "sizes": self.sizes,
-        })
+        trans = TRANSFORMS.build(
+            dict(type="MultiAspectRatioResizeCenterCrop", sizes=self.sizes))
         data = trans(data)
-        assert "crop_top_left" in data
+        self.assertIn("crop_top_left", data)
         assert len(data["crop_top_left"]) == 2
         self.assertTupleEqual((data["img"].height, data["img"].width),
                               self.sizes[0])
@@ -341,7 +315,7 @@ class TestMultiAspectRatioResizeCenterCrop(TestCase):
         # test 2nd size
         data = {"img": Image.open(img_path).resize((55, 16))}
         data = trans(data)
-        assert "crop_top_left" in data
+        self.assertIn("crop_top_left", data)
         assert len(data["crop_top_left"]) == 2
         self.assertTupleEqual((data["img"].height, data["img"].width),
                               self.sizes[1])
@@ -363,13 +337,13 @@ class TestMultiAspectRatioResizeCenterCrop(TestCase):
         }
 
         # test transform
-        trans = TRANSFORMS.build({
-            "type": "MultiAspectRatioResizeCenterCrop",
-            "sizes": self.sizes,
-            "keys": ["img", "condition_img"],
-        })
+        trans = TRANSFORMS.build(
+            dict(
+                type="MultiAspectRatioResizeCenterCrop",
+                sizes=self.sizes,
+                keys=["img", "condition_img"]))
         data = trans(data)
-        assert "crop_top_left" in data
+        self.assertIn("crop_top_left", data)
         assert len(data["crop_top_left"]) == 2
         self.assertTupleEqual((data["img"].height, data["img"].width),
                               self.sizes[0])
@@ -388,7 +362,7 @@ class TestMultiAspectRatioResizeCenterCrop(TestCase):
 class TestCLIPImageProcessor(TestCase):
 
     def test_register(self):
-        assert "CLIPImageProcessor" in TRANSFORMS
+        self.assertIn("CLIPImageProcessor", TRANSFORMS)
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -397,17 +371,17 @@ class TestCLIPImageProcessor(TestCase):
         }
 
         # test transform
-        trans = TRANSFORMS.build({"type": "CLIPImageProcessor"})
+        trans = TRANSFORMS.build(dict(type="CLIPImageProcessor"))
         data = trans(data)
-        assert "clip_img" in data
-        assert type(data["clip_img"]) == torch.Tensor
-        assert data["clip_img"].size() == (3, 224, 224)
+        self.assertIn("clip_img", data)
+        self.assertEqual(type(data["clip_img"]), torch.Tensor)
+        self.assertEqual(data["clip_img"].size(), (3, 224, 224))
 
 
 class TestRandomTextDrop(TestCase):
 
     def test_register(self):
-        assert "RandomTextDrop" in TRANSFORMS
+        self.assertIn("RandomTextDrop", TRANSFORMS)
 
     def test_transform(self):
         data = {
@@ -415,7 +389,7 @@ class TestRandomTextDrop(TestCase):
         }
 
         # test transform
-        trans = TRANSFORMS.build({"type": "RandomTextDrop", "p": 1.})
+        trans = TRANSFORMS.build(dict(type="RandomTextDrop", p=1.))
         data = trans(data)
         assert data["text"] == ""
 
@@ -423,6 +397,6 @@ class TestRandomTextDrop(TestCase):
         data = {
             "text": "a dog",
         }
-        trans = TRANSFORMS.build({"type": "RandomTextDrop", "p": 0.})
+        trans = TRANSFORMS.build(dict(type="RandomTextDrop", p=0.))
         data = trans(data)
         assert data["text"] == "a dog"

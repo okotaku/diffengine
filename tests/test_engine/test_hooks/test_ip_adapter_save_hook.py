@@ -52,13 +52,11 @@ class TestLoRASaveHook(RunnerTestCase):
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
         cfg.model.image_encoder = 'hf-internal-testing/unidiffuser-diffusers-test'  # noqa
         runner = self.build_runner(cfg)
-        checkpoint = {
-            "state_dict":
-            IPAdapterXL(
+        checkpoint = dict(
+            state_dict=IPAdapterXL(
                 model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 image_encoder="hf-internal-testing/unidiffuser-diffusers-test",
-            ).state_dict(),
-        }
+            ).state_dict())
         hook = IPAdapterSaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 

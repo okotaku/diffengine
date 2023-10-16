@@ -27,7 +27,7 @@ class TestHFDreamBoothDataset(RunnerTestCase):
 
         data = dataset[0]
         assert data["text"] == "a photo of sks dog"
-        assert isinstance(data["img"], Image.Image)
+        self.assertIsInstance(data["img"], Image.Image)
         assert data["img"].width == 1815
 
     def test_dataset_with_class_image(self):
@@ -35,30 +35,27 @@ class TestHFDreamBoothDataset(RunnerTestCase):
             dataset="diffusers/dog-example",
             instance_prompt="a photo of sks dog",
             class_prompt="a photo of dog",
-            class_image_config={
-                "model": "diffusers/tiny-stable-diffusion-torch",
-                "data_dir": "temp_dir/class_image",
-                "num_images": 1,
-                "device": "cpu",
-                "recreate_class_images": True,
-            },
+            class_image_config=dict(
+                model="diffusers/tiny-stable-diffusion-torch",
+                data_dir="temp_dir/class_image",
+                num_images=1,
+                device="cpu",
+                recreate_class_images=True,
+            ),
             pipeline=[
-                {
-                    "type": "PackInputs",
-                    "skip_to_tensor_key": ["img", "text"],
-                },
+                dict(type="PackInputs", skip_to_tensor_key=["img", "text"]),
             ])
         assert len(dataset) == 5
         assert len(dataset.class_images) == 1
 
         data = dataset[0]
         assert data["inputs"]["text"] == "a photo of sks dog"
-        assert isinstance(data["inputs"]["img"], Image.Image)
+        self.assertIsInstance(data["inputs"]["img"], Image.Image)
         assert data["inputs"]["img"].width == 1815
 
         assert data["inputs"]["result_class_image"]["text"] == "a photo of dog"
-        assert isinstance(data["inputs"]["result_class_image"]["img"],
-                          Image.Image)
+        self.assertIsInstance(data["inputs"]["result_class_image"]["img"],
+                              Image.Image)
         assert data["inputs"]["result_class_image"]["img"].width == 128
         shutil.rmtree("temp_dir")
 
@@ -70,5 +67,5 @@ class TestHFDreamBoothDataset(RunnerTestCase):
 
         data = dataset[0]
         assert data["text"] == "a photo of sks dog"
-        assert isinstance(data["img"], Image.Image)
+        self.assertIsInstance(data["img"], Image.Image)
         assert data["img"].width == 400

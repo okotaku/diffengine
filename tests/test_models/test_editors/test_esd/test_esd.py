@@ -60,20 +60,18 @@ class TestESDXL(TestCase):
             data_preprocessor=ESDXLDataPreprocessor())
 
         # test train step
-        data = {
-            "inputs": {
-                "text": ["dog"],
-                "prompt_embeds": [torch.zeros((2, 64))],
-                "pooled_prompt_embeds": [torch.zeros(32)],
-                "null_prompt_embeds": [torch.zeros((2, 64))],
-                "null_pooled_prompt_embeds": [torch.zeros(32)],
-            },
-        }
+        data = dict(
+            inputs=dict(
+                text=["dog"],
+                prompt_embeds=[torch.zeros((2, 64))],
+                pooled_prompt_embeds=[torch.zeros(32)],
+                null_prompt_embeds=[torch.zeros((2, 64))],
+                null_pooled_prompt_embeds=[torch.zeros(32)]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        assert isinstance(log_vars["loss"], torch.Tensor)
+        self.assertIsInstance(log_vars["loss"], torch.Tensor)
 
     def test_val_and_test_step(self):
         StableDiffuser = ESDXL(

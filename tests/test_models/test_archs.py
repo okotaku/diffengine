@@ -35,7 +35,7 @@ def test_set_lora():
 def test_unet_lora_layers_to_save():
     model = StableDiffusion(
         "diffusers/tiny-stable-diffusion-torch",
-        lora_config={"rank": 4},
+        lora_config=dict(rank=4),
         finetune_text_encoder=True,
         data_preprocessor=SDDataPreprocessor())
     unet_lora_layers_to_save = unet_attn_processors_state_dict(model.unet)
