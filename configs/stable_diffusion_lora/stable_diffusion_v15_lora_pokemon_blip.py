@@ -5,14 +5,9 @@ _base_ = [
     "../_base_/default_runtime.py",
 ]
 
-model = {"lora_config": {"rank": 32}}
+model = dict(lora_config=dict(rank=32))
 
 custom_hooks = [
-    {
-        "type": "VisualizationHook",
-        "prompt": ["yoda pokemon"] * 4,
-    },
-    {
-        "type": "LoRASaveHook",
-    },
+    dict(type="VisualizationHook", prompt=["yoda pokemon"] * 4),
+    dict(type="LoRASaveHook"),
 ]

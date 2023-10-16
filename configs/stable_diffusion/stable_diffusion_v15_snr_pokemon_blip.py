@@ -5,4 +5,4 @@ _base_ = [
     "../_base_/default_runtime.py",
 ]
 
-model = {"loss": {"type": "SNRL2Loss", "snr_gamma": 5.0, "loss_weight": 1.0}}
+model = dict(loss=dict(type="SNRL2Loss", snr_gamma=5.0, loss_weight=1.0))
