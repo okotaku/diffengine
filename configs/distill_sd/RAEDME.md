@@ -12,6 +12,18 @@ Exceptional text-to-image (T2I) generation results of Stable Diffusion models (S
 
 ## Citation
 
+## Citation
+
+```
+@article{kim2023architectural,
+  title={On Architectural Compression of Text-to-Image Diffusion Models},
+  author={Kim, Bo-Kyeong and Song, Hyoung-Kyu and Castells, Thibault and Choi, Shinkook},
+  journal={arXiv preprint arXiv:2305.15798},
+  year={2023},
+  url={https://arxiv.org/abs/2305.15798}
+}
+```
+
 ## Run Training
 
 Run Training
