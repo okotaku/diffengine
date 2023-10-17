@@ -14,11 +14,11 @@ Large text-to-image models achieved a remarkable leap in the evolution of AI, en
 ## Citation
 
 ```
-@article{ruiz2022dreambooth,
-  title={DreamBooth: Fine Tuning Text-to-image Diffusion Models for Subject-Driven Generation},
+@inproceedings{ruiz2023dreambooth,
+  title={Dreambooth: Fine tuning text-to-image diffusion models for subject-driven generation},
   author={Ruiz, Nataniel and Li, Yuanzhen and Jampani, Varun and Pritch, Yael and Rubinstein, Michael and Aberman, Kfir},
-  booktitle={arXiv preprint arxiv:2208.12242},
-  year={2022}
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition},
+  year={2023}
 }
 ```
 

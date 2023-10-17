@@ -18,6 +18,7 @@
 - [👨‍🏫 Get Started](#-get-started-)
 - [🖋 Example Notebook](#-example-notebook-)
 - [📘 Documentation](#-documentation-)
+- [📊 Model Zoo](#-model-zoo-)
 - [🙌 Contributing](#-contributing-)
 - [🎫 License](#-license-)
 - [🖊️ Citation](#-citation-)
@@ -34,7 +35,7 @@ DiffEngine is the open-source toolbox for training state-of-the-art Diffusion Mo
 
 ## 🛠️ Installation [🔝](#-table-of-contents)
 
-Before installing DiffEngine, please ensure that PyTorch has been successfully installed following the [official guide](https://pytorch.org/get-started/locally/).
+Before installing DiffEngine, please ensure that PyTorch >= v2.0 has been successfully installed following the [official guide](https://pytorch.org/get-started/locally/).
 
 Install DiffEngine
 
@@ -131,6 +132,53 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 
 - [Learn About Config](https://diffengine.readthedocs.io/en/latest/user_guides/config.html)
 - [Prepare Dataset](https://diffengine.readthedocs.io/en/latest/user_guides/dataset_prepare.html)
+
+</details>
+
+## 📊 Model Zoo [🔝](#-table-of-contents)
+
+<details open>
+
+<div align="center">
+  <b>Supported algorithms</b>
+</div>
+<table align="center">
+  <tbody>
+    <tr align="center" valign="bottom">
+      <td>
+        <b>Stable Diffusions</b>
+      </td>
+      <td>
+        <b>Stable Diffusion XLs</b>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td>
+        <ul>
+            <li><a href="configs/stable_diffusion/README.md">Stable Diffusion (2022)</a></li>
+            <li><a href="configs/stable_diffusion_controlnet/README.md">ControlNet (ICCV'2023)</a></li>
+            <li><a href="configs/stable_diffusion_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
+            <li><a href="configs/stable_diffusion_lora/README.md">LoRA (ICLR'2022)</a></li>
+            <li><a href="configs/distill_sd_dreambooth/README.md">Distill SD DreamBooth (2023)</a></li>
+      </ul>
+      </td>
+      <td>
+        <ul>
+          <li><a href="configs/stable_diffusion_xl/README.md">Stable Diffusion XL (2023)</a></li>
+          <li><a href="configs/stable_diffusion_xl_controlnet/README.md">ControlNet (ICCV'2023)</a></li>
+          <li><a href="configs/stable_diffusion_xl_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
+          <li><a href="configs/stable_diffusion_xl_lora/README.md">LoRA (ICLR'2022)</a></li>
+          <li><a href="configs/stable_diffusion_xl_controlnet_small/README.md">ControlNet Small (2023)</a></li>
+          <li><a href="configs/t2i_adapter/README.md">T2I-Adapter (2023)</a></li>
+          <li><a href="configs/ip_adapter/README.md">IP-Adapter (2023)</a></li>
+          <li><a href="configs/esd/README.md">Erasing Concepts from Diffusion Models (2023)</a></li>
+        </ul>
+      </td>
+    </tr>
+</td>
+    </tr>
+  </tbody>
+</table>
 
 </details>
 

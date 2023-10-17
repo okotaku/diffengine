@@ -15,11 +15,9 @@ We present a neural network structure, ControlNet, to control pretrained large d
 ```
 @misc{zhang2023adding,
   title={Adding Conditional Control to Text-to-Image Diffusion Models},
-  author={Lvmin Zhang and Maneesh Agrawala},
+  author={Lvmin Zhang and Anyi Rao and Maneesh Agrawala},
+  booktitle={IEEE International Conference on Computer Vision (ICCV)}
   year={2023},
-  eprint={2302.05543},
-  archivePrefix={arXiv},
-  primaryClass={cs.CV}
 }
 ```
 
