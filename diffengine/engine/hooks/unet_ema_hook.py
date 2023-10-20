@@ -9,11 +9,13 @@ from mmengine.registry import HOOKS, MODELS
 
 @HOOKS.register_module()
 class UnetEMAHook(EMAHook):
+    """Unet EMA Hook."""
 
     def before_run(self, runner) -> None:
         """Create an ema copy of the model.
 
         Args:
+        ----
             runner (Runner): The runner of the training process.
         """
         model = runner.model
@@ -38,6 +40,7 @@ class UnetEMAHook(EMAHook):
         """Resume ema parameters from checkpoint.
 
         Args:
+        ----
             runner (Runner): The runner of the testing process.
             checkpoint (dict): Model's checkpoint.
         """

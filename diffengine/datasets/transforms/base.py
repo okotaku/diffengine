@@ -7,12 +7,14 @@ class BaseTransform(metaclass=ABCMeta):
     """Base class for all transformations."""
 
     def __call__(self, results: dict) -> dict | tuple[list, list] | None:
-
+        """Call function to transform data."""
         return self.transform(results)
 
     @abstractmethod
     def transform(self, results: dict) -> dict | tuple[list, list] | None:
-        """The transform function. All subclass of BaseTransform should
+        """Transform the data.
+
+        The transform function. All subclass of BaseTransform should
         override this method.
 
         This function takes the result dict as the input, and can add new
@@ -21,8 +23,10 @@ class BaseTransform(metaclass=ABCMeta):
         transforms into a pipeline.
 
         Args:
+        ----
             results (dict): The result dict.
 
         Returns:
+        -------
             dict: The result dict.
         """

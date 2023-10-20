@@ -10,7 +10,7 @@ from diffusers import (
 from diffusers.utils import load_image
 
 
-def main():
+def main() -> None:
     parser = ArgumentParser()
     parser.add_argument("prompt", help="Prompt text.")
     parser.add_argument("condition_image", help="Path to condition image.")

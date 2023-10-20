@@ -5,7 +5,7 @@ from diffusers import AutoencoderKL, DiffusionPipeline, UNet2DConditionModel
 from transformers import CLIPTextModel
 
 
-def main():
+def main() -> None:
     parser = ArgumentParser()
     parser.add_argument("prompt", help="Prompt text")
     parser.add_argument("checkpoint", help="Path to checkpoint.")

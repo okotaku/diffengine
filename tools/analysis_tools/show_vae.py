@@ -5,7 +5,7 @@ from diffusers.models import AutoencoderKL
 from PIL import Image
 
 
-def parse_args():
+def parse_args():  # noqa
     parser = argparse.ArgumentParser(
         description="Process a checkpoint to be published")
     parser.add_argument("image", help="Path to image")
@@ -18,7 +18,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     vae = AutoencoderKL.from_pretrained(args.vaevaemodel).eval()

@@ -10,6 +10,7 @@ class L2Loss(nn.Module):
     """L2 loss.
 
     Args:
+    ----
         loss_weight (float, optional): Weight of this loss item.
             Defaults to ``1.``.
         loss_name (str, optional): Name of the loss item. If you want this loss
@@ -29,6 +30,19 @@ class L2Loss(nn.Module):
                 pred: torch.Tensor,
                 gt: torch.Tensor,
                 weight: torch.Tensor | None = None) -> torch.Tensor:
+        """Forward function.
+
+        Args:
+        ----
+            pred (torch.Tensor): The predicted tensor.
+            gt (torch.Tensor): The ground truth tensor.
+            weight (torch.Tensor | None, optional): The loss weight.
+                Defaults to None.
+
+        Returns:
+        -------
+            torch.Tensor: loss
+        """
         if weight is not None:
             loss = F.mse_loss(pred, gt, reduction="none") * weight
             return loss.mean() * self.loss_weight

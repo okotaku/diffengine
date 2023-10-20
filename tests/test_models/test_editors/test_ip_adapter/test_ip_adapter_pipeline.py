@@ -64,8 +64,8 @@ class TestIPAdapterXL(TestCase):
             height=64,
             width=64)
         assert len(result) == 1
-        self.assertEqual(type(result[0]), torch.Tensor)
-        self.assertEqual(result[0].shape, (4, 32, 32))
+        assert type(result[0]) == torch.Tensor
+        assert result[0].shape == (4, 32, 32)
 
     def test_infer_controlnet(self):
         controlnet = ControlNetModel.from_pretrained(

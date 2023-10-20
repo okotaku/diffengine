@@ -12,6 +12,7 @@ class IPAttnProcessor(nn.Module):
     """Attention processor for IP-Adapater.
 
     Args:
+    ----
         hidden_size (int):
             The hidden size of the attention layer.
         cross_attention_dim (int, optional):
@@ -45,6 +46,7 @@ class IPAttnProcessor(nn.Module):
         temb: torch.Tensor | None = None,
         scale: float = 1.0,
     ) -> torch.Tensor:
+        """Call forward."""
         residual = hidden_states
 
         if attn.spatial_norm is not None:
@@ -126,6 +128,7 @@ class IPAttnProcessor2_0(nn.Module):  # noqa
     """Attention processor for IP-Adapater for PyTorch 2.0.
 
     Args:
+    ----
         hidden_size (int):
             The hidden size of the attention layer.
         cross_attention_dim (int, optional):
@@ -164,6 +167,7 @@ class IPAttnProcessor2_0(nn.Module):  # noqa
         temb: torch.Tensor | None = None,
         scale: float = 1.0,
     ) -> torch.Tensor:
+        """Call forward."""
         residual = hidden_states
 
         if attn.spatial_norm is not None:
@@ -278,6 +282,7 @@ class CNAttnProcessor:
     """Default processor for performing attention-related computations.
 
     Args:
+    ----
         clip_extra_context_tokens (int): The number of expansion ratio of proj
             network hidden layer channels Defaults to 4.
     """
@@ -294,6 +299,7 @@ class CNAttnProcessor:
             temb: torch.Tensor | None = None,
             scale: float = 1.0,  # noqa
     ) -> torch.Tensor:
+        """Call forward."""
         residual = hidden_states
 
         if attn.spatial_norm is not None:
@@ -356,10 +362,10 @@ class CNAttnProcessor:
 
 
 class CNAttnProcessor2_0:  # noqa
-    """Processor for implementing scaled dot-product attention (enabled by
-    default if you're using PyTorch 2.0).
+    """Controlnet Attention Processor for PyTorch 2.0.
 
     Args:
+    ----
         clip_extra_context_tokens (int): The number of expansion ratio of proj
             network hidden layer channels Defaults to 4.
     """
@@ -380,6 +386,7 @@ class CNAttnProcessor2_0:  # noqa
             temb: torch.Tensor | None = None,
             scale: float = 1.0,  # noqa
     ) -> torch.Tensor:
+        """Call forward."""
         residual = hidden_states
 
         if attn.spatial_norm is not None:
@@ -465,6 +472,7 @@ def set_unet_ip_adapter(unet: nn.Module) -> None:
     """Set IP-Adapter for Unet.
 
     Args:
+    ----
         unet (nn.Module): The unet to set IP-Adapter.
     """
     attn_procs = {}
@@ -496,10 +504,12 @@ def set_unet_ip_adapter(unet: nn.Module) -> None:
     unet.set_attn_processor(attn_procs)
 
 
-def set_controlnet_ip_adapter(controlnet, clip_extra_context_tokens: int = 4):
+def set_controlnet_ip_adapter(controlnet,
+                              clip_extra_context_tokens: int = 4) -> None:
     """Set IP-Adapter for Unet.
 
     Args:
+    ----
         controlnet (nn.Module): The ControlNet to set IP-Adapter.
         clip_extra_context_tokens (int): The number of expansion ratio of proj
             network hidden layer channels Defaults to 4.

@@ -71,7 +71,7 @@ class TestESDXL(TestCase):
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        self.assertIsInstance(log_vars["loss"], torch.Tensor)
+        assert isinstance(log_vars["loss"], torch.Tensor)
 
     def test_val_and_test_step(self):
         StableDiffuser = ESDXL(

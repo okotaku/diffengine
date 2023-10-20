@@ -15,12 +15,12 @@ class TestHFESDDatasetPreComputeEmbs(RunnerTestCase):
 
         data = dataset[0]
         assert "img" not in data
-        self.assertEqual(data["text"], "Van Gogh")
-        self.assertEqual(type(data["prompt_embeds"]), torch.Tensor)
-        self.assertEqual(type(data["pooled_prompt_embeds"]), torch.Tensor)
-        self.assertEqual(type(data["null_prompt_embeds"]), torch.Tensor)
-        self.assertEqual(type(data["null_pooled_prompt_embeds"]), torch.Tensor)
-        self.assertEqual(data["prompt_embeds"].shape, (77, 64))
-        self.assertEqual(data["pooled_prompt_embeds"].shape, (32, ))
-        self.assertEqual(data["null_prompt_embeds"].shape, (77, 64))
-        self.assertEqual(data["null_pooled_prompt_embeds"].shape, (32, ))
+        assert data["text"] == "Van Gogh"
+        assert type(data["prompt_embeds"]) == torch.Tensor
+        assert type(data["pooled_prompt_embeds"]) == torch.Tensor
+        assert type(data["null_prompt_embeds"]) == torch.Tensor
+        assert type(data["null_pooled_prompt_embeds"]) == torch.Tensor
+        assert data["prompt_embeds"].shape == (77, 64)
+        assert data["pooled_prompt_embeds"].shape == (32, )
+        assert data["null_prompt_embeds"].shape == (77, 64)
+        assert data["null_pooled_prompt_embeds"].shape == (32, )

@@ -24,6 +24,7 @@ def set_unet_lora(unet: nn.Module,
     """Set LoRA for Unet.
 
     Args:
+    ----
         unet (nn.Module): The unet to set LoRA.
         config (dict): The config dict. example. dict(rank=4)
         verbose (bool): Whether to print log. Defaults to True.
@@ -70,6 +71,7 @@ def set_text_encoder_lora(text_encoder: nn.Module, config: dict) -> nn.Module:
     """Set LoRA for module.
 
     Args:
+    ----
         text_encoder (nn.Module): The text_encoder to set LoRA.
         config (dict): The config dict. example. dict(rank=4)
         verbose (bool): Whether to print log. Defaults to True.
@@ -80,9 +82,9 @@ def set_text_encoder_lora(text_encoder: nn.Module, config: dict) -> nn.Module:
 
 
 def unet_attn_processors_state_dict(unet) -> dict[str, torch.tensor]:
-    """
-    Returns:
-        a state dict containing just the attention processor parameters.
+    """Get unet attn processors state dict.
+
+    Returns a state dict containing just the attention processor parameters.
     """
     attn_processors = unet.attn_processors
 

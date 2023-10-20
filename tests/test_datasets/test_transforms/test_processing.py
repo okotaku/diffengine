@@ -17,8 +17,8 @@ class TestVisionTransformWrapper(TestCase):
 
     def test_register(self):
         for t in VISION_TRANSFORMS:
-            self.assertIn("torchvision/", t)
-            self.assertIn(t, TRANSFORMS)
+            assert "torchvision/" in t
+            assert t in TRANSFORMS
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -87,7 +87,7 @@ class TestVisionTransformWrapper(TestCase):
 class TestSaveImageShape(TestCase):
 
     def test_register(self):
-        self.assertIn("SaveImageShape", TRANSFORMS)
+        assert "SaveImageShape" in TRANSFORMS
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -103,7 +103,7 @@ class TestSaveImageShape(TestCase):
 class TestComputeTimeIds(TestCase):
 
     def test_register(self):
-        self.assertIn("ComputeTimeIds", TRANSFORMS)
+        assert "ComputeTimeIds" in TRANSFORMS
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -121,7 +121,7 @@ class TestRandomCrop(TestCase):
     crop_size = 32
 
     def test_register(self):
-        self.assertIn("RandomCrop", TRANSFORMS)
+        assert "RandomCrop" in TRANSFORMS
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -130,7 +130,7 @@ class TestRandomCrop(TestCase):
         # test transform
         trans = TRANSFORMS.build(dict(type="RandomCrop", size=self.crop_size))
         data = trans(data)
-        self.assertIn("crop_top_left", data)
+        assert "crop_top_left" in data
         assert len(data["crop_top_left"]) == 2
         assert data["img"].height == data["img"].width == self.crop_size
         upper, left = data["crop_top_left"]
@@ -155,7 +155,7 @@ class TestRandomCrop(TestCase):
                 size=self.crop_size,
                 keys=["img", "condition_img"]))
         data = trans(data)
-        self.assertIn("crop_top_left", data)
+        assert "crop_top_left" in data
         assert len(data["crop_top_left"]) == 2
         assert data["img"].height == data["img"].width == self.crop_size
         upper, left = data["crop_top_left"]
@@ -172,7 +172,7 @@ class TestCenterCrop(TestCase):
     crop_size = 32
 
     def test_register(self):
-        self.assertIn("CenterCrop", TRANSFORMS)
+        assert "CenterCrop" in TRANSFORMS
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -181,7 +181,7 @@ class TestCenterCrop(TestCase):
         # test transform
         trans = TRANSFORMS.build(dict(type="CenterCrop", size=self.crop_size))
         data = trans(data)
-        self.assertIn("crop_top_left", data)
+        assert "crop_top_left" in data
         assert len(data["crop_top_left"]) == 2
         assert data["img"].height == data["img"].width == self.crop_size
         upper, left = data["crop_top_left"]
@@ -206,7 +206,7 @@ class TestCenterCrop(TestCase):
                 size=self.crop_size,
                 keys=["img", "condition_img"]))
         data = trans(data)
-        self.assertIn("crop_top_left", data)
+        assert "crop_top_left" in data
         assert len(data["crop_top_left"]) == 2
         assert data["img"].height == data["img"].width == self.crop_size
         upper, left = data["crop_top_left"]
@@ -222,7 +222,7 @@ class TestCenterCrop(TestCase):
 class TestRandomHorizontalFlip(TestCase):
 
     def test_register(self):
-        self.assertIn("RandomHorizontalFlip", TRANSFORMS)
+        assert "RandomHorizontalFlip" in TRANSFORMS
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -235,7 +235,7 @@ class TestRandomHorizontalFlip(TestCase):
         # test transform
         trans = TRANSFORMS.build(dict(type="RandomHorizontalFlip", p=1.))
         data = trans(data)
-        self.assertIn("crop_top_left", data)
+        assert "crop_top_left" in data
         assert len(data["crop_top_left"]) == 2
         self.assertListEqual(data["crop_top_left"],
                              [0, data["img"].width - 10])
@@ -252,7 +252,7 @@ class TestRandomHorizontalFlip(TestCase):
         }
         trans = TRANSFORMS.build(dict(type="RandomHorizontalFlip", p=0.))
         data = trans(data)
-        self.assertIn("crop_top_left", data)
+        assert "crop_top_left" in data
         self.assertListEqual(data["crop_top_left"], [0, 0])
 
         np.equal(np.array(data["img"]), np.array(Image.open(img_path)))
@@ -273,7 +273,7 @@ class TestRandomHorizontalFlip(TestCase):
                 p=1.,
                 keys=["img", "condition_img"]))
         data = trans(data)
-        self.assertIn("crop_top_left", data)
+        assert "crop_top_left" in data
         assert len(data["crop_top_left"]) == 2
         self.assertListEqual(data["crop_top_left"],
                              [0, data["img"].width - 10])
@@ -288,7 +288,7 @@ class TestMultiAspectRatioResizeCenterCrop(TestCase):
     sizes = [(32, 32), (16, 48)]  # noqa
 
     def test_register(self):
-        self.assertIn("MultiAspectRatioResizeCenterCrop", TRANSFORMS)
+        assert "MultiAspectRatioResizeCenterCrop" in TRANSFORMS
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -298,7 +298,7 @@ class TestMultiAspectRatioResizeCenterCrop(TestCase):
         trans = TRANSFORMS.build(
             dict(type="MultiAspectRatioResizeCenterCrop", sizes=self.sizes))
         data = trans(data)
-        self.assertIn("crop_top_left", data)
+        assert "crop_top_left" in data
         assert len(data["crop_top_left"]) == 2
         self.assertTupleEqual((data["img"].height, data["img"].width),
                               self.sizes[0])
@@ -315,7 +315,7 @@ class TestMultiAspectRatioResizeCenterCrop(TestCase):
         # test 2nd size
         data = {"img": Image.open(img_path).resize((55, 16))}
         data = trans(data)
-        self.assertIn("crop_top_left", data)
+        assert "crop_top_left" in data
         assert len(data["crop_top_left"]) == 2
         self.assertTupleEqual((data["img"].height, data["img"].width),
                               self.sizes[1])
@@ -343,7 +343,7 @@ class TestMultiAspectRatioResizeCenterCrop(TestCase):
                 sizes=self.sizes,
                 keys=["img", "condition_img"]))
         data = trans(data)
-        self.assertIn("crop_top_left", data)
+        assert "crop_top_left" in data
         assert len(data["crop_top_left"]) == 2
         self.assertTupleEqual((data["img"].height, data["img"].width),
                               self.sizes[0])
@@ -362,7 +362,7 @@ class TestMultiAspectRatioResizeCenterCrop(TestCase):
 class TestCLIPImageProcessor(TestCase):
 
     def test_register(self):
-        self.assertIn("CLIPImageProcessor", TRANSFORMS)
+        assert "CLIPImageProcessor" in TRANSFORMS
 
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
@@ -373,15 +373,15 @@ class TestCLIPImageProcessor(TestCase):
         # test transform
         trans = TRANSFORMS.build(dict(type="CLIPImageProcessor"))
         data = trans(data)
-        self.assertIn("clip_img", data)
-        self.assertEqual(type(data["clip_img"]), torch.Tensor)
-        self.assertEqual(data["clip_img"].size(), (3, 224, 224))
+        assert "clip_img" in data
+        assert type(data["clip_img"]) == torch.Tensor
+        assert data["clip_img"].size() == (3, 224, 224)
 
 
 class TestRandomTextDrop(TestCase):
 
     def test_register(self):
-        self.assertIn("RandomTextDrop", TRANSFORMS)
+        assert "RandomTextDrop" in TRANSFORMS
 
     def test_transform(self):
         data = {

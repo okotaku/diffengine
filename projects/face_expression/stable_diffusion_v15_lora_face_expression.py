@@ -5,13 +5,9 @@ _base_ = [
     "../../configs/_base_/default_runtime.py",
 ]
 
-model = {
-    "model": "stablediffusionapi/anything-v5",
-    "lora_config": {
-        "rank": 128,
-    },
-}
+model = dict(
+    model="stablediffusionapi/anything-v5", lora_config=dict(rank=128))
 
-optim_wrapper = {"optimizer": {"lr": 1e-4}}
+optim_wrapper = dict(optimizer=dict(lr=1e-4))
 
-train_cfg = {"by_epoch": True, "max_epochs": 100}
+train_cfg = dict(by_epoch=True, max_epochs=100)

@@ -21,10 +21,13 @@ Image.MAX_IMAGE_PIXELS = 1000000000
 
 @DATASETS.register_module()
 class HFESDDatasetPreComputeEmbs(Dataset):
-    """Dataset of huggingface datasets for Erasing Concepts from Diffusion
+    """Huggingface Erasing Concepts from Diffusion Models Dataset.
+
+    Dataset of huggingface datasets for Erasing Concepts from Diffusion
     Models.
 
     Args:
+    ----
         forget_caption (str): The caption used to forget.
         model (str): pretrained model name of stable diffusion xl.
             Defaults to 'stabilityai/stable-diffusion-xl-base-1.0'.
@@ -68,7 +71,8 @@ class HFESDDatasetPreComputeEmbs(Dataset):
     def __len__(self) -> int:
         """Get the length of dataset.
 
-        Returns:
+        Returns
+        -------
             int: The length of filtered dataset.
         """
         return 1
@@ -77,9 +81,11 @@ class HFESDDatasetPreComputeEmbs(Dataset):
         """Get the dataset after ``self.pipeline`.
 
         Args:
+        ----
             idx (int): The index.
 
         Returns:
+        -------
             dict: The idx-th data information of dataset after
             ``self.pipeline``.
         """

@@ -8,7 +8,7 @@ from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
 
 
-def parse_args():
+def parse_args():  # noqa
     parser = argparse.ArgumentParser(
         description="Process a checkpoint to be published")
     parser.add_argument("config", help="train config file path")
@@ -23,7 +23,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def process_checkpoint(runner, out_dir, save_keys=None):
+def process_checkpoint(runner, out_dir, save_keys=None) -> None:
     if save_keys is None:
         save_keys = ["unet", "text_encoder"]
     for k in save_keys:
@@ -32,7 +32,7 @@ def process_checkpoint(runner, out_dir, save_keys=None):
     print_log(f"The published model is saved at {out_dir}.", logger="current")
 
 
-def main():
+def main() -> None:
     args = parse_args()
     allowed_save_keys = ["unet", "text_encoder"]
     if not set(args.save_keys).issubset(set(allowed_save_keys)):
@@ -45,13 +45,10 @@ def main():
                             osp.splitext(osp.basename(args.config))[0])
 
     # build the runner from config
-    if "runner_type" not in cfg:
-        # build the default runner
-        runner = Runner.from_cfg(cfg)
-    else:
-        # build customized runner from the registry
-        # if 'runner_type' is set in the cfg
-        runner = RUNNERS.build(cfg)
+    runner = (
+        Runner.from_cfg(cfg)
+        if "runner_type" not in cfg else RUNNERS.build(cfg))
+
     state_dict = torch.load(args.in_file)
     if "state_dict" in state_dict:
         state_dict = state_dict["state_dict"]

@@ -1,4 +1,5 @@
 import copy
+import re
 
 import pytest
 import torch
@@ -13,7 +14,7 @@ from diffengine.engine.hooks import UnetEMAHook
 
 class DummyWrapper(BaseModel):
 
-    def __init__(self, model):
+    def __init__(self, model) -> None:
         super().__init__()
         if not isinstance(model, nn.Module):
             model = MODELS.build(model)
@@ -25,7 +26,7 @@ class DummyWrapper(BaseModel):
 
 class ToyModel2(ToyModel):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.unet = nn.Linear(2, 1)
 
@@ -95,7 +96,7 @@ class TestEMAHook(RunnerTestCase):
 
         for src, ema in zip(
                 src_model.parameters(), ema_model.parameters(), strict=True):
-            self.assertFalse((src.data == ema.data).all())
+            assert not (src.data == ema.data).all()
 
     def test_before_save_checkpoint(self):
         cfg = copy.deepcopy(self.epoch_based_cfg)
@@ -142,7 +143,7 @@ class TestEMAHook(RunnerTestCase):
         ema_hook.after_load_checkpoint(runner, checkpoint)
         with self.assertLogs(runner.logger, level="WARNING") as cm:
             ema_hook.after_load_checkpoint(runner, checkpoint)
-            self.assertRegex(cm.records[0].msg, "There is no `ema_state_dict`")
+            assert re.search("There is no `ema_state_dict`", cm.records[0].msg)
 
         # Check the weight of state_dict and ema_state_dict have been swapped.
         # when runner._resume is True

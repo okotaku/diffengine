@@ -15,7 +15,7 @@ from diffengine.models.losses import L2Loss
 
 class DummyWrapper(BaseModel):
 
-    def __init__(self, model):
+    def __init__(self, model) -> None:
         super().__init__()
         if not isinstance(model, nn.Module):
             model = MODELS.build(model)

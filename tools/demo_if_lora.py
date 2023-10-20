@@ -4,7 +4,7 @@ import torch
 from diffusers import DiffusionPipeline, IFPipeline
 
 
-def main():
+def main() -> None:
     parser = ArgumentParser()
     parser.add_argument("prompt", help="Prompt text.")
     parser.add_argument("checkpoint", help="Path to LoRA weight.")

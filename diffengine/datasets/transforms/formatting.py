@@ -9,7 +9,7 @@ from diffengine.datasets.transforms import BaseTransform
 from diffengine.registry import TRANSFORMS
 
 
-def to_tensor(data):
+def to_tensor(data) -> torch.Tensor:
     """Convert objects of various python types to :obj:`torch.Tensor`.
 
     Supported types are: :class:`numpy.ndarray`, :class:`torch.Tensor`,
@@ -45,6 +45,7 @@ class PackInputs(BaseTransform):
     All other keys in the dict.
 
     Args:
+    ----
         input_keys (List[str]): The key of element to feed into the model
             forwarding. Defaults to ['img', 'text'].
         skip_to_tensor_key (List[str]): The key of element to skip to_tensor.
@@ -53,7 +54,7 @@ class PackInputs(BaseTransform):
 
     def __init__(self,
                  input_keys: list[str] | None = None,
-                 skip_to_tensor_key: list[str] | None = None):
+                 skip_to_tensor_key: list[str] | None = None) -> None:
         if skip_to_tensor_key is None:
             skip_to_tensor_key = ["text"]
         if input_keys is None:
@@ -62,8 +63,7 @@ class PackInputs(BaseTransform):
         self.skip_to_tensor_key = skip_to_tensor_key
 
     def transform(self, results: dict) -> dict:
-        """Method to pack the input data."""
-
+        """Transform the data."""
         packed_results = {}
         for k in self.input_keys:
             if k in results and k not in self.skip_to_tensor_key:

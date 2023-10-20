@@ -17,13 +17,13 @@ from diffengine.registry import TRANSFORMS
 
 
 def _str_to_torch_dtype(t: str):
-    """mapping str format dtype to torch.dtype."""
+    """Map to torch.dtype."""
     import torch  # noqa: F401
     return eval(f"torch.{t}")  # noqa
 
 
 def _interpolation_modes_from_str(t: str):
-    """mapping str format to Interpolation."""
+    """Map to Interpolation."""
     t = t.lower()
     inverse_modes_mapping = {
         "nearest": InterpolationMode.NEAREST,
@@ -43,6 +43,7 @@ class TorchVisonTransformWrapper:
     size=512)`
 
     Args:
+    ----
         transform (str): The name of transform. For example
             `torchvision/Resize`.
         keys (List[str]): `keys` to apply augmentation from results.
@@ -52,7 +53,7 @@ class TorchVisonTransformWrapper:
                  transform,
                  *args,
                  keys: list[str] | None = None,
-                 **kwargs):
+                 **kwargs) -> None:
         if keys is None:
             keys = ["img"]
         self.keys = keys
@@ -64,20 +65,25 @@ class TorchVisonTransformWrapper:
             kwargs["dtype"] = _str_to_torch_dtype(kwargs["dtype"])
         self.t = transform(*args, **kwargs)
 
-    def __call__(self, results):
+    def __call__(self, results) -> dict:
+        """Call transform."""
         for k in self.keys:
             results[k] = self.t(results[k])
         return results
 
     def __repr__(self) -> str:
+        """Repr."""
         return f"TorchVision{self.t!r}"
 
 
 def register_vision_transforms() -> list[str]:
-    """Register transforms in ``torchvision.transforms`` to the ``TRANSFORMS``
+    """Register vision transforms.
+
+    Register transforms in ``torchvision.transforms`` to the ``TRANSFORMS``
     registry.
 
-    Returns:
+    Returns
+    -------
         List[str]: A list of registered transforms' name.
     """
     vision_transforms = []
@@ -106,11 +112,14 @@ class SaveImageShape(BaseTransform):
     """Save image shape as 'ori_img_shape' in results."""
 
     def transform(self, results: dict) -> dict | tuple[list, list] | None:
-        """
+        """Transform.
+
         Args:
+        ----
             results (dict): The result dict.
 
         Returns:
+        -------
             dict: 'ori_img_shape' key is added as original image shape.
         """
         results["ori_img_shape"] = [
@@ -131,6 +140,7 @@ class RandomCrop(BaseTransform):
         'condition_img'].
 
     Args:
+    ----
         size (sequence or int): Desired output size of the crop. If size is an
             int instead of sequence like (h, w), a square crop (size, size) is
             made. If provided a sequence of length 1, it will be interpreted
@@ -142,7 +152,7 @@ class RandomCrop(BaseTransform):
                  *args,
                  size: Sequence[int] | int,
                  keys: list[str] | None = None,
-                 **kwargs):
+                 **kwargs) -> None:
         if keys is None:
             keys = ["img"]
         if not isinstance(size, Sequence):
@@ -153,11 +163,14 @@ class RandomCrop(BaseTransform):
             *args, size, **kwargs)
 
     def transform(self, results: dict) -> dict | tuple[list, list] | None:
-        """
+        """Transform.
+
         Args:
+        ----
             results (dict): The result dict.
 
         Returns:
+        -------
             dict: 'crop_top_left' and  `crop_bottom_right` key is added as crop
                 point.
         """
@@ -179,6 +192,7 @@ class CenterCrop(BaseTransform):
         results
 
     Args:
+    ----
         size (sequence or int): Desired output size of the crop. If size is an
             int instead of sequence like (h, w), a square crop (size, size) is
             made. If provided a sequence of length 1, it will be interpreted
@@ -190,7 +204,7 @@ class CenterCrop(BaseTransform):
                  *args,
                  size: Sequence[int] | int,
                  keys: list[str] | None = None,
-                 **kwargs):
+                 **kwargs) -> None:
         if keys is None:
             keys = ["img"]
         if not isinstance(size, Sequence):
@@ -201,11 +215,14 @@ class CenterCrop(BaseTransform):
             *args, size, **kwargs)
 
     def transform(self, results: dict) -> dict | tuple[list, list] | None:
-        """
+        """Transform.
+
         Args:
+        ----
             results (dict): The result dict.
 
         Returns:
+        -------
             dict: 'crop_top_left' key is added as crop points.
         """
         assert all(results["img"].size == results[k].size for k in self.keys)
@@ -225,6 +242,7 @@ class MultiAspectRatioResizeCenterCrop(BaseTransform):
     """Multi Aspect Ratio Resize and Center Crop.
 
     Args:
+    ----
         sizes (List[sequence]): List of desired output size of the crop.
             Sequence like (h, w).
         keys (List[str]): `keys` to apply augmentation from results.
@@ -239,7 +257,7 @@ class MultiAspectRatioResizeCenterCrop(BaseTransform):
             sizes: list[Sequence[int]],
             keys: list[str] | None = None,
             interpolation: str = "bilinear",
-            **kwargs):  # noqa
+            **kwargs) -> None:  # noqa
         if keys is None:
             keys = ["img"]
         self.sizes = sizes
@@ -257,8 +275,10 @@ class MultiAspectRatioResizeCenterCrop(BaseTransform):
                 ]))
 
     def transform(self, results: dict) -> dict | tuple[list, list] | None:
-        """
+        """Transform.
+
         Args:
+        ----
             results (dict): The result dict.
         """
         aspect_ratio = results["img"].height / results["img"].width
@@ -276,12 +296,13 @@ class RandomHorizontalFlip(BaseTransform):
         'condition_img'].
 
     Args:
+    ----
         p (float): probability of the image being flipped.
             Default value is 0.5.
         keys (List[str]): `keys` to apply augmentation from results.
     """
 
-    def __init__(self, *args, p: float = 0.5, keys=None, **kwargs):
+    def __init__(self, *args, p: float = 0.5, keys=None, **kwargs) -> None:
         if keys is None:
             keys = ["img"]
         self.p = p
@@ -290,11 +311,14 @@ class RandomHorizontalFlip(BaseTransform):
             *args, p=1.0, **kwargs)
 
     def transform(self, results: dict) -> dict | tuple[list, list] | None:
-        """
+        """Transform.
+
         Args:
+        ----
             results (dict): The result dict.
 
         Returns:
+        -------
             dict: 'crop_top_left' key is fixed.
         """
         if random.random() < self.p:
@@ -314,11 +338,14 @@ class ComputeTimeIds(BaseTransform):
     """Compute time ids as 'time_ids' in results."""
 
     def transform(self, results: dict) -> dict | tuple[list, list] | None:
-        """
+        """Transform.
+
         Args:
+        ----
             results (dict): The result dict.
 
         Returns:
+        -------
             dict: 'time_ids' key is added as original image shape.
         """
         assert "ori_img_shape" in results
@@ -335,6 +362,7 @@ class CLIPImageProcessor(BaseTransform):
     """CLIPImageProcessor.
 
     Args:
+    ----
         key (str): `key` to apply augmentation from results. Defaults to 'img'.
         output_key (str): `output_key` after applying augmentation from
             results. Defaults to 'clip_img'.
@@ -346,8 +374,10 @@ class CLIPImageProcessor(BaseTransform):
         self.pipeline = HFCLIPImageProcessor()
 
     def transform(self, results: dict) -> dict | tuple[list, list] | None:
-        """
+        """Transform.
+
         Args:
+        ----
             results (dict): The result dict.
         """
         # (1, 3, 224, 224) -> (3, 224, 224)
@@ -361,20 +391,23 @@ class RandomTextDrop(BaseTransform):
     """RandomTextDrop. Replace text to empty.
 
     Args:
+    ----
         p (float): probability of the image being flipped.
             Default value is 0.5.
         keys (List[str]): `keys` to apply augmentation from results.
     """
 
-    def __init__(self, p: float = 0.1, keys=None):
+    def __init__(self, p: float = 0.1, keys=None) -> None:
         if keys is None:
             keys = ["text"]
         self.p = p
         self.keys = keys
 
     def transform(self, results: dict) -> dict | tuple[list, list] | None:
-        """
+        """Transform.
+
         Args:
+        ----
             results (dict): The result dict.
         """
         if random.random() < self.p:

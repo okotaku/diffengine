@@ -27,7 +27,7 @@ class TestHFDreamBoothDataset(RunnerTestCase):
 
         data = dataset[0]
         assert data["text"] == "a photo of sks dog"
-        self.assertIsInstance(data["img"], Image.Image)
+        assert isinstance(data["img"], Image.Image)
         assert data["img"].width == 1815
 
     def test_dataset_with_class_image(self):
@@ -50,12 +50,12 @@ class TestHFDreamBoothDataset(RunnerTestCase):
 
         data = dataset[0]
         assert data["inputs"]["text"] == "a photo of sks dog"
-        self.assertIsInstance(data["inputs"]["img"], Image.Image)
+        assert isinstance(data["inputs"]["img"], Image.Image)
         assert data["inputs"]["img"].width == 1815
 
         assert data["inputs"]["result_class_image"]["text"] == "a photo of dog"
-        self.assertIsInstance(data["inputs"]["result_class_image"]["img"],
-                              Image.Image)
+        assert isinstance(data["inputs"]["result_class_image"]["img"],
+                          Image.Image)
         assert data["inputs"]["result_class_image"]["img"].width == 128
         shutil.rmtree("temp_dir")
 
@@ -67,5 +67,5 @@ class TestHFDreamBoothDataset(RunnerTestCase):
 
         data = dataset[0]
         assert data["text"] == "a photo of sks dog"
-        self.assertIsInstance(data["img"], Image.Image)
+        assert isinstance(data["img"], Image.Image)
         assert data["img"].width == 400

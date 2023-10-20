@@ -18,6 +18,7 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
     """Stable Diffusion XL ControlNet.
 
     Args:
+    ----
         controlnet_model (str, optional): Path to pretrained ControlNet model.
             If None, use the default ControlNet model from Unet.
             Defaults to None.
@@ -41,7 +42,7 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
                  lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
                  data_preprocessor: dict | nn.Module | None = None,
-                 **kwargs):
+                 **kwargs) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDXLControlNetDataPreprocessor"}
         assert lora_config is None, \
@@ -59,10 +60,10 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
             data_preprocessor=data_preprocessor,
             **kwargs)  # type: ignore[misc]
 
-    def set_lora(self):
+    def set_lora(self) -> None:
         """Set LORA for model."""
 
-    def prepare_model(self):
+    def prepare_model(self) -> None:
         """Prepare model for training.
 
         Disable gradient for some models.
@@ -111,9 +112,10 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
               num_inference_steps: int = 50,
               output_type: str = "pil",
               **kwargs) -> list[np.ndarray]:
-        """Function invoked when calling the pipeline for generation.
+        """Inference function.
 
         Args:
+        ----
             prompt (`List[str]`):
                 The prompt or prompts to guide the image generation.
             condition_image (`List[Union[str, Image.Image]]`):
@@ -121,16 +123,15 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
             negative_prompt (`Optional[str]`):
                 The prompt or prompts to guide the image generation.
                 Defaults to None.
-            height (`int`, *optional*, defaults to
-                `self.unet.config.sample_size * self.vae_scale_factor`):
-                The height in pixels of the generated image.
-            width (`int`, *optional*, defaults to
-                `self.unet.config.sample_size * self.vae_scale_factor`):
-                The width in pixels of the generated image.
+            height (int, optional):
+                The height in pixels of the generated image. Defaults to None.
+            width (int, optional):
+                The width in pixels of the generated image. Defaults to None.
             num_inference_steps (int): Number of inference steps.
                 Defaults to 50.
             output_type (str): The output format of the generate image.
                 Choose between 'pil' and 'latent'. Defaults to 'pil'.
+            **kwargs: Other arguments.
         """
         assert len(prompt) == len(condition_image)
         pipeline = StableDiffusionXLControlNetPipeline.from_pretrained(
@@ -175,7 +176,20 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
             self,
             inputs: torch.Tensor,
             data_samples: Optional[list] = None,  # noqa
-            mode: str = "loss"):
+            mode: str = "loss") -> dict:
+        """Forward function.
+
+        Args:
+        ----
+            inputs (torch.Tensor): The input tensor.
+            data_samples (Optional[list], optional): The data samples.
+                Defaults to None.
+            mode (str, optional): The mode. Defaults to "loss".
+
+        Returns:
+        -------
+            dict: The loss dict.
+        """
         assert mode == "loss"
         inputs["text_one"] = self.tokenizer_one(
             inputs["text"],

@@ -11,6 +11,7 @@ class VisualizationHook(Hook):
     """Basic hook that invoke visualizers after train epoch.
 
     Args:
+    ----
         prompt (`List[str]`):
                 The prompt or prompts to guide the image generation.
         interval (int): Visualization interval (every k iterations).
@@ -23,6 +24,7 @@ class VisualizationHook(Hook):
             `self.unet.config.sample_size * self.vae_scale_factor`):
             The width in pixels of the generated image.
     """
+
     priority = "NORMAL"
 
     def __init__(self,
@@ -32,7 +34,7 @@ class VisualizationHook(Hook):
                  width: int | None = None,
                  *,
                  by_epoch: bool = True,
-                 **kwargs):
+                 **kwargs) -> None:
         self.prompt = prompt
         self.kwargs = kwargs
         self.interval = interval
@@ -46,9 +48,14 @@ class VisualizationHook(Hook):
             batch_idx: int,
             data_batch: DATA_BATCH = None,  # noqa
             outputs: Optional[dict] = None) -> None:  # noqa
-        """
+        """After train iter hook.
+
         Args:
+        ----
             runner (Runner): The runner of the training process.
+            batch_idx (int): The index of the current batch.
+            data_batch (DATA_BATCH, optional): The current data batch.
+            outputs (dict, optional): The outputs of the current batch.
         """
         if self.by_epoch:
             return
@@ -67,8 +74,10 @@ class VisualizationHook(Hook):
                     f"image{i}_step", image, step=runner.iter)
 
     def after_train_epoch(self, runner) -> None:
-        """
+        """After train epoch hook.
+
         Args:
+        ----
             runner (Runner): The runner of the training process.
         """
         if self.by_epoch:

@@ -20,6 +20,7 @@ class HFControlNetDataset(Dataset):
     """Dataset for huggingface datasets.
 
     Args:
+    ----
         dataset (str): Dataset name or path to dataset.
         image_column (str): Image column name. Defaults to 'image'.
         condition_column (str): Condition column name for ControlNet.
@@ -39,7 +40,7 @@ class HFControlNetDataset(Dataset):
                  caption_column: str = "text",
                  csv: str = "metadata.csv",
                  pipeline: Sequence = (),
-                 cache_dir: str | None = None):
+                 cache_dir: str | None = None) -> None:
         self.dataset_name = dataset
         if Path(dataset).exists():
             # load local folder
@@ -58,19 +59,24 @@ class HFControlNetDataset(Dataset):
     def __len__(self) -> int:
         """Get the length of dataset.
 
-        Returns:
+        Returns
+        -------
             int: The length of filtered dataset.
         """
         return len(self.dataset)
 
     def __getitem__(self, idx: int) -> dict:
-        """Get the idx-th image and data information of dataset after
+        """Get item.
+
+        Get the idx-th image and data information of dataset after
         ``self.pipeline`.
 
         Args:
+        ----
             idx (int): The index of self.data_list.
 
         Returns:
+        -------
             dict: The idx-th image and data information of dataset after
             ``self.pipeline``.
         """

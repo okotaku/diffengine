@@ -1,47 +1,58 @@
+[project]
+name = "diffengine"
+description = "diffengine"
+authors = [{name="takuoko",email="to78314910@gmail.com"}]
+version = "0.2.1"
+requires-python = ">= 3.10"
+readme = "README.md"
+dependencies = [
+    "torch>=2.0.1",
+    "torchvision>=0.15.2",
+    "openmim>=0.3.9",
+    "datasets==2.14.5",
+    "diffusers==0.21.3",
+    "mmengine>=0.8.5",
+    "sentencepiece>=0.1.99",
+    "tqdm",
+    "transformers==4.33.3",
+    "ujson"
+]
+license = {file = "LICENSE"}
+keywords = ["computer vision", "diffusion models"]
+
+[tool.setuptools.packages.find]
+exclude = ["configs", "tools", "demo", "work_dirs", "examples", "docs",
+    "projects", "requirements", "tests"]
+
 [tool.ruff]
 target-version = "py311"
 select = ["ALL"]
 ignore = [
     "ANN003",
     "ANN101",
-    "ANN201",
     "ANN202",
-    "ANN204",
-    "D",
-    "INP001",
     "S101",
     "BLE001",
     "PLR0913",
-    "PD901",
     "PGH004",
     "B028",
     "ANN001",
-    "FA100",
     "ANN002",
     "PTH118",
     "ERA001",
     "C408",
+    "INP001",
+    "D100",
+    "D107",
+    "D104",
 ]
 
 [tool.ruff.per-file-ignores]
-"setup.py" = ["T201", "PLR2004", "SIM108",
-    "C901", "FIX002", "TD003", "TD002", "PERF401", "FBT002",
-    "S112", "PLW2901", "S112", "PLW2901", "DTZ003",
-    "PD011", "RUF002", "ISC002", "ANN002", "ARG002", "PT018", "ANN205",
-    "N802", "PLR0915", "N806", "FBT001", "PLR5501", "PLR0912", "N803",
-    "N812", "PTH", "S102"]
-"tests/*" = ["T201", "PLR2004", "SIM108",
-    "C901", "FIX002", "TD003", "TD002", "PERF401", "FBT002",
-    "S112", "PLW2901", "S112", "PLW2901", "DTZ003",
-    "PD011", "RUF002", "ISC002", "ANN002", "ARG002", "PT018", "ANN205",
-    "N802", "PLR0915", "N806", "FBT001", "PLR5501", "PLR0912", "N803",
-    "N812", "PTH", "SLF001", "PT009"]
-"tools/*" = ["T201", "PLR2004", "SIM108",
-    "C901", "FIX002", "TD003", "TD002", "PERF401", "FBT002",
-    "S112", "PLW2901", "S112", "PLW2901", "DTZ003",
-    "PD011", "RUF002", "ISC002", "ANN002", "ARG002", "PT018", "ANN205",
-    "N802", "PLR0915", "N806", "FBT001", "PLR5501", "PLR0912", "N803",
-    "N812", "PTH", "SLF001"]
+"setup.py" = ["C901", "FBT002", "PLW2901", "PLR0912", "PTH", "S102", "D",
+ "ANN201", "INP001"]
+"tests/*" = ["PLR2004", "N806", "PTH", "SLF001", "PT009", "D", "ANN201",
+ "INP001"]
+"tools/*" = ["T201", "ISC002", "PTH", "D", "INP001"]
 
 [tool.mypy]
 python_version = "3.11"

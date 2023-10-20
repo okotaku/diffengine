@@ -8,11 +8,14 @@ from mmengine.registry import HOOKS
 @HOOKS.register_module()
 class SDCheckpointHook(Hook):
     """Delete 'vae' from checkpoint for efficient save."""
+
     priority = "VERY_LOW"
 
     def before_save_checkpoint(self, runner, checkpoint: dict) -> None:
-        """
+        """Before save checkpoint hook.
+
         Args:
+        ----
             runner (Runner): The runner of the training, validation or testing
                 process.
             checkpoint (dict): Model's checkpoint.

@@ -11,7 +11,7 @@ from diffengine.engine.hooks import SDCheckpointHook
 
 class DummyWrapper(BaseModel):
 
-    def __init__(self, model):
+    def __init__(self, model) -> None:
         super().__init__()
         if not isinstance(model, nn.Module):
             model = MODELS.build(model)
@@ -23,7 +23,7 @@ class DummyWrapper(BaseModel):
 
 class ToyModel2(ToyModel):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.unet = nn.Linear(2, 1)
         self.vae = nn.Linear(2, 1)
