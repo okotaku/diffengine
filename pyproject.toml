@@ -1,7 +1,7 @@
 [project]
 name = "diffengine"
 description = "diffengine"
-authors = [{name="diffengine Contributors",email=""}]
+authors = [{name="okotaku",email="to78314910@gmail.com"}]
 version = "0.2.1"
 requires-python = ">= 3.11"
 readme = "README.md"
