@@ -24,7 +24,7 @@ keywords = ["computer vision", "diffusion models"]
 package-dir = {"" = "diffengine"}
 
 [tool.setuptools.packages.find]
-exclude = ["configs", "tools", "demo", "work_dirs", "examples"]
+exclude = ["configs", "tools", "demo", "work_dirs", "examples", "docs"]
 
 [tool.ruff]
 target-version = "py311"
