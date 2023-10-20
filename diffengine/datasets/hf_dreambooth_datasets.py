@@ -122,6 +122,8 @@ class HFDreamBoothDataset(Dataset):
         pipeline = DiffusionPipeline.from_pretrained(
             class_image_config["model"],
             safety_checker=None,
+            torch_dtype=(torch.float16 if class_image_config["device"] != "cpu"
+                         else torch.float32),
         )
         pipeline.set_progress_bar_config(disable=True)
         pipeline.to(class_image_config["device"])
