@@ -11,13 +11,19 @@ from diffengine.models.archs import unet_attn_processors_state_dict
 
 @HOOKS.register_module()
 class IPAdapterSaveHook(Hook):
-    """Save IP-Adapter weights with diffusers format and pick up weights from
-    checkpoint."""
+    """IP Adapter Save Hook.
+
+    Save IP-Adapter weights with diffusers format and pick up weights from
+    checkpoint.
+    """
+
     priority = "VERY_LOW"
 
     def before_save_checkpoint(self, runner, checkpoint: dict) -> None:
-        """
+        """Before save checkpoint hook.
+
         Args:
+        ----
             runner (Runner): The runner of the training, validation or testing
                 process.
             checkpoint (dict): Model's checkpoint.

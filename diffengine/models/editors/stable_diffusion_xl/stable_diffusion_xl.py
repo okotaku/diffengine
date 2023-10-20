@@ -19,8 +19,10 @@ from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
-def import_model_class_from_model_name_or_path(
-        pretrained_model_name_or_path: str, subfolder: str = "text_encoder"):
+def import_model_class_from_model_name_or_path(  # noqa
+        pretrained_model_name_or_path: str,
+        subfolder: str = "text_encoder"):
+    """Import model class from model name or path."""
     text_encoder_config = PretrainedConfig.from_pretrained(
         pretrained_model_name_or_path, subfolder=subfolder)
     model_class = text_encoder_config.architectures[0]
@@ -45,6 +47,7 @@ class StableDiffusionXL(BaseModel):
     <https://huggingface.co/papers/2307.01952>`_
 
     Args:
+    ----
         model (str): pretrained model name of stable diffusion xl.
             Defaults to 'stabilityai/stable-diffusion-xl-base-1.0'.
         vae_model (str, optional): Path to pretrained VAE model with better
@@ -83,7 +86,7 @@ class StableDiffusionXL(BaseModel):
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
         pre_compute_text_embeddings: bool = False,
-    ):
+    ) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDXLDataPreprocessor"}
         if loss is None:
@@ -131,7 +134,7 @@ class StableDiffusionXL(BaseModel):
         self.prepare_model()
         self.set_lora()
 
-    def set_lora(self):
+    def set_lora(self) -> None:
         """Set LORA for model."""
         if self.lora_config is not None:
             if self.finetune_text_encoder:
@@ -142,7 +145,7 @@ class StableDiffusionXL(BaseModel):
             self.unet.requires_grad_(requires_grad=False)
             set_unet_lora(self.unet, self.lora_config)
 
-    def prepare_model(self):
+    def prepare_model(self) -> None:
         """Prepare model for training.
 
         Disable gradient for some models.
@@ -162,7 +165,13 @@ class StableDiffusionXL(BaseModel):
             print_log("Set Text Encoder untrainable.", "current")
 
     @property
-    def device(self):
+    def device(self) -> torch.device:
+        """Get device information.
+
+        Returns
+        -------
+            torch.device: device.
+        """
         return next(self.parameters()).device
 
     @torch.no_grad()
@@ -174,24 +183,24 @@ class StableDiffusionXL(BaseModel):
               num_inference_steps: int = 50,
               output_type: str = "pil",
               **kwargs) -> list[np.ndarray]:
-        """Function invoked when calling the pipeline for generation.
+        """Inference function.
 
         Args:
+        ----
             prompt (`List[str]`):
                 The prompt or prompts to guide the image generation.
             negative_prompt (`Optional[str]`):
                 The prompt or prompts to guide the image generation.
                 Defaults to None.
-            height (`int`, *optional*, defaults to
-                `self.unet.config.sample_size * self.vae_scale_factor`):
-                The height in pixels of the generated image.
-            width (`int`, *optional*, defaults to
-                `self.unet.config.sample_size * self.vae_scale_factor`):
-                The width in pixels of the generated image.
+            height (int, optional):
+                The height in pixels of the generated image. Defaults to None.
+            width (int, optional):
+                The width in pixels of the generated image. Defaults to None.
             num_inference_steps (int): Number of inference steps.
                 Defaults to 50.
-             output_type (str): The output format of the generate image.
+            output_type (str): The output format of the generate image.
                 Choose between 'pil' and 'latent'. Defaults to 'pil'.
+            **kwargs: Other arguments.
         """
         if self.pre_compute_text_embeddings:
             pipeline = DiffusionPipeline.from_pretrained(
@@ -238,7 +247,22 @@ class StableDiffusionXL(BaseModel):
 
         return images
 
-    def encode_prompt(self, text_one, text_two):
+    def encode_prompt(
+        self,
+        text_one: torch.Tensor,
+        text_two: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Encode prompt.
+
+        Args:
+        ----
+            text_one (torch.Tensor): Token ids from tokenizer one.
+            text_two (torch.Tensor): Token ids from tokenizer two.
+
+        Returns:
+        -------
+            tuple[torch.Tensor, torch.Tensor]: Prompt embeddings
+        """
         prompt_embeds_list = []
 
         text_encoders = [self.text_encoder_one, self.text_encoder_two]
@@ -266,6 +290,7 @@ class StableDiffusionXL(BaseModel):
             self,
             data: Union[tuple, dict, list]  # noqa
     ) -> list:
+        """Val step."""
         msg = "val_step is not implemented now, please use infer."
         raise NotImplementedError(msg)
 
@@ -273,6 +298,7 @@ class StableDiffusionXL(BaseModel):
             self,
             data: Union[tuple, dict, list]  # noqa
     ) -> list:
+        """Test step."""
         msg = "test_step is not implemented now, please use infer."
         raise NotImplementedError(msg)
 
@@ -280,7 +306,20 @@ class StableDiffusionXL(BaseModel):
             self,
             inputs: torch.Tensor,
             data_samples: Optional[list] = None,  # noqa
-            mode: str = "loss"):
+            mode: str = "loss") -> dict:
+        """Forward function.
+
+        Args:
+        ----
+            inputs (torch.Tensor): The input tensor.
+            data_samples (Optional[list], optional): The data samples.
+                Defaults to None.
+            mode (str, optional): The mode. Defaults to "loss".
+
+        Returns:
+        -------
+            dict: The loss dict.
+        """
         assert mode == "loss"
         num_batches = len(inputs["img"])
         if "result_class_image" in inputs:

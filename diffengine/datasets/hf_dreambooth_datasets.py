@@ -24,6 +24,7 @@ class HFDreamBoothDataset(Dataset):
     """DreamBooth Dataset for huggingface datasets.
 
     Args:
+    ----
         dataset (str): Dataset name.
         instance_prompt (str):
             The prompt with identifier specifying the instance.
@@ -47,6 +48,7 @@ class HFDreamBoothDataset(Dataset):
         cache_dir (str, optional): The directory where the downloaded datasets
             will be stored.Defaults to None.
     """
+
     default_class_image_config: dict = {
         "model": "runwayml/stable-diffusion-v1-5",
         "data_dir": "work_dirs/class_image",
@@ -63,7 +65,7 @@ class HFDreamBoothDataset(Dataset):
                  class_image_config: dict | None = None,
                  class_prompt: str | None = None,
                  pipeline: Sequence = (),
-                 cache_dir: str | None = None):
+                 cache_dir: str | None = None) -> None:
 
         if class_image_config is None:
             class_image_config = {
@@ -108,7 +110,8 @@ class HFDreamBoothDataset(Dataset):
                 f"class_image_config needs a dict with keys {essential_keys}"
             self.generate_class_image(class_image_config)
 
-    def generate_class_image(self, class_image_config):
+    def generate_class_image(self, class_image_config) -> None:
+        """Generate class images for prior preservation loss."""
         class_images_dir = Path(class_image_config["data_dir"])
         if class_images_dir.exists(
         ) and class_image_config["recreate_class_images"]:
@@ -145,19 +148,24 @@ class HFDreamBoothDataset(Dataset):
     def __len__(self) -> int:
         """Get the length of dataset.
 
-        Returns:
+        Returns
+        -------
             int: The length of filtered dataset.
         """
         return len(self.dataset)
 
     def __getitem__(self, idx: int) -> dict:
-        """Get the idx-th image and data information of dataset after
+        """Get item.
+
+        Get the idx-th image and data information of dataset after
         ``self.pipeline`.
 
         Args:
+        ----
             idx (int): The index of self.data_list.
 
         Returns:
+        -------
             dict: The idx-th image and data information of dataset after
             ``self.pipeline``.
         """

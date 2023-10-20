@@ -65,8 +65,8 @@ class TestIPAdapterXL(TestCase):
             height=64,
             width=64)
         assert len(result) == 1
-        self.assertEqual(type(result[0]), torch.Tensor)
-        self.assertEqual(result[0].shape, (4, 32, 32))
+        assert type(result[0]) == torch.Tensor
+        assert result[0].shape == (4, 32, 32)
 
     def test_train_step(self):
         # test load with loss module
@@ -87,7 +87,7 @@ class TestIPAdapterXL(TestCase):
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        self.assertIsInstance(log_vars["loss"], torch.Tensor)
+        assert isinstance(log_vars["loss"], torch.Tensor)
 
     def test_train_step_with_gradient_checkpointing(self):
         # test load with loss module
@@ -109,7 +109,7 @@ class TestIPAdapterXL(TestCase):
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)
         assert log_vars
-        self.assertIsInstance(log_vars["loss"], torch.Tensor)
+        assert isinstance(log_vars["loss"], torch.Tensor)
 
     def test_val_and_test_step(self):
         StableDiffuser = IPAdapterXLPlus(

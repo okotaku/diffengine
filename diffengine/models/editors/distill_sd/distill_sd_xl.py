@@ -15,6 +15,7 @@ class DistillSDXL(StableDiffusionXL):
     """Distill Stable Diffusion XL.
 
     Args:
+    ----
         model_type (str): The type of model to use. Choice from `sd_tiny`,
             `sd_small`.
     """
@@ -24,7 +25,7 @@ class DistillSDXL(StableDiffusionXL):
                  model_type: str,
                  lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
-                 **kwargs):
+                 **kwargs) -> None:
         assert lora_config is None, \
             "`lora_config` should be None when training DistillSDXL"
         assert not finetune_text_encoder, \
@@ -40,10 +41,10 @@ class DistillSDXL(StableDiffusionXL):
             finetune_text_encoder=finetune_text_encoder,
             **kwargs)  # type: ignore[misc]
 
-    def set_lora(self):
+    def set_lora(self) -> None:
         """Set LORA for model."""
 
-    def prepare_model(self):
+    def prepare_model(self) -> None:
         """Prepare model for training.
 
         Disable gradient for some models.
@@ -56,7 +57,7 @@ class DistillSDXL(StableDiffusionXL):
         super().prepare_model()
         self._cast_hook()
 
-    def _prepare_student(self):
+    def _prepare_student(self) -> None:
         assert len(self.unet.up_blocks) == len(self.unet.down_blocks)
         self.num_blocks = len(self.unet.up_blocks)
         config = self.unet._internal_dict  # noqa
@@ -86,7 +87,7 @@ class DistillSDXL(StableDiffusionXL):
         torch.cuda.empty_cache()
         gc.collect()
 
-    def _cast_hook(self):
+    def _cast_hook(self) -> None:
         self.teacher_feats: dict = {}
         self.student_feats: dict = {}
 
@@ -133,7 +134,20 @@ class DistillSDXL(StableDiffusionXL):
             self,
             inputs: torch.Tensor,
             data_samples: Optional[list] = None,  # noqa
-            mode: str = "loss"):
+            mode: str = "loss") -> dict:
+        """Forward function.
+
+        Args:
+        ----
+            inputs (torch.Tensor): The input tensor.
+            data_samples (Optional[list], optional): The data samples.
+                Defaults to None.
+            mode (str, optional): The mode. Defaults to "loss".
+
+        Returns:
+        -------
+            dict: The loss dict.
+        """
         assert mode == "loss"
         num_batches = len(inputs["img"])
         if "result_class_image" in inputs:

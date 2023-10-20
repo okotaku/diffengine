@@ -14,27 +14,31 @@ class DumpImage:
     """Dump the image processed by the pipeline.
 
     Args:
+    ----
         max_imgs (int): Maximum value of output.
         dump_dir (str): Dump output directory.
     """
 
-    def __init__(self, max_imgs: int, dump_dir: str):
+    def __init__(self, max_imgs: int, dump_dir: str) -> None:
         self.max_imgs = max_imgs
         self.dump_dir = dump_dir
         mmengine.mkdir_or_exist(self.dump_dir)
         self.num_dumped_imgs = Value("i", 0)
 
-    def __call__(self, results):
+    def __call__(self, results) -> dict:
         """Dump the input image to the specified directory.
 
         No changes will be
         made.
+
         Args:
+        ----
             results (dict): Result dict from loading pipeline.
+
         Returns:
+        -------
             results (dict): Result dict from loading pipeline. (same as input)
         """
-
         enable_dump = False
         with self.num_dumped_imgs.get_lock():
             if self.num_dumped_imgs.value < self.max_imgs:

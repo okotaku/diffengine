@@ -5,10 +5,5 @@ _base_ = [
     "../../configs/_base_/default_runtime.py",
 ]
 
-train_dataloader = {
-    "dataset": {
-        "class_image_config": {
-            "model": {{_base_.model.model}},
-        },
-    },
-}
+train_dataloader = dict(
+    dataset=dict(class_image_config=dict(model={{_base_.model.model}})))

@@ -10,7 +10,7 @@ from diffengine.registry import MODELS
 init_default_scope("diffengine")
 
 
-def main():
+def main() -> None:
     parser = ArgumentParser()
     parser.add_argument("prompt", help="Prompt text.")
     parser.add_argument("config", help="Path to config file.")
@@ -34,17 +34,17 @@ def main():
 
     config = Config.fromfile(args.config).copy()
 
-    StableDiffuser = MODELS.build(config.model)
-    StableDiffuser = StableDiffuser.to(args.device)
+    stable_diffuser = MODELS.build(config.model)
+    stable_diffuser = stable_diffuser.to(args.device)
 
     checkpoint = _load_checkpoint(args.checkpoint, map_location="cpu")
     _load_checkpoint_to_model(
-        StableDiffuser, checkpoint["state_dict"], strict=False)
+        stable_diffuser, checkpoint["state_dict"], strict=False)
 
     kwargs = {}
     if args.example_image is not None:
         kwargs["example_image"] = [args.example_image]
-    image = StableDiffuser.infer([args.prompt], **kwargs)[0]
+    image = stable_diffuser.infer([args.prompt], **kwargs)[0]
     Image.fromarray(image).save(args.out)
 
 

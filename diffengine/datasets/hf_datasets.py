@@ -32,6 +32,7 @@ class HFDataset(Dataset):
     """Dataset for huggingface datasets.
 
     Args:
+    ----
         dataset (str): Dataset name or path to dataset.
         image_column (str): Image column name. Defaults to 'image'.
         caption_column (str): Caption column name. Defaults to 'text'.
@@ -48,7 +49,7 @@ class HFDataset(Dataset):
                  caption_column: str = "text",
                  csv: str = "metadata.csv",
                  pipeline: Sequence = (),
-                 cache_dir: str | None = None):
+                 cache_dir: str | None = None) -> None:
         self.dataset_name = dataset
         if Path(dataset).exists():
             # load local folder
@@ -66,19 +67,24 @@ class HFDataset(Dataset):
     def __len__(self) -> int:
         """Get the length of dataset.
 
-        Returns:
+        Returns
+        -------
             int: The length of filtered dataset.
         """
         return len(self.dataset)
 
     def __getitem__(self, idx: int) -> dict:
-        """Get the idx-th image and data information of dataset after
+        """Get item.
+
+        Get the idx-th image and data information of dataset after
         ``self.pipeline`.
 
         Args:
+        ----
             idx (int): The index of self.data_list.
 
         Returns:
+        -------
             dict: The idx-th image and data information of dataset after
             ``self.pipeline``.
         """
@@ -109,6 +115,7 @@ class HFDatasetPreComputeEmbs(HFDataset):
         1. pre-compute Text Encoder embeddings to save memory.
 
     Args:
+    ----
         model (str): pretrained model name of stable diffusion xl.
             Defaults to 'stabilityai/stable-diffusion-xl-base-1.0'.
         text_hasher (str): Text embeddings hasher name. Defaults to 'text'.
@@ -158,13 +165,17 @@ class HFDatasetPreComputeEmbs(HFDataset):
         torch.cuda.empty_cache()
 
     def __getitem__(self, idx: int) -> dict:
-        """Get the idx-th image and data information of dataset after
+        """Get item.
+
+        Get the idx-th image and data information of dataset after
         ``self.train_transforms`.
 
         Args:
+        ----
             idx (int): The index of self.data_list.
 
         Returns:
+        -------
             dict: The idx-th image and data information of dataset after
             ``self.train_transforms``.
         """

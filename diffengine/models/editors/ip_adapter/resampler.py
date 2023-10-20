@@ -7,7 +7,8 @@ from diffusers.models.modeling_utils import ModelMixin
 from torch import nn
 
 
-def get_ffn(embed_dims, ffn_ratio=4):
+def get_ffn(embed_dims, ffn_ratio=4) -> nn.Sequential:
+    """Get feedforward network."""
     inner_dim = int(embed_dims * ffn_ratio)
     return nn.Sequential(
         nn.LayerNorm(embed_dims),
@@ -17,7 +18,8 @@ def get_ffn(embed_dims, ffn_ratio=4):
     )
 
 
-def reshape_tensor(x, heads):
+def reshape_tensor(x, heads) -> torch.Tensor:
+    """Reshape tensor."""
     bs, length, width = x.shape
     # (bs, length, width) --> (bs, length, n_heads, dim_per_head)
     x = x.view(bs, length, heads, -1)
@@ -33,12 +35,17 @@ class PerceiverAttention(nn.Module):
     """PerceiverAttention of IP-Adapter Plus.
 
     Args:
+    ----
         embed_dims (int): The feature dimension.
         head_dims (int): The number of head channels. Defaults to 64.
         num_heads (int): Parallel attention heads. Defaults to 16.
     """
 
-    def __init__(self, *, embed_dims: int, head_dims=64, num_heads: int = 16):
+    def __init__(self,
+                 *,
+                 embed_dims: int,
+                 head_dims=64,
+                 num_heads: int = 16) -> None:
         super().__init__()
         self.scale = head_dims**-0.5
         self.head_dims = head_dims
@@ -53,12 +60,14 @@ class PerceiverAttention(nn.Module):
         self.to_out = nn.Linear(inner_dim, embed_dims, bias=False)
 
     def forward(self, x: torch.Tensor, latents: torch.Tensor) -> torch.Tensor:
-        """
+        """Forward pass.
+
         Args:
+        ----
             x (torch.Tensor): image features
                 shape (b, n1, D)
-            latent (torch.Tensor): latent features
-                shape (b, n2, D)
+            latents (torch.Tensor): latent features
+                shape (b, n2, D).
         """
         x = self.norm1(x)
         latents = self.norm2(latents)
@@ -89,6 +98,7 @@ class Resampler(ModelMixin, ConfigMixin):
     """Resampler of IP-Adapter Plus.
 
     Args:
+    ----
         embed_dims (int): The feature dimension. Defaults to 768.
         output_dims (int): The number of output channels, that is the same
             number of the channels in the
@@ -135,7 +145,16 @@ class Resampler(ModelMixin, ConfigMixin):
                 ]))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass.
 
+        Args:
+        ----
+            x (torch.Tensor): Input Tensor.
+
+        Returns:
+        -------
+            torch.Tensor: Output Tensor.
+        """
         latents = self.latents.repeat(x.size(0), 1, 1)
 
         x = self.proj_in(x)

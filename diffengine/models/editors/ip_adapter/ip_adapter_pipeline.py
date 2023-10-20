@@ -20,6 +20,7 @@ class IPAdapterXLPipeline(BaseModel):
     """IPAdapterXLPipeline.
 
     Args:
+    ----
         pipeline (DiffusionPipeline): diffusers pipeline
         image_encoder (str, optional): Path to pretrained Image Encoder model.
             Defaults to 'takuoko/IP-Adapter-XL'.
@@ -32,7 +33,7 @@ class IPAdapterXLPipeline(BaseModel):
         pipeline: DiffusionPipeline,
         image_encoder: str = "takuoko/IP-Adapter-XL-test",
         clip_extra_context_tokens: int = 4,
-    ):
+    ) -> None:
         self.image_encoder_name = image_encoder
         self.clip_extra_context_tokens = clip_extra_context_tokens
 
@@ -42,7 +43,13 @@ class IPAdapterXLPipeline(BaseModel):
         self.set_ip_adapter()
 
     @property
-    def device(self):
+    def device(self) -> torch.device:
+        """Get device information.
+
+        Returns
+        -------
+            torch.device: device.
+        """
         return next(self.parameters()).device
 
     def prepare_model(self) -> None:
@@ -108,9 +115,10 @@ class IPAdapterXLPipeline(BaseModel):
               num_inference_steps: int = 50,
               output_type: str = "pil",
               **kwargs) -> list[np.ndarray]:
-        """Function invoked when calling the pipeline for generation.
+        """Inference function.
 
         Args:
+        ----
             prompt (`List[str]`):
                 The prompt or prompts to guide the image generation.
             example_image (`List[Union[str, Image.Image]]`):
@@ -118,16 +126,15 @@ class IPAdapterXLPipeline(BaseModel):
             negative_prompt (`Optional[str]`):
                 The prompt or prompts to guide the image generation.
                 Defaults to None.
-            height (`int`, *optional*, defaults to
-                `self.unet.config.sample_size * self.vae_scale_factor`):
-                The height in pixels of the generated image.
-            width (`int`, *optional*, defaults to
-                `self.unet.config.sample_size * self.vae_scale_factor`):
-                The width in pixels of the generated image.
+            height (int, optional):
+                The height in pixels of the generated image. Defaults to None.
+            width (int, optional):
+                The width in pixels of the generated image. Defaults to None.
             num_inference_steps (int): Number of inference steps.
                 Defaults to 50.
             output_type (str): The output format of the generate image.
                 Choose between 'pil' and 'latent'. Defaults to 'pil'.
+            **kwargs: Other arguments.
         """
         assert len(prompt) == len(example_image)
 
@@ -172,18 +179,22 @@ class IPAdapterXLPipeline(BaseModel):
             data_samples: Optional[list] = None,  # noqa
             mode: str = "tensor",  # noqa
     ) -> dict[str, torch.Tensor] | list:
+        """Forward pass."""
         msg = "forward is not implemented now, please use infer."
         raise NotImplementedError(msg)
 
     def train_step(self, data, optim_wrapper_dict):  # noqa
+        """Train step."""
         msg = "train_step is not implemented now, please use infer."
         raise NotImplementedError(msg)
 
     def val_step(self, data: Union[tuple, dict, list]) -> list:  # noqa
+        """Val step."""
         msg = "val_step is not implemented now, please use infer."
         raise NotImplementedError(msg)
 
     def test_step(self, data: Union[tuple, dict, list]) -> list:  # noqa
+        """Test step."""
         msg = "test_step is not implemented now, please use infer."
         raise NotImplementedError(msg)
 
@@ -193,11 +204,15 @@ class IPAdapterXLPlusPipeline(IPAdapterXLPipeline):
     """IPAdapterXLPlusPipeline.
 
     Args:
+    ----
         clip_extra_context_tokens (int): The number of expansion ratio of proj
             network hidden layer channels Defaults to 16.
     """
 
-    def __init__(self, *args, clip_extra_context_tokens: int = 16, **kwargs):
+    def __init__(self,
+                 *args,
+                 clip_extra_context_tokens: int = 16,
+                 **kwargs) -> None:
         super().__init__(
             *args,
             clip_extra_context_tokens=clip_extra_context_tokens,

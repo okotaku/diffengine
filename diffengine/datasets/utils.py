@@ -12,6 +12,7 @@ def encode_prompt_sdxl(batch,
                        proportion_empty_prompts: float = 0.0,
                        *,
                        is_train: bool = True) -> dict[str, torch.Tensor]:
+    """Encode prompt for Stable Diffusion XL."""
     # Adapted from pipelines.StableDiffusionXLPipeline.encode_prompt
     prompt_embeds_list = []
     prompt_batch = batch[caption_column]

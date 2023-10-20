@@ -7,7 +7,7 @@ from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
 
 
-def parse_args():
+def parse_args():  # noqa
     parser = argparse.ArgumentParser(description="Train a model")
     parser.add_argument("config", help="train config file path")
     parser.add_argument("--work-dir", help="the dir to save logs and models")
@@ -44,7 +44,7 @@ def parse_args():
     return args
 
 
-def merge_args(cfg, args):
+def merge_args(cfg, args):  # noqa
     """Merge CLI arguments to config."""
     cfg.launcher = args.launcher
 
@@ -77,7 +77,7 @@ def merge_args(cfg, args):
     return cfg
 
 
-def main():
+def main() -> None:
     args = parse_args()
 
     # load config
@@ -87,13 +87,9 @@ def main():
     cfg = merge_args(cfg, args)
 
     # build the runner from config
-    if "runner_type" not in cfg:
-        # build the default runner
-        runner = Runner.from_cfg(cfg)
-    else:
-        # build customized runner from the registry
-        # if 'runner_type' is set in the cfg
-        runner = RUNNERS.build(cfg)
+    runner = (
+        Runner.from_cfg(cfg)
+        if "runner_type" not in cfg else RUNNERS.build(cfg))
 
     # start training
     runner.train()

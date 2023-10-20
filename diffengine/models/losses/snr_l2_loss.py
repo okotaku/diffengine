@@ -5,10 +5,13 @@ from torch import nn
 from diffengine.registry import MODELS
 
 
-def compute_snr(timesteps, alphas_cumprod):
-    """Computes SNR as per https://github.com/TiankaiHang/Min-SNR-Diffusion-Tra
+def compute_snr(timesteps, alphas_cumprod) -> torch.Tensor:
+    """Compute SNR.
+
+    Refer to https://github.com/TiankaiHang/Min-SNR-Diffusion-Tra
     ining/blob/521b624bd70c67cee4bdf49225915f5945a872e3/guided_diffusion/gaussi
-    an_diffusion.py#L847-L849  # noqa."""
+    an_diffusion.py#L847-L849.
+    """
     sqrt_alphas_cumprod = alphas_cumprod**0.5
     sqrt_one_minus_alphas_cumprod = (1.0 - alphas_cumprod)**0.5
 
@@ -36,6 +39,7 @@ class SNRL2Loss(nn.Module):
     """SNR weighting gamma L2 loss.
 
     Args:
+    ----
         loss_weight (float): Weight of this loss item.
             Defaults to ``1.``.
         snr_gamma (float): SNR weighting gamma to be used if rebalancing the
@@ -62,6 +66,22 @@ class SNRL2Loss(nn.Module):
                 timesteps: torch.Tensor,
                 alphas_cumprod: torch.Tensor,
                 weight: torch.Tensor | None = None) -> torch.Tensor:
+        """Forward function.
+
+        Args:
+        ----
+            pred (torch.Tensor): The predicted tensor.
+            gt (torch.Tensor): The ground truth tensor.
+            timesteps (torch.Tensor): The timestep tensor.
+            alphas_cumprod (torch.Tensor): The alphas_cumprod from the
+                scheduler.
+            weight (torch.Tensor | None, optional): The loss weight.
+                Defaults to None.
+
+        Returns:
+        -------
+            torch.Tensor: loss
+        """
         snr = compute_snr(timesteps, alphas_cumprod)
         mse_loss_weights = (
             torch.stack([snr, self.snr_gamma * torch.ones_like(timesteps)],

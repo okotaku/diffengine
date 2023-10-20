@@ -8,6 +8,7 @@ class ImageProjModel(ModelMixin, ConfigMixin):
     """Projection Model.
 
     Args:
+    ----
         cross_attention_dim (int): The number of channels in the
             `unet.config.cross_attention_dim`. Defaults to 1024.
         clip_embeddings_dim (int): The number of channels in the
@@ -30,6 +31,7 @@ class ImageProjModel(ModelMixin, ConfigMixin):
         self.norm = nn.LayerNorm(cross_attention_dim)
 
     def forward(self, image_embeds: torch.Tensor) -> torch.Tensor:
+        """Forward pass."""
         embeds = image_embeds
         clip_extra_context_tokens = self.proj(embeds).reshape(
             -1, self.clip_extra_context_tokens, self.cross_attention_dim)

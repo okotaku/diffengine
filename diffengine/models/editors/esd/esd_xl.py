@@ -14,6 +14,7 @@ class ESDXL(StableDiffusionXL):
     """Stable Diffusion XL Erasing Concepts from Diffusion Models.
 
     Args:
+    ----
         height (int): Image height. Defaults to 1024.
         width (int): Image width. Defaults to 1024.
         negative_guidance (float): Negative guidance for loss. Defaults to 1.0.
@@ -30,7 +31,7 @@ class ESDXL(StableDiffusionXL):
                  negative_guidance: float = 1.0,
                  train_method: str = "full",
                  data_preprocessor: dict | nn.Module | None = None,
-                 **kwargs):
+                 **kwargs) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "ESDXLDataPreprocessor"}
         assert not finetune_text_encoder, \
@@ -73,9 +74,8 @@ class ESDXL(StableDiffusionXL):
                                                      name.startswith("out.")):
                 module.eval()
 
-    def train(self, *, mode=True):
-        """Convert the model into training mode while keep normalization layer
-        freezed."""
+    def train(self, *, mode=True) -> None:
+        """Convert the model into training mode."""
         super().train(mode)
         self._freeze_unet()
 
@@ -83,7 +83,20 @@ class ESDXL(StableDiffusionXL):
             self,
             inputs: torch.Tensor,
             data_samples: Optional[list] = None,  # noqa
-            mode: str = "loss"):
+            mode: str = "loss") -> dict:
+        """Forward function.
+
+        Args:
+        ----
+            inputs (torch.Tensor): The input tensor.
+            data_samples (Optional[list], optional): The data samples.
+                Defaults to None.
+            mode (str, optional): The mode. Defaults to "loss".
+
+        Returns:
+        -------
+            dict: The loss dict.
+        """
         assert mode == "loss"
         timesteps = torch.randint(1, 49, (1, ), device=self.device)
         timesteps = timesteps.long()

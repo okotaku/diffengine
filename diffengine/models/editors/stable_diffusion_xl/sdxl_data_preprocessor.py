@@ -6,6 +6,7 @@ from diffengine.registry import MODELS
 
 @MODELS.register_module()
 class SDXLDataPreprocessor(BaseDataPreprocessor):
+    """SDXLDataPreprocessor."""
 
     def forward(
             self,
@@ -19,10 +20,12 @@ class SDXLDataPreprocessor(BaseDataPreprocessor):
         dimension.
 
         Args:
+        ----
             data (dict): Data returned by dataloader
             training (bool): Whether to enable training time augmentation.
 
         Returns:
+        -------
             dict or list: Data in the same format as the model input.
         """
         if "result_class_image" in data["inputs"]:

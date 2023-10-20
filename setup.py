@@ -24,6 +24,7 @@ def parse_requirements(fname="requirements.txt", with_version=True):
     specific versioning information.
 
     Args:
+    ----
         fname (str): path to requirements file
         with_version (bool, default=False): if True include version specs
     Returns:
@@ -101,7 +102,6 @@ def add_mim_extension():
     package is installed in `editable` mode (e.g. pip install -e .), or by
     copying from the originals otherwise.
     """
-
     # parse installment mode
     if "develop" in sys.argv:
         # installed by `pip install -e .`

@@ -21,6 +21,7 @@ class IPAdapterXL(StableDiffusionXL):
     """Stable Diffusion XL IP-Adapter.
 
     Args:
+    ----
         image_encoder (str, optional): Path to pretrained Image Encoder model.
             Defaults to 'takuoko/IP-Adapter-XL'.
         clip_extra_context_tokens (int): The number of expansion ratio of proj
@@ -44,7 +45,7 @@ class IPAdapterXL(StableDiffusionXL):
                  finetune_text_encoder: bool = False,
                  zeros_image_embeddings_prob: float = 0.1,
                  data_preprocessor: dict | nn.Module | None = None,
-                 **kwargs):
+                 **kwargs) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "IPAdapterXLDataPreprocessor"}
         assert lora_config is None, \
@@ -122,9 +123,10 @@ class IPAdapterXL(StableDiffusionXL):
               num_inference_steps: int = 50,
               output_type: str = "pil",
               **kwargs) -> list[np.ndarray]:
-        """Function invoked when calling the pipeline for generation.
+        """Inference function.
 
         Args:
+        ----
             prompt (`List[str]`):
                 The prompt or prompts to guide the image generation.
             example_image (`List[Union[str, Image.Image]]`):
@@ -132,16 +134,15 @@ class IPAdapterXL(StableDiffusionXL):
             negative_prompt (`Optional[str]`):
                 The prompt or prompts to guide the image generation.
                 Defaults to None.
-            height (`int`, *optional*, defaults to
-                `self.unet.config.sample_size * self.vae_scale_factor`):
-                The height in pixels of the generated image.
-            width (`int`, *optional*, defaults to
-                `self.unet.config.sample_size * self.vae_scale_factor`):
-                The width in pixels of the generated image.
+            height (int, optional):
+                The height in pixels of the generated image. Defaults to None.
+            width (int, optional):
+                The width in pixels of the generated image. Defaults to None.
             num_inference_steps (int): Number of inference steps.
                 Defaults to 50.
             output_type (str): The output format of the generate image.
                 Choose between 'pil' and 'latent'. Defaults to 'pil'.
+            **kwargs: Other arguments.
         """
         assert len(prompt) == len(example_image)
 
@@ -198,7 +199,20 @@ class IPAdapterXL(StableDiffusionXL):
             self,
             inputs: torch.Tensor,
             data_samples: Optional[list] = None,  # noqa
-            mode: str = "loss"):
+            mode: str = "loss") -> dict:
+        """Forward function.
+
+        Args:
+        ----
+            inputs (torch.Tensor): The input tensor.
+            data_samples (Optional[list], optional): The data samples.
+                Defaults to None.
+            mode (str, optional): The mode. Defaults to "loss".
+
+        Returns:
+        -------
+            dict: The loss dict.
+        """
         assert mode == "loss"
         inputs["text_one"] = self.tokenizer_one(
             inputs["text"],
@@ -295,11 +309,15 @@ class IPAdapterXLPlus(IPAdapterXL):
     """Stable Diffusion XL IP-Adapter Plus.
 
     Args:
+    ----
         clip_extra_context_tokens (int): The number of expansion ratio of proj
             network hidden layer channels Defaults to 16.
     """
 
-    def __init__(self, *args, clip_extra_context_tokens: int = 16, **kwargs):
+    def __init__(self,
+                 *args,
+                 clip_extra_context_tokens: int = 16,
+                 **kwargs) -> None:
         super().__init__(
             *args,
             clip_extra_context_tokens=clip_extra_context_tokens,
@@ -359,7 +377,20 @@ class IPAdapterXLPlus(IPAdapterXL):
             self,
             inputs: torch.Tensor,
             data_samples: Optional[list] = None,  # noqa
-            mode: str = "loss"):
+            mode: str = "loss") -> dict:
+        """Forward function.
+
+        Args:
+        ----
+            inputs (torch.Tensor): The input tensor.
+            data_samples (Optional[list], optional): The data samples.
+                Defaults to None.
+            mode (str, optional): The mode. Defaults to "loss".
+
+        Returns:
+        -------
+            dict: The loss dict.
+        """
         assert mode == "loss"
         inputs["text_one"] = self.tokenizer_one(
             inputs["text"],

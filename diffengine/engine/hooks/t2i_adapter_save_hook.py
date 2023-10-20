@@ -8,13 +8,19 @@ from mmengine.registry import HOOKS
 
 @HOOKS.register_module()
 class T2IAdapterSaveHook(Hook):
-    """Save T2I-Adapter weights with diffusers format and pick up weights from
-    checkpoint."""
+    """T2I Adapter Save Hook.
+
+    Save T2I-Adapter weights with diffusers format and pick up weights from
+    checkpoint.
+    """
+
     priority = "VERY_LOW"
 
     def before_save_checkpoint(self, runner, checkpoint: dict) -> None:
-        """
+        """Before save checkpoint hook.
+
         Args:
+        ----
             runner (Runner): The runner of the training, validation or testing
                 process.
             checkpoint (dict): Model's checkpoint.

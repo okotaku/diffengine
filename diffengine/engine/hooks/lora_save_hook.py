@@ -13,13 +13,19 @@ from diffengine.models.editors import StableDiffusionXL
 
 @HOOKS.register_module()
 class LoRASaveHook(Hook):
-    """Save LoRA weights with diffusers format and pick up LoRA weights from
-    checkpoint."""
+    """LoRA Save Hook.
+
+    Save LoRA weights with diffusers format and pick up LoRA weights from
+    checkpoint.
+    """
+
     priority = "VERY_LOW"
 
     def before_save_checkpoint(self, runner, checkpoint: dict) -> None:
-        """
+        """Before save checkpoint hook.
+
         Args:
+        ----
             runner (Runner): The runner of the training, validation or testing
                 process.
             checkpoint (dict): Model's checkpoint.

@@ -9,10 +9,13 @@ from diffengine.registry import DATA_SAMPLERS
 
 @DATA_SAMPLERS.register_module()
 class AspectRatioBatchSampler(BatchSampler):
-    """A sampler wrapper for grouping images with similar aspect ratio into a
+    """Aspect ratio batch sampler.
+
+    A sampler wrapper for grouping images with similar aspect ratio into a
     same batch.
 
     Args:
+    ----
         sampler (Sampler): Base sampler.
         batch_size (int): Size of mini-batch.
         drop_last (bool): If ``True``, the sampler will drop the last batch if
@@ -46,6 +49,7 @@ class AspectRatioBatchSampler(BatchSampler):
             self.bucket_ids.append(bucket_id)
 
     def __iter__(self) -> Generator:
+        """Get the iterator of the sampler."""
         for idx in self.sampler:
             bucket_id = self.bucket_ids[idx]
             if bucket_id not in self._aspect_ratio_buckets:
@@ -66,6 +70,7 @@ class AspectRatioBatchSampler(BatchSampler):
         self._aspect_ratio_buckets = {}
 
     def __len__(self) -> int:
+        """Get the length of the sampler."""
         total_sample = 0
         _, counts = np.unique(self.bucket_ids, return_counts=True)
         for c in counts:

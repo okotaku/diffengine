@@ -8,6 +8,7 @@ from diffengine.registry import MODELS
 
 @MODELS.register_module()
 class ESDXLDataPreprocessor(BaseDataPreprocessor):
+    """ESDXLDataPreprocessor."""
 
     def forward(self,
                 data: dict,
@@ -19,13 +20,14 @@ class ESDXLDataPreprocessor(BaseDataPreprocessor):
         dimension.
 
         Args:
+        ----
             data (dict): Data returned by dataloader
             training (bool): Whether to enable training time augmentation.
 
         Returns:
+        -------
             dict or list: Data in the same format as the model input.
         """
-
         # pre-compute text embeddings
         data["inputs"]["prompt_embeds"] = torch.stack(
             data["inputs"]["prompt_embeds"])
