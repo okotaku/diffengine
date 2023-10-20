@@ -6,11 +6,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python 3.7
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
         with:
-          python-version: 3.8
+          python-version: '3.11'
       - name: Install pre-commit hook
         run: |
           pip install pre-commit
@@ -30,6 +29,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.11'
       - name: Upgrade pip
         run: pip install pip --upgrade
       - name: Install system dependencies
