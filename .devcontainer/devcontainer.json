@@ -2,6 +2,7 @@
     "dockerComposeFile": ["../docker-compose.yml"],
     "service": "diffengine",
     "workspaceFolder": "/workspace",
+    "postCreateCommand": "pre-commit install",
     "customizations": {
       "vscode": {
         "extensions": [

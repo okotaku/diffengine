@@ -1,7 +1,7 @@
 FROM nvcr.io/nvidia/pytorch:23.07-py3
 
 RUN apt update -y && apt install -y \
-    git
+    git tmux
 RUN apt-get update && apt-get install -y \
     vim \
     libgl1-mesa-dev \
@@ -17,7 +17,8 @@ WORKDIR /diffengine
 COPY ./ /diffengine
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir openmim==0.3.9 && \
-    pip install .
+    pip install . && \
+    pip install pre-commit
 
 # Language settings
 ENV LANG C.UTF-8

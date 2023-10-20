@@ -151,6 +151,9 @@ For detailed user guides and advanced guides, please refer to our [Documentation
       <td>
         <b>Stable Diffusion XLs</b>
       </td>
+      <td>
+        <b>DeepFloyd IFs</b>
+      </td>
     </tr>
     <tr valign="top">
       <td>
@@ -173,6 +176,12 @@ For detailed user guides and advanced guides, please refer to our [Documentation
           <li><a href="configs/ip_adapter/README.md">IP-Adapter (2023)</a></li>
           <li><a href="configs/esd/README.md">Erasing Concepts from Diffusion Models (2023)</a></li>
         </ul>
+      </td>
+      <td>
+        <ul>
+            <li><a href="configs/deepfloyd_if/README.md">DeepFloyd IF (2023)</a></li>
+            <li><a href="configs/deepfloyd_if_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
+      </ul>
       </td>
     </tr>
 </td>
