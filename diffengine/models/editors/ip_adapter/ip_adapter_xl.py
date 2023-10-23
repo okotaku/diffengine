@@ -267,8 +267,10 @@ class IPAdapterXL(StableDiffusionXL):
             torch.Tensor([
                 self.zeros_image_embeddings_prob,
                 1 - self.zeros_image_embeddings_prob,
-            ]), len(image_embeds)).to(image_embeds)
-        image_embeds = image_embeds * mask
+            ]),
+            len(image_embeds),
+            replacement=True).to(image_embeds)
+        image_embeds = image_embeds * mask.view(-1, 1, 1, 1)
 
         # TODO(takuoko): drop image  # noqa
         ip_tokens = self.image_projection(image_embeds)
@@ -444,8 +446,10 @@ class IPAdapterXLPlus(IPAdapterXL):
             torch.Tensor([
                 self.zeros_image_embeddings_prob,
                 1 - self.zeros_image_embeddings_prob,
-            ]), len(clip_img)).to(clip_img)
-        clip_img = clip_img * mask
+            ]),
+            len(clip_img),
+            replacement=True).to(clip_img)
+        clip_img = clip_img * mask.view(-1, 1, 1, 1)
         # encode image
         image_embeds = self.image_encoder(
             clip_img, output_hidden_states=True).hidden_states[-2]
