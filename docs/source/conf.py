@@ -24,7 +24,7 @@ project = 'diffengine'
 copyright = '2023, diffengine'
 author = 'diffengine Contributors'
 
-__version__ = load_version(__package__)
+__version__ = load_version('diffengine')
 # The short X.Y version
 version = __version__
 # The full version, including alpha/beta/rc tags
