@@ -87,3 +87,13 @@ image.save('demo.png')
 #### tiny_sd_xl_pokemon_blip
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/5ae252e7-ecb2-4af6-bf9a-e68d0f1840ce)
+
+We uploaded trained checkpoint on [`takuoko/tiny_sd_xl_pokemon_blip`](https://huggingface.co/takuoko/tiny_sd_xl_pokemon_blip).
+
+## Blog post
+
+[On Architectural Compression of Text-to-Image Diffusion Models](https://medium.com/@to78314910/on-architectural-compression-of-text-to-image-diffusion-models-ce8c9cba512a)
+
+## Acknowledgement
+
+These implementations are based on [segmind/distill-sd](https://github.com/segmind/distill-sd). Thank you for the great open source codes.

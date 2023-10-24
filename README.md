@@ -135,6 +135,15 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 
 </details>
 
+<details>
+<summary>Blog Posts</summary>
+
+- [Introduction to DiffEngine](https://medium.com/@to78314910/introduction-to-diffengine-cad272e900c4)
+- [Train ControlNet with DiffEngine](https://medium.com/@to78314910/train-controlnet-with-diffengine-727ef42bc38)
+- [On Architectural Compression of Text-to-Image Diffusion Models](https://medium.com/@to78314910/on-architectural-compression-of-text-to-image-diffusion-models-ce8c9cba512a)
+
+</details>
+
 ## 📊 Model Zoo [🔝](#-table-of-contents)
 
 <details open>

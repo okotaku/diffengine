@@ -89,7 +89,7 @@ $ mim run diffengine demo_lora "A photo of sks dog in a bucket" work_dirs/small_
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/9fa0bf8a-34f2-4e74-88b8-f33e249520e2)
 
-We uploaded pretrained checkpoint on [`takuoko/small-sd-dreambooth-lora-dog`](https://huggingface.co/takuoko/small-sd-dreambooth-lora-dog).
+We uploaded trained checkpoint on [`takuoko/small-sd-dreambooth-lora-dog`](https://huggingface.co/takuoko/small-sd-dreambooth-lora-dog).
 
 #### tiny_sd_dreambooth_lora_dog
 
