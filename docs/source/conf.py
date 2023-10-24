@@ -52,15 +52,11 @@ extensions = [
     'sphinx_copybutton',
     'sphinx.ext.autodoc.typehints',
     'sphinx_tabs.tabs',
-    'autoapi.extension',
 ]  # yapf: disable
 
 autodoc_typehints = 'description'
 myst_heading_anchors = 4
 myst_enable_extensions = ['colon_fence']
-autoapi_type = 'python'
-autoapi_dirs = ['../../diffengine']
-autoapi_add_toctree_entry = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
