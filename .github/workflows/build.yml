@@ -41,11 +41,8 @@ jobs:
       - name: Install diffengine dependencies
         run: |
           pip install setuptools
-          pip install --no-cache-dir openmim==0.3.9 && \
-          pip install -r requirements/requirements.txt
-          pip install -r requirements/tests.txt
       - name: Build and install
-        run: rm -rf .eggs && pip install -e .
+        run: rm -rf .eggs && pip install -e .[dev]
       - name: Run unittests and generate coverage report
         run: |
           coverage run --branch --source=diffengine -m pytest tests/
