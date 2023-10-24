@@ -19,10 +19,16 @@ Editors
    :nosignatures:
    :template: classtemplate.rst
 
+   DeepFloydIF
+   DistillSDXL
+   ESDXL
+   IPAdapterXL
+   IPAdapterXLPlus
    StableDiffusion
    StableDiffusionControlNet
    StableDiffusionXL
    StableDiffusionXLControlNet
+   StableDiffusionXLT2IAdapter
 
 Data Preprocessors
 ----------------
@@ -32,10 +38,23 @@ Data Preprocessors
    :nosignatures:
    :template: classtemplate.rst
 
+   ESDXLDataPreprocessor
+   IPAdapterXLDataPreprocessor
    SDDataPreprocessor
    SDControlNetDataPreprocessor
    SDXLDataPreprocessor
    SDXLControlNetDataPreprocessor
+
+Pipelines
+----------------
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+   :template: classtemplate.rst
+
+   IPAdapterXLPipeline
+   IPAdapterXLPlusPipeline
 
 Losses
 ----------------
@@ -45,6 +64,7 @@ Losses
    :nosignatures:
    :template: classtemplate.rst
 
+   DeBiasEstimationLoss
    L2Loss
    SNRL2Loss
 
@@ -67,8 +87,10 @@ Datasets
    :template: classtemplate.rst
 
    HFDataset
+   HFDatasetPreComputeEmbs
    HFControlNetDataset
    HFDreamBoothDataset
+   HFESDDatasetPreComputeEmbs
 
 diffengine.datasets.transforms
 ===================================
@@ -89,13 +111,37 @@ Transforms
    :template: classtemplate.rst
 
    BaseTransform
+   DumpImage
    PackInputs
-   SaveImageShape
    RandomCrop
    CenterCrop
-   RandomHorizontalFlip
+   CLIPImageProcessor
    ComputeTimeIds
-   DumpImage
+   MultiAspectRatioResizeCenterCrop
+   RandomCrop
+   RandomHorizontalFlip
+   RandomTextDrop
+   SaveImageShape
+
+diffengine.datasets.samplers
+===================================
+
+.. contents:: diffengine.datasets.samplers
+   :depth: 2
+   :local:
+   :backlinks: top
+
+.. currentmodule:: diffengine.datasets.samplers
+
+Samplers
+----------------
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+   :template: classtemplate.rst
+
+   AspectRatioBatchSampler
 
 diffengine.engine
 ===================================
@@ -115,8 +161,10 @@ Hooks
    :nosignatures:
    :template: classtemplate.rst
 
-   VisualizationHook
+   ControlNetSaveHook
+   IPAdapterSaveHook
    LoRASaveHook
    SDCheckpointHook
+   T2IAdapterSaveHook
    UnetEMAHook
    VisualizationHook
