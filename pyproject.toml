@@ -20,9 +20,25 @@ dependencies = [
 license = {file = "LICENSE"}
 keywords = ["computer vision", "diffusion models"]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "coverage"
+]
+
+[tool.setuptools.cmdclass]
+build = "add_mim_extension.MIMBuild"
+
 [tool.setuptools.packages.find]
-exclude = ["configs", "tools", "demo", "work_dirs", "examples", "docs",
-    "projects", "requirements", "tests"]
+include = ["diffengine*", "add_mim_extension.py"]
+exclude = ["build*", "docs*", "dist*", "tools*", "configs*", "tests*", "docker*", "demo*", "data*", "work_dirs*", "projects*"]
+
+[tool.wheel]
+include = ["diffengine*", "add_mim_extension.py"]
+exclude = ["build*", "docs*", "dist*", "tools*", "configs*", "tests*", "docker*", "demo*", "data*", "work_dirs*", "projects*"]
+
+[tool.distutils.bdist_wheel]
+universal = true
 
 [tool.ruff]
 target-version = "py311"
@@ -48,8 +64,8 @@ ignore = [
 ]
 
 [tool.ruff.per-file-ignores]
-"setup.py" = ["C901", "FBT002", "PLW2901", "PLR0912", "PTH", "S102", "D",
- "ANN201", "INP001"]
+"add_mim_extension.py" = ["C901", "FBT002", "PLW2901", "PLR0912", "PTH", "S102", "D",
+ "ANN201", "INP001", "T201"]
 "tests/*" = ["PLR2004", "N806", "PTH", "SLF001", "PT009", "D", "ANN201",
  "INP001"]
 "tools/*" = ["T201", "ISC002", "PTH", "D", "INP001"]
