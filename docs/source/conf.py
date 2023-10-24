@@ -12,13 +12,11 @@
 #
 import os
 import sys
+from importlib.metadata import version as load_version
 
 import sphinx_rtd_theme
 
-sys.path.insert(
-    0,
-    os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
@@ -26,19 +24,11 @@ project = 'diffengine'
 copyright = '2023, diffengine'
 author = 'diffengine Contributors'
 
+__version__ = load_version('diffengine')
+# The short X.Y version
+version = __version__
 # The full version, including alpha/beta/rc tags
-release = '2023'
-
-version_file = '../../diffengine/version.py'
-
-
-def get_version():
-    with open(version_file, 'r') as f:
-        exec(compile(f.read(), version_file, 'exec'))
-    return locals()['__version__']
-
-
-release = get_version()
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -55,11 +45,16 @@ extensions = [
     'sphinx_copybutton',
     'sphinx.ext.autodoc.typehints',
     'sphinx_tabs.tabs',
+    'autoapi.extension'
 ]  # yapf: disable
 
 autodoc_typehints = 'description'
 myst_heading_anchors = 4
 myst_enable_extensions = ['colon_fence']
+autoapi_type = 'python'
+autoapi_dirs = ['../../diffengine']
+autoapi_add_toctree_entry = False
+autoapi_template_dir = '_templates'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

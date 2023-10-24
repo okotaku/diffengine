@@ -32,10 +32,16 @@ Welcome to diffengine's documentation!
    run_guides/inference.md
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: API Reference
 
-   api.rst
+   diffengine.datasets <autoapi/diffengine/datasets/index.rst>
+   diffengine.datasets.transforms <autoapi/diffengine/datasets/transforms/index.rst>
+   diffengine.datasets.samplers <autoapi/diffengine/datasets/samplers/index.rst>
+   diffengine.engine.hooks <autoapi/diffengine/engine/hooks/index.rst>
+   diffengine.models.archs <autoapi/diffengine/models/archs/index.rst>
+   diffengine.models.losses <autoapi/diffengine/models/losses/index.rst>
+   diffengine.models.editors <autoapi/diffengine/models/editors/index.rst>
 
 Indices and tables
 ==================
