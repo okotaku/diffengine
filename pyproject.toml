@@ -26,7 +26,6 @@ dev = [
     "coverage"
 ]
 docs = [
-    "--extra-index-url https://download.pytorch.org/whl/cpu",
     "docutils==0.18.1",
     "modelindex",
     "myst-parser",
