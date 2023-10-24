@@ -6,7 +6,7 @@ from mmengine.optim import OptimWrapper
 from torch.optim import SGD
 
 from diffengine.models.editors import SDDataPreprocessor, StableDiffusion
-from diffengine.models.losses import L2Loss
+from diffengine.models.losses import DeBiasEstimationLoss, L2Loss, SNRL2Loss
 
 
 class TestStableDiffusion(TestCase):
@@ -92,6 +92,38 @@ class TestStableDiffusion(TestCase):
         data["inputs"]["result_class_image"] = dict(
             img=[torch.zeros((3, 64, 64))],
             text=["a dog"])  # type: ignore[assignment]
+        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+        optim_wrapper = OptimWrapper(optimizer)
+        log_vars = StableDiffuser.train_step(data, optim_wrapper)
+        assert log_vars
+        assert isinstance(log_vars["loss"], torch.Tensor)
+
+    def test_train_step_snr_loss(self):
+        # test load with loss module
+        StableDiffuser = StableDiffusion(
+            "diffusers/tiny-stable-diffusion-torch",
+            loss=SNRL2Loss(),
+            data_preprocessor=SDDataPreprocessor())
+
+        # test train step
+        data = dict(
+            inputs=dict(img=[torch.zeros((3, 64, 64))], text=["a dog"]))
+        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+        optim_wrapper = OptimWrapper(optimizer)
+        log_vars = StableDiffuser.train_step(data, optim_wrapper)
+        assert log_vars
+        assert isinstance(log_vars["loss"], torch.Tensor)
+
+    def test_train_step_debias_estimation_loss(self):
+        # test load with loss module
+        StableDiffuser = StableDiffusion(
+            "diffusers/tiny-stable-diffusion-torch",
+            loss=DeBiasEstimationLoss(),
+            data_preprocessor=SDDataPreprocessor())
+
+        # test train step
+        data = dict(
+            inputs=dict(img=[torch.zeros((3, 64, 64))], text=["a dog"]))
         optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
         optim_wrapper = OptimWrapper(optimizer)
         log_vars = StableDiffuser.train_step(data, optim_wrapper)

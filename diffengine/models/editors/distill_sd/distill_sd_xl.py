@@ -6,7 +6,6 @@ from typing import Optional
 import torch
 
 from diffengine.models.editors.stable_diffusion_xl import StableDiffusionXL
-from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
@@ -199,6 +198,11 @@ class DistillSDXL(StableDiffusionXL):
             "text_embeds": pooled_prompt_embeds,
         }
 
+        if self.prediction_type is not None:
+            # set prediction_type of scheduler if defined
+            self.scheduler.register_to_config(
+                prediction_type=self.prediction_type)
+
         if self.scheduler.config.prediction_type == "epsilon":
             gt = noise
         elif self.scheduler.config.prediction_type == "v_prediction":
@@ -222,7 +226,7 @@ class DistillSDXL(StableDiffusionXL):
 
         loss_dict = {}
         # calculate loss in FP32
-        if isinstance(self.loss_module, SNRL2Loss):
+        if self.loss_module.use_snr:
             loss_features = 0
             num_blocks = (
                 self.num_blocks

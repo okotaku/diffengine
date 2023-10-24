@@ -156,6 +156,26 @@ class TestStableDiffusionXL(TestCase):
         assert log_vars
         assert isinstance(log_vars["loss"], torch.Tensor)
 
+    def test_train_step_v_prediction(self):
+        # test load with loss module
+        StableDiffuser = StableDiffusionXL(
+            "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+            loss=L2Loss(),
+            prediction_type="v_prediction",
+            data_preprocessor=SDXLDataPreprocessor())
+
+        # test train step
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                text=["a dog"],
+                time_ids=[torch.zeros((1, 6))]))
+        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+        optim_wrapper = OptimWrapper(optimizer)
+        log_vars = StableDiffuser.train_step(data, optim_wrapper)
+        assert log_vars
+        assert isinstance(log_vars["loss"], torch.Tensor)
+
     def test_val_and_test_step(self):
         StableDiffuser = StableDiffusionXL(
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",

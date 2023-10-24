@@ -12,7 +12,6 @@ from diffengine.models.archs import set_unet_ip_adapter
 from diffengine.models.editors.ip_adapter.image_projection import ImageProjModel
 from diffengine.models.editors.ip_adapter.resampler import Resampler
 from diffengine.models.editors.stable_diffusion_xl import StableDiffusionXL
-from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
@@ -157,6 +156,10 @@ class IPAdapterXL(StableDiffusionXL):
             torch_dtype=(torch.float16 if self.device != torch.device("cpu")
                          else torch.float32),
         )
+        if self.prediction_type is not None:
+            # set prediction_type of scheduler if defined
+            pipeline.scheduler.register_to_config(
+                prediction_type=self.prediction_type)
         pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
         images = []
@@ -276,34 +279,13 @@ class IPAdapterXL(StableDiffusionXL):
         ip_tokens = self.image_projection(image_embeds)
         prompt_embeds = torch.cat([prompt_embeds, ip_tokens], dim=1)
 
-        if self.scheduler.config.prediction_type == "epsilon":
-            gt = noise
-        elif self.scheduler.config.prediction_type == "v_prediction":
-            gt = self.scheduler.get_velocity(latents, noise, timesteps)
-        else:
-            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
-            raise ValueError(msg)
-
         model_pred = self.unet(
             noisy_latents,
             timesteps,
             prompt_embeds,
             added_cond_kwargs=unet_added_conditions).sample
 
-        loss_dict = {}
-        # calculate loss in FP32
-        if isinstance(self.loss_module, SNRL2Loss):
-            loss = self.loss_module(
-                model_pred.float(),
-                gt.float(),
-                timesteps,
-                self.scheduler.alphas_cumprod,
-                weight=weight)
-        else:
-            loss = self.loss_module(
-                model_pred.float(), gt.float(), weight=weight)
-        loss_dict["loss"] = loss
-        return loss_dict
+        return self.loss(model_pred, noise, latents, timesteps, weight)
 
 
 @MODELS.register_module()
@@ -458,31 +440,10 @@ class IPAdapterXLPlus(IPAdapterXL):
         ip_tokens = self.image_projection(image_embeds)
         prompt_embeds = torch.cat([prompt_embeds, ip_tokens], dim=1)
 
-        if self.scheduler.config.prediction_type == "epsilon":
-            gt = noise
-        elif self.scheduler.config.prediction_type == "v_prediction":
-            gt = self.scheduler.get_velocity(latents, noise, timesteps)
-        else:
-            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
-            raise ValueError(msg)
-
         model_pred = self.unet(
             noisy_latents,
             timesteps,
             prompt_embeds,
             added_cond_kwargs=unet_added_conditions).sample
 
-        loss_dict = {}
-        # calculate loss in FP32
-        if isinstance(self.loss_module, SNRL2Loss):
-            loss = self.loss_module(
-                model_pred.float(),
-                gt.float(),
-                timesteps,
-                self.scheduler.alphas_cumprod,
-                weight=weight)
-        else:
-            loss = self.loss_module(
-                model_pred.float(), gt.float(), weight=weight)
-        loss_dict["loss"] = loss
-        return loss_dict
+        return self.loss(model_pred, noise, latents, timesteps, weight)

@@ -5,7 +5,6 @@ import torch
 from torch import nn
 
 from diffengine.models.editors.stable_diffusion_xl import StableDiffusionXL
-from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
@@ -30,6 +29,7 @@ class ESDXL(StableDiffusionXL):
                  width: int = 1024,
                  negative_guidance: float = 1.0,
                  train_method: str = "full",
+                 prediction_type: str | None = None,
                  data_preprocessor: dict | nn.Module | None = None,
                  **kwargs) -> None:
         if data_preprocessor is None:
@@ -39,6 +39,8 @@ class ESDXL(StableDiffusionXL):
         assert pre_compute_text_embeddings, \
             "`pre_compute_text_embeddings` should be True when training ESDXL"
         assert train_method in ["full", "xattn", "noxattn", "selfattn"]
+        assert prediction_type is None, \
+            "`prediction_type` should be None when training ESDXL"
 
         self.height = height
         self.width = width
@@ -49,6 +51,7 @@ class ESDXL(StableDiffusionXL):
             *args,
             finetune_text_encoder=finetune_text_encoder,
             pre_compute_text_embeddings=pre_compute_text_embeddings,
+            prediction_type=prediction_type,
             data_preprocessor=data_preprocessor,
             **kwargs)  # type: ignore[misc]
 
@@ -178,9 +181,10 @@ class ESDXL(StableDiffusionXL):
         orig_model_pred.requires_grad = False
         gt = null_model_pred - self.negative_guidance * (
             orig_model_pred - null_model_pred)
-        if isinstance(self.loss_module, SNRL2Loss):
+        if self.loss_module.use_snr:
             loss = self.loss_module(model_pred.float(), gt.float(), timesteps,
-                                    self.scheduler.alphas_cumprod)
+                                    self.scheduler.alphas_cumprod,
+                                    self.scheduler.config.prediction_type)
         else:
             loss = self.loss_module(model_pred.float(), gt.float())
         loss_dict["loss"] = loss

@@ -65,7 +65,3 @@ You can see more details on [`docs/source/run_guides/run_sd.md`](../../docs/sour
 #### stable_diffusion_v15_ema_pokemon_blip
 
 ![example3](https://github.com/okotaku/diffengine/assets/24734142/9f3181e2-d244-4aa3-b116-4a07eec1aa5a)
-
-#### stable_diffusion_v15_snr_pokemon_blip
-
-![example4](https://github.com/okotaku/diffengine/assets/24734142/b98e887a-d3af-49bb-ad15-9e8250c09578)

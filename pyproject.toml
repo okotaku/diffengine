@@ -10,7 +10,7 @@ dependencies = [
     "torchvision>=0.15.2",
     "openmim>=0.3.9",
     "datasets==2.14.5",
-    "diffusers==0.21.3",
+    "diffusers==0.21.4",
     "mmengine>=0.8.5",
     "sentencepiece>=0.1.99",
     "tqdm",

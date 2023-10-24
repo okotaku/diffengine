@@ -70,7 +70,7 @@ _base_ = [
 model = dict(loss=dict(type='SNRL2Loss', snr_gamma=5.0, loss_weight=1.0))  # setup Min-SNR Weighting Strategy
 ```
 
-We also provide [`configs/stable_diffusion/stable_diffusion_v15_snr_pokemon_blip.py`](../../../configs/stable_diffusion/stable_diffusion_v15_snr_pokemon_blip.py) as a whole config.
+We also provide [`configs/min_snr_loss/stable_diffusion_v15_snr_pokemon_blip.py`](../../../configs/min_snr_loss/stable_diffusion_v15_snr_pokemon_blip.py) as a whole config.
 
 ## Run training
 

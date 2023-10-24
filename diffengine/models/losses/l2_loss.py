@@ -1,12 +1,12 @@
 import torch
 import torch.nn.functional as F  # noqa
-from torch import nn
 
+from diffengine.models.losses.base import BaseLoss
 from diffengine.registry import MODELS
 
 
 @MODELS.register_module()
-class L2Loss(nn.Module):
+class L2Loss(BaseLoss):
     """L2 loss.
 
     Args:

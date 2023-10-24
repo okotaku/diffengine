@@ -15,7 +15,6 @@ from torch import nn
 from transformers import AutoTokenizer, PretrainedConfig
 
 from diffengine.models.archs import set_text_encoder_lora, set_unet_lora
-from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
@@ -58,19 +57,25 @@ class StableDiffusionXL(BaseModel):
             ``dict(type='L2Loss', loss_weight=1.0)``.
         lora_config (dict, optional): The LoRA config dict.
             example. dict(rank=4). Defaults to None.
-        finetune_text_encoder (bool, optional): Whether to fine-tune text
-            encoder. Defaults to False.
         prior_loss_weight (float): The weight of prior preservation loss.
             It works when training dreambooth with class images.
+        noise_offset_weight (bool, optional):
+            The weight of noise offset introduced in
+            https://www.crosslabs.org/blog/diffusion-with-offset-noise
+            Defaults to 0.
+        prediction_type (str): The prediction_type that shall be used for
+            training. Choose between 'epsilon' or 'v_prediction' or leave
+            `None`. If left to `None` the default prediction type of the
+            scheduler: `noise_scheduler.config.prediciton_type` is chosen.
+        data_preprocessor (dict, optional): The pre-process config of
+            :class:`SDXLDataPreprocessor`.
+        finetune_text_encoder (bool, optional): Whether to fine-tune text
+            encoder. Defaults to False.
         gradient_checkpointing (bool): Whether or not to use gradient
             checkpointing to save memory at the expense of slower backward
             pass. Defaults to False.
         pre_compute_text_embeddings(bool): Whether or not to pre-compute text
             embeddings to save memory. Defaults to False.
-        noise_offset_weight (bool, optional):
-            The weight of noise offset introduced in
-            https://www.crosslabs.org/blog/diffusion-with-offset-noise
-            Defaults to 0.
     """
 
     def __init__(
@@ -81,6 +86,7 @@ class StableDiffusionXL(BaseModel):
         lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
+        prediction_type: str | None = None,
         data_preprocessor: dict | nn.Module | None = None,
         *,
         finetune_text_encoder: bool = False,
@@ -107,6 +113,8 @@ class StableDiffusionXL(BaseModel):
 
         self.enable_noise_offset = noise_offset_weight > 0
         self.noise_offset_weight = noise_offset_weight
+        assert prediction_type in [None, "epsilon", "v_prediction"]
+        self.prediction_type = prediction_type
 
         if not self.pre_compute_text_embeddings:
             self.tokenizer_one = AutoTokenizer.from_pretrained(
@@ -225,6 +233,10 @@ class StableDiffusionXL(BaseModel):
                              if self.device != torch.device("cpu") else
                              torch.float32),
             )
+        if self.prediction_type is not None:
+            # set prediction_type of scheduler if defined
+            pipeline.scheduler.register_to_config(
+                prediction_type=self.prediction_type)
         pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
         images = []
@@ -302,6 +314,42 @@ class StableDiffusionXL(BaseModel):
         msg = "test_step is not implemented now, please use infer."
         raise NotImplementedError(msg)
 
+    def loss(self,
+             model_pred: torch.Tensor,
+             noise: torch.Tensor,
+             latents: torch.Tensor,
+             timesteps: torch.Tensor,
+             weight: torch.Tensor | None = None) -> dict[str, torch.Tensor]:
+        """Calculate loss."""
+        if self.prediction_type is not None:
+            # set prediction_type of scheduler if defined
+            self.scheduler.register_to_config(
+                prediction_type=self.prediction_type)
+
+        if self.scheduler.config.prediction_type == "epsilon":
+            gt = noise
+        elif self.scheduler.config.prediction_type == "v_prediction":
+            gt = self.scheduler.get_velocity(latents, noise, timesteps)
+        else:
+            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
+            raise ValueError(msg)
+
+        loss_dict = {}
+        # calculate loss in FP32
+        if self.loss_module.use_snr:
+            loss = self.loss_module(
+                model_pred.float(),
+                gt.float(),
+                timesteps,
+                self.scheduler.alphas_cumprod,
+                self.scheduler.config.prediction_type,
+                weight=weight)
+        else:
+            loss = self.loss_module(
+                model_pred.float(), gt.float(), weight=weight)
+        loss_dict["loss"] = loss
+        return loss_dict
+
     def forward(
             self,
             inputs: torch.Tensor,
@@ -371,31 +419,10 @@ class StableDiffusionXL(BaseModel):
             "text_embeds": pooled_prompt_embeds,
         }
 
-        if self.scheduler.config.prediction_type == "epsilon":
-            gt = noise
-        elif self.scheduler.config.prediction_type == "v_prediction":
-            gt = self.scheduler.get_velocity(latents, noise, timesteps)
-        else:
-            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
-            raise ValueError(msg)
-
         model_pred = self.unet(
             noisy_latents,
             timesteps,
             prompt_embeds,
             added_cond_kwargs=unet_added_conditions).sample
 
-        loss_dict = {}
-        # calculate loss in FP32
-        if isinstance(self.loss_module, SNRL2Loss):
-            loss = self.loss_module(
-                model_pred.float(),
-                gt.float(),
-                timesteps,
-                self.scheduler.alphas_cumprod,
-                weight=weight)
-        else:
-            loss = self.loss_module(
-                model_pred.float(), gt.float(), weight=weight)
-        loss_dict["loss"] = loss
-        return loss_dict
+        return self.loss(model_pred, noise, latents, timesteps, weight)
