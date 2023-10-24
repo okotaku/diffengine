@@ -12,6 +12,7 @@
 #
 import os
 import sys
+from importlib.metadata import version as load_version
 
 import sphinx_rtd_theme
 
@@ -23,19 +24,11 @@ project = 'diffengine'
 copyright = '2023, diffengine'
 author = 'diffengine Contributors'
 
+__version__ = load_version(__package__)
+# The short X.Y version
+version = __version__
 # The full version, including alpha/beta/rc tags
-release = '2023'
-
-version_file = '../../diffengine/version.py'
-
-
-def get_version():
-    with open(version_file, 'r') as f:
-        exec(compile(f.read(), version_file, 'exec'))
-    return locals()['__version__']
-
-
-release = get_version()
+release = __version__
 
 # -- General configuration ---------------------------------------------------
 
