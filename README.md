@@ -154,6 +154,9 @@ For detailed user guides and advanced guides, please refer to our [Documentation
       <td>
         <b>DeepFloyd IFs</b>
       </td>
+      <td>
+        <b>Others</b>
+      </td>
     </tr>
     <tr valign="top">
       <td>
@@ -181,6 +184,12 @@ For detailed user guides and advanced guides, please refer to our [Documentation
         <ul>
             <li><a href="configs/deepfloyd_if/README.md">DeepFloyd IF (2023)</a></li>
             <li><a href="configs/deepfloyd_if_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
+      </ul>
+      </td>
+      <td>
+        <ul>
+            <li><a href="configs/min_snr_loss/README.md">Min-SNR Loss (ICCV'2023)</a></li>
+            <li><a href="configs/debias_estimation_loss/README.md">DeBias Estimation Loss (2023)</a></li>
       </ul>
       </td>
     </tr>

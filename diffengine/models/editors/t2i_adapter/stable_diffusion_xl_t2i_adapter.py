@@ -9,7 +9,6 @@ from PIL import Image
 from torch import nn
 
 from diffengine.models.editors.stable_diffusion_xl import StableDiffusionXL
-from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
@@ -137,6 +136,10 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
             torch_dtype=(torch.float16 if self.device != torch.device("cpu")
                          else torch.float32),
         )
+        if self.prediction_type is not None:
+            # set prediction_type of scheduler if defined
+            pipeline.scheduler.register_to_config(
+                prediction_type=self.prediction_type)
         pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
         images = []
@@ -232,14 +235,6 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
             "text_embeds": pooled_prompt_embeds,
         }
 
-        if self.scheduler.config.prediction_type == "epsilon":
-            gt = noise
-        elif self.scheduler.config.prediction_type == "v_prediction":
-            gt = self.scheduler.get_velocity(latents, noise, timesteps)
-        else:
-            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
-            raise ValueError(msg)
-
         down_block_additional_residuals = self.adapter(inputs["condition_img"])
 
         model_pred = self.unet(
@@ -250,17 +245,4 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
             down_block_additional_residuals=down_block_additional_residuals,
         ).sample
 
-        loss_dict = {}
-        # calculate loss in FP32
-        if isinstance(self.loss_module, SNRL2Loss):
-            loss = self.loss_module(
-                model_pred.float(),
-                gt.float(),
-                timesteps,
-                self.scheduler.alphas_cumprod,
-                weight=weight)
-        else:
-            loss = self.loss_module(
-                model_pred.float(), gt.float(), weight=weight)
-        loss_dict["loss"] = loss
-        return loss_dict
+        return self.loss(model_pred, noise, latents, timesteps, weight)

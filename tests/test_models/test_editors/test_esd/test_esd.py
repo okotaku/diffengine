@@ -28,6 +28,13 @@ class TestESDXL(TestCase):
                 data_preprocessor=ESDXLDataPreprocessor(),
                 finetune_text_encoder=True)
 
+        with pytest.raises(
+                AssertionError, match="`prediction_type` should be None"):
+            _ = ESDXL(
+                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+                data_preprocessor=ESDXLDataPreprocessor(),
+                prediction_type="v_prediction")
+
     def test_infer(self):
         StableDiffuser = ESDXL(
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",

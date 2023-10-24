@@ -14,7 +14,6 @@ from torch import nn
 from transformers import T5EncoderModel, T5Tokenizer
 
 from diffengine.models.archs import set_text_encoder_lora, set_unet_lora
-from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
@@ -36,10 +35,14 @@ class DeepFloydIF(BaseModel):
             The weight of noise offset introduced in
             https://www.crosslabs.org/blog/diffusion-with-offset-noise
             Defaults to 0.
-        data_preprocessor (dict, optional): The pre-process config of
-            :class:`SDDataPreprocessor`.
         tokenizer_max_length (int): The max length of tokenizer.
             Defaults to 77.
+        prediction_type (str): The prediction_type that shall be used for
+            training. Choose between 'epsilon' or 'v_prediction' or leave
+            `None`. If left to `None` the default prediction type of the
+            scheduler: `noise_scheduler.config.prediciton_type` is chosen.
+        data_preprocessor (dict, optional): The pre-process config of
+            :class:`SDDataPreprocessor`.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. Defaults to False.
         gradient_checkpointing (bool): Whether or not to use gradient
@@ -54,8 +57,9 @@ class DeepFloydIF(BaseModel):
         lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         noise_offset_weight: float = 0,
-        data_preprocessor: dict | nn.Module | None = None,
         tokenizer_max_length: int = 77,
+        prediction_type: str | None = None,
+        data_preprocessor: dict | nn.Module | None = None,
         *,
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
@@ -78,6 +82,8 @@ class DeepFloydIF(BaseModel):
 
         self.enable_noise_offset = noise_offset_weight > 0
         self.noise_offset_weight = noise_offset_weight
+        assert prediction_type in [None, "epsilon", "v_prediction"]
+        self.prediction_type = prediction_type
 
         self.tokenizer = T5Tokenizer.from_pretrained(
             model, subfolder="tokenizer")
@@ -161,6 +167,10 @@ class DeepFloydIF(BaseModel):
             torch_dtype=(torch.float16 if self.device != torch.device("cpu")
                          else torch.float32),
         )
+        if self.prediction_type is not None:
+            # set prediction_type of scheduler if defined
+            pipeline.scheduler.register_to_config(
+                prediction_type=self.prediction_type)
         pipeline.set_progress_bar_config(disable=True)
         images = []
         for p in prompt:
@@ -197,6 +207,42 @@ class DeepFloydIF(BaseModel):
         """Test step."""
         msg = "test_step is not implemented now, please use infer."
         raise NotImplementedError(msg)
+
+    def loss(self,
+             model_pred: torch.Tensor,
+             noise: torch.Tensor,
+             latents: torch.Tensor,
+             timesteps: torch.Tensor,
+             weight: torch.Tensor | None = None) -> dict[str, torch.Tensor]:
+        """Calculate loss."""
+        if self.prediction_type is not None:
+            # set prediction_type of scheduler if defined
+            self.scheduler.register_to_config(
+                prediction_type=self.prediction_type)
+
+        if self.scheduler.config.prediction_type == "epsilon":
+            gt = noise
+        elif self.scheduler.config.prediction_type == "v_prediction":
+            gt = self.scheduler.get_velocity(latents, noise, timesteps)
+        else:
+            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
+            raise ValueError(msg)
+
+        loss_dict = {}
+        # calculate loss in FP32
+        if self.loss_module.use_snr:
+            loss = self.loss_module(
+                model_pred.float(),
+                gt.float(),
+                timesteps,
+                self.scheduler.alphas_cumprod,
+                self.scheduler.config.prediction_type,
+                weight=weight)
+        else:
+            loss = self.loss_module(
+                model_pred.float(), gt.float(), weight=weight)
+        loss_dict["loss"] = loss
+        return loss_dict
 
     def forward(
             self,
@@ -260,14 +306,6 @@ class DeepFloydIF(BaseModel):
         encoder_hidden_states = self.text_encoder(
             inputs["text"], attention_mask=inputs["attention_mask"])[0]
 
-        if self.scheduler.config.prediction_type == "epsilon":
-            gt = noise
-        elif self.scheduler.config.prediction_type == "v_prediction":
-            gt = self.scheduler.get_velocity(model_input, noise, timesteps)
-        else:
-            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
-            raise ValueError(msg)
-
         model_pred = self.unet(
             noisy_model_input,
             timesteps,
@@ -275,17 +313,4 @@ class DeepFloydIF(BaseModel):
 
         model_pred, _ = torch.chunk(model_pred, 2, dim=1)
 
-        loss_dict = {}
-        # calculate loss in FP32
-        if isinstance(self.loss_module, SNRL2Loss):
-            loss = self.loss_module(
-                model_pred.float(),
-                gt.float(),
-                timesteps,
-                self.scheduler.alphas_cumprod,
-                weight=weight)
-        else:
-            loss = self.loss_module(
-                model_pred.float(), gt.float(), weight=weight)
-        loss_dict["loss"] = loss
-        return loss_dict
+        return self.loss(model_pred, noise, model_input, timesteps, weight)

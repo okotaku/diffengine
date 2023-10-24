@@ -9,7 +9,6 @@ from PIL import Image
 from torch import nn
 
 from diffengine.models.editors.stable_diffusion import StableDiffusion
-from diffengine.models.losses.snr_l2_loss import SNRL2Loss
 from diffengine.registry import MODELS
 
 
@@ -144,6 +143,10 @@ class StableDiffusionControlNet(StableDiffusion):
             torch_dtype=(torch.float16 if self.device != torch.device("cpu")
                          else torch.float32),
         )
+        if self.prediction_type is not None:
+            # set prediction_type of scheduler if defined
+            pipeline.scheduler.register_to_config(
+                prediction_type=self.prediction_type)
         pipeline.set_progress_bar_config(disable=True)
         images = []
         for p, img in zip(prompt, condition_image, strict=True):
@@ -223,14 +226,6 @@ class StableDiffusionControlNet(StableDiffusion):
 
         encoder_hidden_states = self.text_encoder(inputs["text"])[0]
 
-        if self.scheduler.config.prediction_type == "epsilon":
-            gt = noise
-        elif self.scheduler.config.prediction_type == "v_prediction":
-            gt = self.scheduler.get_velocity(latents, noise, timesteps)
-        else:
-            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
-            raise ValueError(msg)
-
         down_block_res_samples, mid_block_res_sample = self.controlnet(
             noisy_latents,
             timesteps,
@@ -246,17 +241,4 @@ class StableDiffusionControlNet(StableDiffusion):
             down_block_additional_residuals=down_block_res_samples,
             mid_block_additional_residual=mid_block_res_sample).sample
 
-        loss_dict = {}
-        # calculate loss in FP32
-        if isinstance(self.loss_module, SNRL2Loss):
-            loss = self.loss_module(
-                model_pred.float(),
-                gt.float(),
-                timesteps,
-                self.scheduler.alphas_cumprod,
-                weight=weight)
-        else:
-            loss = self.loss_module(
-                model_pred.float(), gt.float(), weight=weight)
-        loss_dict["loss"] = loss
-        return loss_dict
+        return self.loss(model_pred, noise, latents, timesteps, weight)
