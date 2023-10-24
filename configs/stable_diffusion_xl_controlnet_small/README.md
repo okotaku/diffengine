@@ -70,3 +70,7 @@ You can see more details on [`docs/source/run_guides/run_controlnet_xl.md`](../.
 ![input1](https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/74be361b-ec28-465a-8e7e-55b1a6210e80)
+
+## Blog post
+
+[Train ControlNet with DiffEngine](https://medium.com/@to78314910/train-controlnet-with-diffengine-727ef42bc38)
