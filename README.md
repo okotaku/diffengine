@@ -141,6 +141,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 - [Introduction to DiffEngine](https://medium.com/@to78314910/introduction-to-diffengine-cad272e900c4)
 - [Train ControlNet with DiffEngine](https://medium.com/@to78314910/train-controlnet-with-diffengine-727ef42bc38)
 - [On Architectural Compression of Text-to-Image Diffusion Models](https://medium.com/@to78314910/on-architectural-compression-of-text-to-image-diffusion-models-ce8c9cba512a)
+- [SSD-1B: A Leap in Efficient T2I Generation](https://medium.com/@to78314910/ssd-1b-a-leap-in-efficient-t2i-generation-138bb05fdd75)
 
 </details>
 
@@ -187,6 +188,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
           <li><a href="configs/t2i_adapter/README.md">T2I-Adapter (2023)</a></li>
           <li><a href="configs/ip_adapter/README.md">IP-Adapter (2023)</a></li>
           <li><a href="configs/esd/README.md">Erasing Concepts from Diffusion Models (2023)</a></li>
+          <li><a href="configs/ssd_1b/README.md">SSD-1B (2023)</a></li>
         </ul>
       </td>
       <td>
