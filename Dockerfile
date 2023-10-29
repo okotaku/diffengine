@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/pytorch:23.07-py3
+FROM nvcr.io/nvidia/pytorch:23.10-py3
 
 RUN apt update -y && apt install -y \
     git tmux
@@ -19,6 +19,10 @@ RUN pip install --upgrade pip && \
     pip install --no-cache-dir openmim==0.3.9 && \
     pip install . && \
     pip install pre-commit
+
+# Install xformers
+# RUN export TORCH_CUDA_ARCH_LIST="9.0+PTX" MAX_JOBS=1 && \
+#     pip install -v -U git+https://github.com/facebookresearch/xformers.git@v0.0.22.post7#egg=xformers
 
 # Language settings
 ENV LANG C.UTF-8
