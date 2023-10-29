@@ -37,16 +37,22 @@ class FastNormHook(Hook):
     """Fast Normalization Hook.
 
     Replace the normalization layer with a faster one.
+
+    Args:
+    ----
+        fuse_text_encoder (bool, optional): Whether to fuse the text encoder.
+            Defaults to False.
     """
 
     priority = "VERY_LOW"
 
-    def __init__(self) -> None:
+    def __init__(self, *, fuse_text_encoder: bool = False) -> None:
         super().__init__()
         if apex is None:
             msg = "Please install apex to use FastNormHook."
             raise ImportError(
                 msg)
+        self.fuse_text_encoder = fuse_text_encoder
 
     def _replace_ln(self, module: nn.Module, name: str, device: str) -> None:
         """Replace the layer normalization with a fused one."""
@@ -91,3 +97,11 @@ class FastNormHook(Hook):
             model = model.module
         self._replace_ln(model.unet, "model", model.device)
         self._replace_gn_forward(model.unet, "unet")
+
+        if self.fuse_text_encoder:
+            if hasattr(model, "text_encoder"):
+                self._replace_ln(model.text_encoder, "model", model.device)
+            if hasattr(model, "text_encoder_one"):
+                self._replace_ln(model.text_encoder_one, "model", model.device)
+            if hasattr(model, "text_encoder_two"):
+                self._replace_ln(model.text_encoder_two, "model", model.device)

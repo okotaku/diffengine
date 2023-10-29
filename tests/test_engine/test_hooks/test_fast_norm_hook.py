@@ -52,27 +52,45 @@ class TestFastNormHook(RunnerTestCase):
         cfg.model.type = "StableDiffusion"
         cfg.model.model = "diffusers/tiny-stable-diffusion-torch"
         runner = self.build_runner(cfg)
-        hook = FastNormHook()
+        hook = FastNormHook(fuse_text_encoder=True)
         assert isinstance(
             runner.model.unet.down_blocks[
                 1].attentions[0].transformer_blocks[0].norm1, nn.LayerNorm)
+        assert isinstance(
+            runner.model.text_encoder.text_model.encoder.layers[
+                0].layer_norm1, nn.LayerNorm)
         # replace norm
         hook.before_train(runner)
         assert isinstance(
             runner.model.unet.down_blocks[
                 1].attentions[0].transformer_blocks[0].norm1, FusedLayerNorm)
+        assert isinstance(
+            runner.model.text_encoder.text_model.encoder.layers[
+                0].layer_norm1, FusedLayerNorm)
 
         # Test StableDiffusionXL
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "StableDiffusionXL"
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
         runner = self.build_runner(cfg)
-        hook = FastNormHook()
+        hook = FastNormHook(fuse_text_encoder=True)
         assert isinstance(
             runner.model.unet.down_blocks[
                 1].attentions[0].transformer_blocks[0].norm1, nn.LayerNorm)
+        assert isinstance(
+            runner.model.text_encoder_one.text_model.encoder.layers[
+                0].layer_norm1, nn.LayerNorm)
+        assert isinstance(
+            runner.model.text_encoder_two.text_model.encoder.layers[
+                0].layer_norm1, nn.LayerNorm)
         # replace norm
         hook.before_train(runner)
         assert isinstance(
             runner.model.unet.down_blocks[
                 1].attentions[0].transformer_blocks[0].norm1, FusedLayerNorm)
+        assert isinstance(
+            runner.model.text_encoder_one.text_model.encoder.layers[
+                0].layer_norm1, FusedLayerNorm)
+        assert isinstance(
+            runner.model.text_encoder_two.text_model.encoder.layers[
+                0].layer_norm1, FusedLayerNorm)
