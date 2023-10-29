@@ -29,6 +29,22 @@ $ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 $ mim train diffengine configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py
 ```
 
+## Training Speed
+
+Environment:
+
+- A6000 Single GPU
+- nvcr.io/nvidia/pytorch:23.10-py3
+
+Settings:
+
+- 1epoch training.
+
+|                  Model                  | total time |
+| :-------------------------------------: | :--------: |
+| stable_diffusion_xl_pokemon_blip (fp16) | 12 m 37 s  |
+|  stable_diffusion_xl_pokemon_blip_fast  | 12 m 10 s  |
+
 ## Inference with diffusers
 
 Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
