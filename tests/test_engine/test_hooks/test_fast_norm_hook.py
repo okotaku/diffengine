@@ -41,6 +41,7 @@ class TestFastNormHook(RunnerTestCase):
         MODELS.module_dict.pop("L2Loss")
         return super().tearDown()
 
+    @unittest.skipIf(apex is None, "apex is not installed")
     def test_init(self) -> None:
         FastNormHook()
 
