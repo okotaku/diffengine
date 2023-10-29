@@ -1,14 +1,20 @@
-from transformers import Adafactor
-
 from diffengine.registry import OPTIMIZERS
 
+try:
+    import apex
+except ImportError:
+    apex = None
 
-def register_transformer_optimizers() -> list:
+def register_apex_optimizers() -> list:
     """Register transformer optimizers."""
-    transformer_optimizers = []
-    OPTIMIZERS.register_module(name="Adafactor")(Adafactor)
-    transformer_optimizers.append("Adafactor")
-    return transformer_optimizers
+    apex_optimizers = []
+    if apex is not None:
+        from apex.optimizers import FusedAdam, FusedSGD
+        OPTIMIZERS.register_module(name="FusedAdam")(FusedAdam)
+        apex_optimizers.append("FusedAdam")
+        OPTIMIZERS.register_module(name="FusedSGD")(FusedSGD)
+        apex_optimizers.append("FusedSGD")
+    return apex_optimizers
 
 
-TRANSFORMER_OPTIMIZERS = register_transformer_optimizers()
+APEX_OPTIMIZERS = register_apex_optimizers()

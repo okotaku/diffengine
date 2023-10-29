@@ -9,12 +9,12 @@ dependencies = [
     "torch>=2.0.1",
     "torchvision>=0.15.2",
     "openmim>=0.3.9",
-    "datasets==2.14.5",
+    "datasets==2.14.6",
     "diffusers==0.21.4",
-    "mmengine>=0.8.5",
+    "mmengine>=0.9.0",
     "sentencepiece>=0.1.99",
     "tqdm",
-    "transformers==4.33.3",
+    "transformers==4.34.1",
     "ujson"
 ]
 license = {file = "LICENSE"}

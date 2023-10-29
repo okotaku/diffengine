@@ -1,4 +1,6 @@
+from .compile_hook import CompileHook
 from .controlnet_save_hook import ControlNetSaveHook
+from .fast_norm_hook import FastNormHook
 from .ip_adapter_save_hook import IPAdapterSaveHook
 from .lora_save_hook import LoRASaveHook
 from .sd_checkpoint_hook import SDCheckpointHook
@@ -14,4 +16,6 @@ __all__ = [
     "ControlNetSaveHook",
     "IPAdapterSaveHook",
     "T2IAdapterSaveHook",
+    "CompileHook",
+    "FastNormHook",
 ]
