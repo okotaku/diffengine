@@ -5,6 +5,9 @@ _base_ = [
     "../_base_/default_runtime.py",
 ]
 
+model = dict(
+    gradient_checkpointing=False)
+
 train_dataloader = dict(batch_size=1)
 
 optim_wrapper = dict(
@@ -22,5 +25,6 @@ custom_hooks = [
         height=1024,
         width=1024),
     dict(type="SDCheckpointHook"),
-    dict(type="FastNormHook"),
+    dict(type="FastNormHook", fuse_unet_ln=False),
+    dict(type="CompileHook", compile_unet=True),
 ]

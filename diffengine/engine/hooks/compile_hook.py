@@ -12,13 +12,16 @@ class CompileHook(Hook):
     ----
         backend (str): The backend to use for compilation.
             Defaults to "inductor".
+        compile_unet (bool): Whether to compile the unet. Defaults to False.
     """
 
     priority = "VERY_LOW"
 
-    def __init__(self, backend: str = "inductor") -> None:
+    def __init__(self, backend: str = "inductor", *,
+                 compile_unet: bool = False) -> None:
         super().__init__()
         self.backend = backend
+        self.compile_unet = compile_unet
 
     def before_train(self, runner) -> None:
         """Compile the model.
@@ -30,7 +33,9 @@ class CompileHook(Hook):
         model = runner.model
         if is_model_wrapper(model):
             model = model.module
-        model.unet = torch.compile(model.unet, backend=self.backend)
+        if self.compile_unet:
+            model.unet = torch.compile(model.unet, backend=self.backend)
+
         if hasattr(model, "text_encoder"):
             model.text_encoder = torch.compile(
                 model.text_encoder, backend=self.backend)

@@ -40,19 +40,23 @@ class FastNormHook(Hook):
 
     Args:
     ----
-        fuse_text_encoder (bool, optional): Whether to fuse the text encoder.
-            Defaults to False.
+        fuse_text_encoder_ln (bool): Whether to fuse the text encoder layer
+            normalization. Defaults to False.
+        fuse_unet_ln (bool): Whether to replace the layer
+            normalization. Defaults to True.
     """
 
     priority = "VERY_LOW"
 
-    def __init__(self, *, fuse_text_encoder: bool = False) -> None:
+    def __init__(self, *, fuse_text_encoder_ln: bool = False,
+                 fuse_unet_ln: bool = True) -> None:
         super().__init__()
         if apex is None:
             msg = "Please install apex to use FastNormHook."
             raise ImportError(
                 msg)
-        self.fuse_text_encoder = fuse_text_encoder
+        self.fuse_text_encoder_ln = fuse_text_encoder_ln
+        self.fuse_unet_ln = fuse_unet_ln
 
     def _replace_ln(self, module: nn.Module, name: str, device: str) -> None:
         """Replace the layer normalization with a fused one."""
@@ -95,10 +99,11 @@ class FastNormHook(Hook):
         model = runner.model
         if is_model_wrapper(model):
             model = model.module
-        self._replace_ln(model.unet, "model", model.device)
+        if self.fuse_unet_ln:
+            self._replace_ln(model.unet, "model", model.device)
         self._replace_gn_forward(model.unet, "unet")
 
-        if self.fuse_text_encoder:
+        if self.fuse_text_encoder_ln:
             if hasattr(model, "text_encoder"):
                 self._replace_ln(model.text_encoder, "model", model.device)
             if hasattr(model, "text_encoder_one"):

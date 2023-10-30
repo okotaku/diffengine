@@ -44,7 +44,7 @@ class TestCompileHook(RunnerTestCase):
         cfg.model.type = "StableDiffusion"
         cfg.model.model = "diffusers/tiny-stable-diffusion-torch"
         runner = self.build_runner(cfg)
-        hook = CompileHook()
+        hook = CompileHook(compile_unet=True)
         assert isinstance(runner.model.unet, UNet2DConditionModel)
         assert isinstance(runner.model.vae, AutoencoderKL)
         assert isinstance(runner.model.text_encoder, CLIPTextModel)
@@ -59,7 +59,7 @@ class TestCompileHook(RunnerTestCase):
         cfg.model.type = "StableDiffusionXL"
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
         runner = self.build_runner(cfg)
-        hook = CompileHook()
+        hook = CompileHook(compile_unet=True)
         assert isinstance(runner.model.unet, UNet2DConditionModel)
         assert isinstance(runner.model.vae, AutoencoderKL)
         assert isinstance(runner.model.text_encoder_one, CLIPTextModel)
