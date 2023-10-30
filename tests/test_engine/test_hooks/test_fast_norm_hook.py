@@ -53,7 +53,7 @@ class TestFastNormHook(RunnerTestCase):
         cfg.model.type = "StableDiffusion"
         cfg.model.model = "diffusers/tiny-stable-diffusion-torch"
         runner = self.build_runner(cfg)
-        hook = FastNormHook(fuse_text_encoder=True)
+        hook = FastNormHook(fuse_text_encoder_ln=True)
         assert isinstance(
             runner.model.unet.down_blocks[
                 1].attentions[0].transformer_blocks[0].norm1, nn.LayerNorm)
@@ -74,7 +74,7 @@ class TestFastNormHook(RunnerTestCase):
         cfg.model.type = "StableDiffusionXL"
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
         runner = self.build_runner(cfg)
-        hook = FastNormHook(fuse_text_encoder=True)
+        hook = FastNormHook(fuse_text_encoder_ln=True)
         assert isinstance(
             runner.model.unet.down_blocks[
                 1].attentions[0].transformer_blocks[0].norm1, nn.LayerNorm)
