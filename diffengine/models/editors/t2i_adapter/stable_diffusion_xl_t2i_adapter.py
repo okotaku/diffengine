@@ -210,11 +210,7 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
         latents = self.vae.encode(inputs["img"]).latent_dist.sample()
         latents = latents * self.vae.config.scaling_factor
 
-        noise = torch.randn_like(latents)
-
-        if self.enable_noise_offset:
-            noise = noise + self.noise_offset_weight * torch.randn(
-                latents.shape[0], latents.shape[1], 1, 1, device=noise.device)
+        noise = self.noise_generator(latents)
 
         # Cubic sampling to sample a random time step for each image.
         # For more details about why cubic sampling is used, refer to section
@@ -226,7 +222,7 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
         timesteps = timesteps.clamp(
             0, self.scheduler.config.num_train_timesteps - 1)
 
-        noisy_latents = self.scheduler.add_noise(latents, noise, timesteps)
+        noisy_latents = self._preprocess_model_input(latents, noise, timesteps)
 
         prompt_embeds, pooled_prompt_embeds = self.encode_prompt(
             inputs["text_one"], inputs["text_two"])
