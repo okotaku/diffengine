@@ -53,6 +53,9 @@ class SSD1B(StableDiffusionXL):
             :class:`SDXLDataPreprocessor`.
         noise_generator (dict, optional): The noise generator config.
             Defaults to ``dict(type='WhiteNoise')``.
+        input_perturbation_gamma (float): The gamma of input perturbation.
+            The recommended value is 0.1 for Input Perturbation.
+            Defaults to 0.0.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. Defaults to False.
         gradient_checkpointing (bool): Whether or not to use gradient
@@ -74,6 +77,7 @@ class SSD1B(StableDiffusionXL):
         prediction_type: str | None = None,
         data_preprocessor: dict | nn.Module | None = None,
         noise_generator: dict | None = None,
+        input_perturbation_gamma: float = 0.0,
         *,
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
@@ -99,6 +103,7 @@ class SSD1B(StableDiffusionXL):
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
         self.pre_compute_text_embeddings = pre_compute_text_embeddings
+        self.input_perturbation_gamma = input_perturbation_gamma
         if pre_compute_text_embeddings:
             assert not finetune_text_encoder
 
