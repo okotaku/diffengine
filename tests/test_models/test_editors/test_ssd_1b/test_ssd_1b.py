@@ -2,6 +2,7 @@ from unittest import TestCase
 
 import pytest
 import torch
+from diffengin.models.utils import WhiteNoise
 from mmengine.optim import OptimWrapper
 from torch.optim import SGD
 
@@ -18,6 +19,7 @@ class TestSSD1B(TestCase):
                 "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 data_preprocessor=SDXLDataPreprocessor(),
+                noise_generator=WhiteNoise(),
                 finetune_text_encoder=True)
 
         with pytest.raises(
@@ -26,6 +28,7 @@ class TestSSD1B(TestCase):
                 "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 data_preprocessor=SDXLDataPreprocessor(),
+                noise_generator=WhiteNoise(),
                 lora_config=dict(rank=8))
 
         with pytest.raises(
@@ -34,13 +37,15 @@ class TestSSD1B(TestCase):
                 "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 data_preprocessor=SDXLDataPreprocessor(),
+                noise_generator=WhiteNoise(),
                 student_model_weight="dummy")
 
     def test_infer(self):
         StableDiffuser = SSD1B(
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            data_preprocessor=SDXLDataPreprocessor())
+            data_preprocessor=SDXLDataPreprocessor(),
+            noise_generator=WhiteNoise())
 
         # test infer
         result = StableDiffuser.infer(
@@ -77,7 +82,8 @@ class TestSSD1B(TestCase):
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             pre_compute_text_embeddings=True,
-            data_preprocessor=SDXLDataPreprocessor())
+            data_preprocessor=SDXLDataPreprocessor(),
+            noise_generator=WhiteNoise())
 
         assert not hasattr(StableDiffuser, "tokenizer_one")
         assert not hasattr(StableDiffuser, "text_encoder_one")
@@ -101,7 +107,8 @@ class TestSSD1B(TestCase):
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             loss=L2Loss(),
-            data_preprocessor=SDXLDataPreprocessor())
+            data_preprocessor=SDXLDataPreprocessor(),
+            noise_generator=WhiteNoise())
 
         # test train step
         data = dict(
@@ -122,6 +129,7 @@ class TestSSD1B(TestCase):
             student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             loss=L2Loss(),
             data_preprocessor=SDXLDataPreprocessor(),
+            noise_generator=WhiteNoise(),
             gradient_checkpointing=True)
 
         # test train step
@@ -143,7 +151,8 @@ class TestSSD1B(TestCase):
             student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             pre_compute_text_embeddings=True,
             loss=L2Loss(),
-            data_preprocessor=SDXLDataPreprocessor())
+            data_preprocessor=SDXLDataPreprocessor(),
+            noise_generator=WhiteNoise())
 
         assert not hasattr(StableDiffuser, "tokenizer_one")
         assert not hasattr(StableDiffuser, "text_encoder_one")
@@ -169,7 +178,8 @@ class TestSSD1B(TestCase):
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             loss=L2Loss(),
-            data_preprocessor=SDXLDataPreprocessor())
+            data_preprocessor=SDXLDataPreprocessor(),
+            noise_generator=WhiteNoise())
 
         # test train step
         data = dict(
@@ -192,7 +202,8 @@ class TestSSD1B(TestCase):
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             loss=L2Loss(),
-            data_preprocessor=SDXLDataPreprocessor())
+            data_preprocessor=SDXLDataPreprocessor(),
+            noise_generator=WhiteNoise())
 
         # test val_step
         with pytest.raises(NotImplementedError, match="val_step is not"):

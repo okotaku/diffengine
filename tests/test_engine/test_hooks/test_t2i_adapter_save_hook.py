@@ -14,6 +14,7 @@ from diffengine.models.editors import (
     StableDiffusionXLT2IAdapter,
 )
 from diffengine.models.losses import L2Loss
+from diffengine.models.utils import WhiteNoise
 
 
 class DummyWrapper(BaseModel):
@@ -39,6 +40,7 @@ class TestLoRASaveHook(RunnerTestCase):
             name="SDXLControlNetDataPreprocessor",
             module=SDXLControlNetDataPreprocessor)
         MODELS.register_module(name="L2Loss", module=L2Loss)
+        MODELS.register_module(name="WhiteNoise", module=WhiteNoise)
         return super().setUp()
 
     def tearDown(self):
@@ -46,6 +48,7 @@ class TestLoRASaveHook(RunnerTestCase):
         MODELS.module_dict.pop("StableDiffusionXLT2IAdapter")
         MODELS.module_dict.pop("SDXLControlNetDataPreprocessor")
         MODELS.module_dict.pop("L2Loss")
+        MODELS.module_dict.pop("WhiteNoise")
         return super().tearDown()
 
     def test_init(self):
