@@ -2,12 +2,12 @@ from unittest import TestCase
 
 import pytest
 import torch
-from diffengin.models.utils import WhiteNoise
 from mmengine.optim import OptimWrapper
 from torch.optim import SGD
 
 from diffengine.models.editors import SSD1B, SDXLDataPreprocessor
 from diffengine.models.losses import L2Loss
+from diffengine.models.utils import WhiteNoise
 
 
 class TestSSD1B(TestCase):
