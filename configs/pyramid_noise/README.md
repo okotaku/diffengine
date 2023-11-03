@@ -37,4 +37,4 @@ You can see details on [`docs/source/run_guides/run_xl.md`](../../docs/source/ru
 
 #### stable_diffusion_xl_pokemon_blip_pyramid_noise
 
-![example1](<>)
+![example1](https://github.com/okotaku/diffengine/assets/24734142/8ee2f0b1-6ef6-4b5e-a018-8b0acbd73ec9)

@@ -253,7 +253,7 @@ class StableDiffusion(BaseModel):
                                 noise: torch.Tensor,
                                 timesteps: torch.Tensor) -> torch.Tensor:
         if self.input_perturbation_gamma > 0:
-            input_noise = self.input_perturbation_gamma * torch.randn_like(
+            input_noise = noise + self.input_perturbation_gamma * torch.randn_like(
                 noise)
         else:
             input_noise = noise

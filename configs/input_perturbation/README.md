@@ -43,4 +43,4 @@ You can see details on [`docs/source/run_guides/run_xl.md`](../../docs/source/ru
 
 #### stable_diffusion_xl_pokemon_blip_input_perturbation
 
-![example1](<>)
+![example1](https://github.com/okotaku/diffengine/assets/24734142/b0a631e7-153c-467a-9cb6-d9155eaa7161)
