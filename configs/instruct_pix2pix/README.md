@@ -83,6 +83,6 @@ image.save('demo.png')
 
 #### stable_diffusion_xl_instruct_pix2pix
 
-![input1](https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/test_pix2pix_4.png)
+![input1](https://huggingface.co/datasets/diffusers/diffusers-images-docs/resolve/main/mountain.png)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/f66149fd-e375-4f85-bfbf-d4d046cd469a)
