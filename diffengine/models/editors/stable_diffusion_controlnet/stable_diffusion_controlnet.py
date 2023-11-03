@@ -209,11 +209,7 @@ class StableDiffusionControlNet(StableDiffusion):
         latents = self.vae.encode(inputs["img"]).latent_dist.sample()
         latents = latents * self.vae.config.scaling_factor
 
-        noise = torch.randn_like(latents)
-
-        if self.enable_noise_offset:
-            noise = noise + self.noise_offset_weight * torch.randn(
-                latents.shape[0], latents.shape[1], 1, 1, device=noise.device)
+        noise = self.noise_generator(latents)
 
         num_batches = latents.shape[0]
         timesteps = torch.randint(
@@ -222,7 +218,7 @@ class StableDiffusionControlNet(StableDiffusion):
             device=self.device)
         timesteps = timesteps.long()
 
-        noisy_latents = self.scheduler.add_noise(latents, noise, timesteps)
+        noisy_latents = self._preprocess_model_input(latents, noise, timesteps)
 
         encoder_hidden_states = self.text_encoder(inputs["text"])[0]
 

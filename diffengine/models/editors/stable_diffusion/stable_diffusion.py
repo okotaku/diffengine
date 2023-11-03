@@ -32,15 +32,16 @@ class StableDiffusion(BaseModel):
             example. dict(rank=4). Defaults to None.
         prior_loss_weight (float): The weight of prior preservation loss.
             It works when training dreambooth with class images.
-        noise_offset_weight (bool, optional):
-            The weight of noise offset introduced in
-            https://www.crosslabs.org/blog/diffusion-with-offset-noise
-            Defaults to 0.
         prediction_type (str): The prediction_type that shall be used for
             training. Choose between 'epsilon' or 'v_prediction' or leave
             `None`. If left to `None` the default prediction type of the
         data_preprocessor (dict, optional): The pre-process config of
             :class:`SDDataPreprocessor`.
+        noise_generator (dict, optional): The noise generator config.
+            Defaults to ``dict(type='WhiteNoise')``.
+        input_perturbation_gamma (float): The gamma of input perturbation.
+            The recommended value is 0.1 for Input Perturbation.
+            Defaults to 0.0.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. Defaults to False.
         gradient_checkpointing (bool): Whether or not to use gradient
@@ -54,15 +55,18 @@ class StableDiffusion(BaseModel):
         loss: dict | None = None,
         lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
-        noise_offset_weight: float = 0,
         prediction_type: str | None = None,
         data_preprocessor: dict | nn.Module | None = None,
+        noise_generator: dict | None = None,
+        input_perturbation_gamma: float = 0.0,
         *,
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
     ) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDDataPreprocessor"}
+        if noise_generator is None:
+            noise_generator = {"type": "WhiteNoise"}
         if loss is None:
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super().__init__(data_preprocessor=data_preprocessor)
@@ -71,13 +75,12 @@ class StableDiffusion(BaseModel):
         self.finetune_text_encoder = finetune_text_encoder
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
+        self.input_perturbation_gamma = input_perturbation_gamma
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
         self.loss_module: nn.Module = loss
 
-        self.enable_noise_offset = noise_offset_weight > 0
-        self.noise_offset_weight = noise_offset_weight
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
@@ -91,6 +94,7 @@ class StableDiffusion(BaseModel):
         self.vae = AutoencoderKL.from_pretrained(model, subfolder="vae")
         self.unet = UNet2DConditionModel.from_pretrained(
             model, subfolder="unet")
+        self.noise_generator = MODELS.build(noise_generator)
         self.prepare_model()
         self.set_lora()
 
@@ -244,6 +248,17 @@ class StableDiffusion(BaseModel):
         loss_dict["loss"] = loss
         return loss_dict
 
+    def _preprocess_model_input(self,
+                                latents: torch.Tensor,
+                                noise: torch.Tensor,
+                                timesteps: torch.Tensor) -> torch.Tensor:
+        if self.input_perturbation_gamma > 0:
+            input_noise = noise + self.input_perturbation_gamma * torch.randn_like(
+                noise)
+        else:
+            input_noise = noise
+        return self.scheduler.add_noise(latents, input_noise, timesteps)
+
     def forward(
             self,
             inputs: torch.Tensor,
@@ -282,11 +297,7 @@ class StableDiffusion(BaseModel):
         latents = self.vae.encode(inputs["img"]).latent_dist.sample()
         latents = latents * self.vae.config.scaling_factor
 
-        noise = torch.randn_like(latents)
-
-        if self.enable_noise_offset:
-            noise = noise + self.noise_offset_weight * torch.randn(
-                latents.shape[0], latents.shape[1], 1, 1, device=noise.device)
+        noise = self.noise_generator(latents)
 
         num_batches = latents.shape[0]
         timesteps = torch.randint(
@@ -295,7 +306,7 @@ class StableDiffusion(BaseModel):
             device=self.device)
         timesteps = timesteps.long()
 
-        noisy_latents = self.scheduler.add_noise(latents, noise, timesteps)
+        noisy_latents = self._preprocess_model_input(latents, noise, timesteps)
 
         encoder_hidden_states = self.text_encoder(inputs["text"])[0]
 

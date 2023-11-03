@@ -7,6 +7,7 @@ from torch.optim import SGD
 
 from diffengine.models.editors import SSD1B, SDXLDataPreprocessor
 from diffengine.models.losses import L2Loss
+from diffengine.models.utils import WhiteNoise  # noqa
 
 
 class TestSSD1B(TestCase):

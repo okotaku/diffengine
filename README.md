@@ -201,6 +201,9 @@ For detailed user guides and advanced guides, please refer to our [Documentation
         <ul>
             <li><a href="configs/min_snr_loss/README.md">Min-SNR Loss (ICCV'2023)</a></li>
             <li><a href="configs/debias_estimation_loss/README.md">DeBias Estimation Loss (2023)</a></li>
+            <li><a href="configs/offset_noise/README.md">Offset Noise (2023)</a></li>
+            <li><a href="configs/pyramid_noise/README.md">Pyramid Noise (2023)</a></li>
+            <li><a href="configs/input_perturbation/README.md">Input Perturbation (2023)</a></li>
       </ul>
       </td>
     </tr>

@@ -90,3 +90,6 @@ python_version = "3.11"
 no_strict_optional = true
 ignore_missing_imports = true
 check_untyped_defs = true
+
+[tool.codespell]
+ignore-words-list = "enver,"

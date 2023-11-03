@@ -31,10 +31,6 @@ class DeepFloydIF(BaseModel):
             example. dict(rank=4). Defaults to None.
         prior_loss_weight (float): The weight of prior preservation loss.
             It works when training dreambooth with class images.
-        noise_offset_weight (bool, optional):
-            The weight of noise offset introduced in
-            https://www.crosslabs.org/blog/diffusion-with-offset-noise
-            Defaults to 0.
         tokenizer_max_length (int): The max length of tokenizer.
             Defaults to 77.
         prediction_type (str): The prediction_type that shall be used for
@@ -43,6 +39,11 @@ class DeepFloydIF(BaseModel):
             scheduler: `noise_scheduler.config.prediciton_type` is chosen.
         data_preprocessor (dict, optional): The pre-process config of
             :class:`SDDataPreprocessor`.
+        noise_generator (dict, optional): The noise generator config.
+            Defaults to ``dict(type='WhiteNoise')``.
+        input_perturbation_gamma (float): The gamma of input perturbation.
+            The recommended value is 0.1 for Input Perturbation.
+            Defaults to 0.0.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. Defaults to False.
         gradient_checkpointing (bool): Whether or not to use gradient
@@ -56,16 +57,19 @@ class DeepFloydIF(BaseModel):
         loss: dict | None = None,
         lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
-        noise_offset_weight: float = 0,
         tokenizer_max_length: int = 77,
         prediction_type: str | None = None,
         data_preprocessor: dict | nn.Module | None = None,
+        noise_generator: dict | None = None,
+        input_perturbation_gamma: float = 0.0,
         *,
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
     ) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDDataPreprocessor"}
+        if noise_generator is None:
+            noise_generator = {"type": "WhiteNoise"}
         if loss is None:
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super().__init__(data_preprocessor=data_preprocessor)
@@ -75,13 +79,12 @@ class DeepFloydIF(BaseModel):
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
         self.tokenizer_max_length = tokenizer_max_length
+        self.input_perturbation_gamma = input_perturbation_gamma
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
         self.loss_module: nn.Module = loss
 
-        self.enable_noise_offset = noise_offset_weight > 0
-        self.noise_offset_weight = noise_offset_weight
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
@@ -94,6 +97,7 @@ class DeepFloydIF(BaseModel):
             model, subfolder="text_encoder")
         self.unet = UNet2DConditionModel.from_pretrained(
             model, subfolder="unet")
+        self.noise_generator = MODELS.build(noise_generator)
         self.prepare_model()
         self.set_lora()
 
@@ -244,6 +248,17 @@ class DeepFloydIF(BaseModel):
         loss_dict["loss"] = loss
         return loss_dict
 
+    def _preprocess_model_input(self,
+                                latents: torch.Tensor,
+                                noise: torch.Tensor,
+                                timesteps: torch.Tensor) -> torch.Tensor:
+        if self.input_perturbation_gamma > 0:
+            input_noise = noise + self.input_perturbation_gamma * torch.randn_like(
+                noise)
+        else:
+            input_noise = noise
+        return self.scheduler.add_noise(latents, input_noise, timesteps)
+
     def forward(
             self,
             inputs: torch.Tensor,
@@ -283,15 +298,7 @@ class DeepFloydIF(BaseModel):
 
         model_input = inputs["img"]
 
-        noise = torch.randn_like(model_input)
-
-        if self.enable_noise_offset:
-            noise = noise + self.noise_offset_weight * torch.randn(
-                model_input.shape[0],
-                model_input.shape[1],
-                1,
-                1,
-                device=noise.device)
+        noise = self.noise_generator(model_input)
 
         num_batches = model_input.shape[0]
         timesteps = torch.randint(
@@ -300,7 +307,7 @@ class DeepFloydIF(BaseModel):
             device=self.device)
         timesteps = timesteps.long()
 
-        noisy_model_input = self.scheduler.add_noise(model_input, noise,
+        noisy_model_input = self._preprocess_model_input(model_input, noise,
                                                      timesteps)
 
         encoder_hidden_states = self.text_encoder(
