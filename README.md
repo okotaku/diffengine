@@ -123,6 +123,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 - [Run Stable Diffusion XL ControlNet](https://diffengine.readthedocs.io/en/latest/run_guides/run_controlnet_xl.html)
 - [Run IP Adapter](https://diffengine.readthedocs.io/en/latest/run_guides/run_ip_adapter.html)
 - [Run T2I Adapter](https://diffengine.readthedocs.io/en/latest/run_guides/run_t2i_adapter.html)
+- [Run InstructPix2Pix](https://diffengine.readthedocs.io/en/latest/run_guides/run_instruct_pix2pix.html)
 - [Inference](https://diffengine.readthedocs.io/en/latest/run_guides/inference.html)
 
 </details>
@@ -189,6 +190,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
           <li><a href="configs/ip_adapter/README.md">IP-Adapter (2023)</a></li>
           <li><a href="configs/esd/README.md">Erasing Concepts from Diffusion Models (2023)</a></li>
           <li><a href="configs/ssd_1b/README.md">SSD-1B (2023)</a></li>
+          <li><a href="configs/instruct_pix2pix/README.md">InstructPix2Pix (2022)</a></li>
         </ul>
       </td>
       <td>
