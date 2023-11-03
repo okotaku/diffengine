@@ -101,7 +101,12 @@ class FastNormHook(Hook):
             model = model.module
         if self.fuse_unet_ln:
             self._replace_ln(model.unet, "model", model.device)
+            if hasattr(model, "controlnet"):
+                self._replace_ln(model.controlnet, "model", model.device)
+
         self._replace_gn_forward(model.unet, "unet")
+        if hasattr(model, "controlnet"):
+            self._replace_gn_forward(model.controlnet, "unet")
 
         if self.fuse_text_encoder_ln:
             if hasattr(model, "text_encoder"):
