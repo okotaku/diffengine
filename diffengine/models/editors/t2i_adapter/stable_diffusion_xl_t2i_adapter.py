@@ -29,6 +29,8 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. This should be `False` when training ControlNet.
             Defaults to False.
+        timesteps_generator (dict, optional): The timesteps generator config.
+            Defaults to ``dict(type='CubicSamplingTimeSteps')``.
         data_preprocessor (dict, optional): The pre-process config of
             :class:`SDControlNetDataPreprocessor`.
     """
@@ -40,10 +42,13 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
                  adapter_downscale_factor: int = 16,
                  lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
+                 timesteps_generator: dict | None = None,
                  data_preprocessor: dict | nn.Module | None = None,
                  **kwargs) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDXLControlNetDataPreprocessor"}
+        if timesteps_generator is None:
+            timesteps_generator = {"type": "CubicSamplingTimeSteps"}
         if adapter_model_channels is None:
             adapter_model_channels = [320, 640, 1280, 1280]
         assert lora_config is None, \
@@ -59,6 +64,7 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
             *args,
             lora_config=lora_config,
             finetune_text_encoder=finetune_text_encoder,
+            timesteps_generator=timesteps_generator,
             data_preprocessor=data_preprocessor,
             **kwargs)  # type: ignore[misc]
 
@@ -212,15 +218,8 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
 
         noise = self.noise_generator(latents)
 
-        # Cubic sampling to sample a random time step for each image.
-        # For more details about why cubic sampling is used, refer to section
-        # 3.4 of https://arxiv.org/abs/2302.08453
-        timesteps = torch.rand((num_batches, ), device=self.device)
-        timesteps = (1 -
-                     timesteps**3) * self.scheduler.config.num_train_timesteps
-        timesteps = timesteps.long()
-        timesteps = timesteps.clamp(
-            0, self.scheduler.config.num_train_timesteps - 1)
+        timesteps = self.timesteps_generator(self.scheduler, num_batches,
+                                            self.device)
 
         noisy_latents = self._preprocess_model_input(latents, noise, timesteps)
 

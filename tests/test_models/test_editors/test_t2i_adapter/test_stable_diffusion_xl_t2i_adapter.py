@@ -11,6 +11,7 @@ from diffengine.models.editors import (
     StableDiffusionXLT2IAdapter,
 )
 from diffengine.models.losses import L2Loss
+from diffengine.models.utils import CubicSamplingTimeSteps
 
 
 class TestStableDiffusionXLT2IAdapter(TestCase):
@@ -37,6 +38,7 @@ class TestStableDiffusionXLT2IAdapter(TestCase):
             adapter_model="hf-internal-testing/tiny-adapter",
             data_preprocessor=SDXLControlNetDataPreprocessor())
         assert isinstance(StableDiffuser.adapter, T2IAdapter)
+        assert isinstance(StableDiffuser.timesteps_generator, CubicSamplingTimeSteps)
 
         # test infer
         result = StableDiffuser.infer(

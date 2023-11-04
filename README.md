@@ -206,6 +206,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
             <li><a href="configs/offset_noise/README.md">Offset Noise (2023)</a></li>
             <li><a href="configs/pyramid_noise/README.md">Pyramid Noise (2023)</a></li>
             <li><a href="configs/input_perturbation/README.md">Input Perturbation (2023)</a></li>
+            <li><a href="configs/timesteps_bias/README.md">Time Steps Bias (2023)</a></li>
       </ul>
       </td>
     </tr>

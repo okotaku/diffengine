@@ -14,7 +14,7 @@ from diffengine.models.editors import (
     StableDiffusionControlNet,
 )
 from diffengine.models.losses import L2Loss
-from diffengine.models.utils import WhiteNoise
+from diffengine.models.utils import TimeSteps, WhiteNoise
 
 
 class DummyWrapper(BaseModel):
@@ -40,6 +40,7 @@ class TestLoRASaveHook(RunnerTestCase):
             module=SDControlNetDataPreprocessor)
         MODELS.register_module(name="L2Loss", module=L2Loss)
         MODELS.register_module(name="WhiteNoise", module=WhiteNoise)
+        MODELS.register_module(name="TimeSteps", module=TimeSteps)
         return super().setUp()
 
     def tearDown(self):
@@ -48,6 +49,7 @@ class TestLoRASaveHook(RunnerTestCase):
         MODELS.module_dict.pop("SDControlNetDataPreprocessor")
         MODELS.module_dict.pop("L2Loss")
         MODELS.module_dict.pop("WhiteNoise")
+        MODELS.module_dict.pop("TimeSteps")
         return super().tearDown()
 
     def test_init(self):

@@ -41,6 +41,8 @@ class DeepFloydIF(BaseModel):
             :class:`SDDataPreprocessor`.
         noise_generator (dict, optional): The noise generator config.
             Defaults to ``dict(type='WhiteNoise')``.
+        timesteps_generator (dict, optional): The timesteps generator config.
+            Defaults to ``dict(type='TimeSteps')``.
         input_perturbation_gamma (float): The gamma of input perturbation.
             The recommended value is 0.1 for Input Perturbation.
             Defaults to 0.0.
@@ -61,6 +63,7 @@ class DeepFloydIF(BaseModel):
         prediction_type: str | None = None,
         data_preprocessor: dict | nn.Module | None = None,
         noise_generator: dict | None = None,
+        timesteps_generator: dict | None = None,
         input_perturbation_gamma: float = 0.0,
         *,
         finetune_text_encoder: bool = False,
@@ -70,6 +73,8 @@ class DeepFloydIF(BaseModel):
             data_preprocessor = {"type": "SDDataPreprocessor"}
         if noise_generator is None:
             noise_generator = {"type": "WhiteNoise"}
+        if timesteps_generator is None:
+            timesteps_generator = {"type": "TimeSteps"}
         if loss is None:
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super().__init__(data_preprocessor=data_preprocessor)
@@ -98,6 +103,7 @@ class DeepFloydIF(BaseModel):
         self.unet = UNet2DConditionModel.from_pretrained(
             model, subfolder="unet")
         self.noise_generator = MODELS.build(noise_generator)
+        self.timesteps_generator = MODELS.build(timesteps_generator)
         self.prepare_model()
         self.set_lora()
 
@@ -252,6 +258,7 @@ class DeepFloydIF(BaseModel):
                                 latents: torch.Tensor,
                                 noise: torch.Tensor,
                                 timesteps: torch.Tensor) -> torch.Tensor:
+        """Preprocess model input."""
         if self.input_perturbation_gamma > 0:
             input_noise = noise + self.input_perturbation_gamma * torch.randn_like(
                 noise)
@@ -300,12 +307,8 @@ class DeepFloydIF(BaseModel):
 
         noise = self.noise_generator(model_input)
 
-        num_batches = model_input.shape[0]
-        timesteps = torch.randint(
-            0,
-            self.scheduler.config.num_train_timesteps, (num_batches, ),
-            device=self.device)
-        timesteps = timesteps.long()
+        timesteps = self.timesteps_generator(self.scheduler, num_batches,
+                                            self.device)
 
         noisy_model_input = self._preprocess_model_input(model_input, noise,
                                                      timesteps)

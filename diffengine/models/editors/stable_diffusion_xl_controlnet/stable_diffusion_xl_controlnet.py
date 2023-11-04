@@ -221,11 +221,8 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
 
         noise = self.noise_generator(latents)
 
-        timesteps = torch.randint(
-            0,
-            self.scheduler.config.num_train_timesteps, (num_batches, ),
-            device=self.device)
-        timesteps = timesteps.long()
+        timesteps = self.timesteps_generator(self.scheduler, num_batches,
+                                            self.device)
 
         noisy_latents = self._preprocess_model_input(latents, noise, timesteps)
 

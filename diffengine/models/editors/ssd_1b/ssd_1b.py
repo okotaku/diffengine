@@ -53,6 +53,8 @@ class SSD1B(StableDiffusionXL):
             :class:`SDXLDataPreprocessor`.
         noise_generator (dict, optional): The noise generator config.
             Defaults to ``dict(type='WhiteNoise')``.
+        timesteps_generator (dict, optional): The timesteps generator config.
+            Defaults to ``dict(type='TimeSteps')``.
         input_perturbation_gamma (float): The gamma of input perturbation.
             The recommended value is 0.1 for Input Perturbation.
             Defaults to 0.0.
@@ -77,6 +79,7 @@ class SSD1B(StableDiffusionXL):
         prediction_type: str | None = None,
         data_preprocessor: dict | nn.Module | None = None,
         noise_generator: dict | None = None,
+        timesteps_generator: dict | None = None,
         input_perturbation_gamma: float = 0.0,
         *,
         finetune_text_encoder: bool = False,
@@ -94,6 +97,8 @@ class SSD1B(StableDiffusionXL):
             data_preprocessor = {"type": "SDXLDataPreprocessor"}
         if noise_generator is None:
             noise_generator = {"type": "WhiteNoise"}
+        if timesteps_generator is None:
+            timesteps_generator = {"type": "TimeSteps"}
         if loss is None:
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super(StableDiffusionXL, self).__init__(data_preprocessor=data_preprocessor)
@@ -148,6 +153,7 @@ class SSD1B(StableDiffusionXL):
             self.unet = UNet2DConditionModel.from_pretrained(
                 student_model, subfolder="unet")
         self.noise_generator = MODELS.build(noise_generator)
+        self.timesteps_generator = MODELS.build(timesteps_generator)
         self.prepare_model()
         self.set_lora()
 
@@ -263,11 +269,8 @@ class SSD1B(StableDiffusionXL):
 
         noise = self.noise_generator(latents)
 
-        timesteps = torch.randint(
-            0,
-            self.scheduler.config.num_train_timesteps, (num_batches, ),
-            device=self.device)
-        timesteps = timesteps.long()
+        timesteps = self.timesteps_generator(self.scheduler, num_batches,
+                                            self.device)
 
         noisy_latents = self._preprocess_model_input(latents, noise, timesteps)
 
