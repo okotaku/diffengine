@@ -60,6 +60,10 @@ class ESDXL(StableDiffusionXL):
 
         Disable gradient for some models.
         """
+        # Replace the noise generator and timesteps generator with None
+        self.noise_generator = None
+        self.timesteps_generator = None
+
         if self.lora_config is None:
             self.orig_unet = deepcopy(
                 self.unet).requires_grad_(requires_grad=False)
@@ -81,6 +85,13 @@ class ESDXL(StableDiffusionXL):
         """Convert the model into training mode."""
         super().train(mode)
         self._freeze_unet()
+
+    def _preprocess_model_input(self,
+                                latents: torch.Tensor,
+                                noise: torch.Tensor,
+                                timesteps: torch.Tensor) -> torch.Tensor:
+        """Preprocess model input."""
+        raise NotImplementedError
 
     def forward(
             self,
