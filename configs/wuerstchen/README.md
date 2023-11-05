@@ -35,26 +35,27 @@ Once you have trained a model, specify the path to the saved model and utilize i
 
 ```py
 import torch
-from diffusers import DiffusionPipeline, UNet2DConditionModel, AutoencoderKL
-
-prompt = 'yoda pokemon'
-checkpoint = 'work_dirs/stable_diffusion_xl_pokemon_blip'
-
-unet = UNet2DConditionModel.from_pretrained(
-    checkpoint, subfolder='unet', torch_dtype=torch.float16)
-vae = AutoencoderKL.from_pretrained(
-    'madebyollin/sdxl-vae-fp16-fix',
-    torch_dtype=torch.float16,
+from diffusers import (
+    AutoPipelineForText2Image,
 )
-pipe = DiffusionPipeline.from_pretrained(
-    'stabilityai/stable-diffusion-xl-base-1.0', unet=unet, vae=vae, torch_dtype=torch.float16)
+from diffusers.pipelines.wuerstchen import DEFAULT_STAGE_C_TIMESTEPS, WuerstchenPrior
+
+checkpoint = 'work_dirs/wuerstchen_prior_pokemon_blip/step10450'
+prompt = 'A robot pokemon, 4k photo"'
+
+prior = WuerstchenPrior.from_pretrained(
+    checkpoint, subfolder='prior', torch_dtype=torch.float16)
+
+pipe = AutoPipelineForText2Image.from_pretrained(
+    'warp-ai/wuerstchen', prior_prior=prior, torch_dtype=torch.float16)
 pipe.to('cuda')
 
 image = pipe(
     prompt,
+    prior_timesteps=DEFAULT_STAGE_C_TIMESTEPS,
+    height=768,
+    width=768,
     num_inference_steps=50,
-    width=1024,
-    height=1024,
 ).images[0]
 image.save('demo.png')
 ```
@@ -63,4 +64,4 @@ image.save('demo.png')
 
 #### wuerstchen_prior_pokemon_blip
 
-![example1](<>)
+![example1](https://github.com/okotaku/diffengine/assets/24734142/41707bcb-3c2e-458a-9bd9-ce3bc47d2faf)

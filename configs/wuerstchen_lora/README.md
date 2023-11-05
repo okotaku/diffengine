@@ -42,34 +42,11 @@ $ mim train diffengine configs/wuerstchen_lora/wuerstchen_prior_lora_pokemon_bli
 Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 ```py
-import torch
-from diffusers import DiffusionPipeline, AutoencoderKL
 
-checkpoint = 'work_dirs/stable_diffusion_xl_lora_pokemon_blip/step20850'
-prompt = 'yoda pokemon'
-
-vae = AutoencoderKL.from_pretrained(
-    'madebyollin/sdxl-vae-fp16-fix',
-    torch_dtype=torch.float16,
-)
-pipe = DiffusionPipeline.from_pretrained(
-    'stabilityai/stable-diffusion-xl-base-1.0', vae=vae, torch_dtype=torch.float16)
-pipe.to('cuda')
-pipe.load_lora_weights(checkpoint)
-
-image = pipe(
-    prompt,
-    num_inference_steps=50,
-    width=1024,
-    height=1024,
-).images[0]
-image.save('demo.png')
 ```
-
-You can see more details on [`docs/source/run_guides/run_lora_xl.md`](../../docs/source/run_guides/run_lora_xl.md#inference-with-diffusers).
 
 ## Results Example
 
 #### wuerstchen_prior_lora_pokemon_blip
 
-![example1](<>)
+![example1](https://github.com/okotaku/diffengine/assets/24734142/7a6c75be-6404-45b6-9277-7c44857ae458)

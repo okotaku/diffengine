@@ -124,6 +124,8 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 - [Run IP Adapter](https://diffengine.readthedocs.io/en/latest/run_guides/run_ip_adapter.html)
 - [Run T2I Adapter](https://diffengine.readthedocs.io/en/latest/run_guides/run_t2i_adapter.html)
 - [Run InstructPix2Pix](https://diffengine.readthedocs.io/en/latest/run_guides/run_instruct_pix2pix.html)
+- [Run Wuerstchen](https://diffengine.readthedocs.io/en/latest/run_guides/run_wuerstchen.html)
+- [Run Wuerstchen LoRA](https://diffengine.readthedocs.io/en/latest/run_guides/run_wuerstchen_lora.html)
 - [Inference](https://diffengine.readthedocs.io/en/latest/run_guides/inference.html)
 
 </details>

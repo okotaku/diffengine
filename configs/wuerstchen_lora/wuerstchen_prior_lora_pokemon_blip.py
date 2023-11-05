@@ -5,6 +5,9 @@ _base_ = [
     "../_base_/default_runtime.py",
 ]
 
-optim_wrapper_cfg = dict(
-    optimizer=dict(lr=1e-5),
-    accumulative_counts=4)  # update every four times
+train_dataloader = dict(batch_size=8)
+
+optim_wrapper = dict(
+    _delete_=True,
+    optimizer=dict(type="AdamW", lr=1e-4, weight_decay=1e-2),
+    clip_grad=dict(max_norm=1.0))
