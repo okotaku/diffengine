@@ -9,6 +9,7 @@ from diffengine.models.utils import (
     LaterTimeSteps,
     RangeTimeSteps,
     TimeSteps,
+    WuerstchenRandomTimeSteps,
 )
 
 
@@ -120,4 +121,16 @@ class TestRangeTimeSteps(TestCase):
             "runwayml/stable-diffusion-v1-5", subfolder="scheduler")
         batch_size = 2
         timesteps = module(scheduler, batch_size, "cpu")
+        assert timesteps.shape == (2,)
+
+
+class TestWuerstchenRandomTimeSteps(TestCase):
+
+    def test_init(self):
+        _ = WuerstchenRandomTimeSteps()
+
+    def test_forward(self):
+        module = WuerstchenRandomTimeSteps()
+        batch_size = 2
+        timesteps = module(batch_size, "cpu")
         assert timesteps.shape == (2,)

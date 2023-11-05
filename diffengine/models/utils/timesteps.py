@@ -28,6 +28,7 @@ class TimeSteps(nn.Module):
         return timesteps.long()
 
 
+
 @MODELS.register_module()
 class LaterTimeSteps(nn.Module):
     """Later biased Time Steps module.
@@ -200,3 +201,22 @@ class CubicSamplingTimeSteps(nn.Module):
         timesteps = timesteps.long()
         return timesteps.clamp(
             0, scheduler.config.num_train_timesteps - 1)
+
+
+@MODELS.register_module()
+class WuerstchenRandomTimeSteps(nn.Module):
+    """Wuerstchen Random Time Steps module."""
+
+    def forward(self, num_batches: int, device: str,
+                ) -> torch.Tensor:
+        """Forward pass.
+
+        Generates time steps for the given batches.
+
+        Args:
+        ----
+            scheduler (DDPMScheduler): Scheduler for training diffusion model.
+            num_batches (int): Batch size.
+            device (str): Device.
+        """
+        return torch.rand((num_batches, ), device=device)
