@@ -5,8 +5,9 @@ from .timesteps import (
     LaterTimeSteps,
     RangeTimeSteps,
     TimeSteps,
+    WuerstchenRandomTimeSteps,
 )
 
 __all__ = ["WhiteNoise", "OffsetNoise", "PyramidNoise",
            "TimeSteps", "LaterTimeSteps", "EarlierTimeSteps", "RangeTimeSteps",
-           "CubicSamplingTimeSteps"]
+           "CubicSamplingTimeSteps", "WuerstchenRandomTimeSteps"]

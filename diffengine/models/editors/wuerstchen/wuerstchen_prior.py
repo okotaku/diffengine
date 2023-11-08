@@ -1,0 +1,329 @@
+from copy import deepcopy
+from typing import Optional, Union
+
+import numpy as np
+import torch
+from diffusers import (
+    AutoPipelineForText2Image,
+    DDPMWuerstchenScheduler,
+)
+from diffusers.models.attention_processor import LoRAAttnProcessor
+from diffusers.pipelines.wuerstchen import DEFAULT_STAGE_C_TIMESTEPS, WuerstchenPrior
+from huggingface_hub import hf_hub_download
+from mmengine import print_log
+from mmengine.model import BaseModel
+from torch import nn
+from transformers import CLIPTextModel, PreTrainedTokenizerFast
+
+from diffengine.models.archs import set_text_encoder_lora
+from diffengine.registry import MODELS
+
+from .efficient_net_encoder import EfficientNetEncoder
+
+
+@MODELS.register_module()
+class WuerstchenPriorModel(BaseModel):
+    """`Wuerstchen Prior.
+
+    <https://arxiv.org/abs/2306.00637>`_
+
+    Args:
+    ----
+        decoder_model (str): pretrained decoder model name of Wuerstchen.
+            Defaults to 'warp-ai/wuerstchen'.
+        prior_model (str): pretrained prior model name of WuerstchenPrior.
+            Defaults to 'warp-ai/wuerstchen-prior'.
+        loss (dict): Config of loss. Defaults to
+            ``dict(type='L2Loss', loss_weight=1.0)``.
+        lora_config (dict, optional): The LoRA config dict.
+            example. dict(rank=4). Defaults to None.
+        prior_loss_weight (float): The weight of prior preservation loss.
+            It works when training dreambooth with class images.
+        data_preprocessor (dict, optional): The pre-process config of
+            :class:`SDDataPreprocessor`.
+        noise_generator (dict, optional): The noise generator config.
+            Defaults to ``dict(type='WhiteNoise')``.
+        timesteps_generator (dict, optional): The timesteps generator config.
+            Defaults to ``dict(type='WuerstchenRandomTimeSteps')``.
+        input_perturbation_gamma (float): The gamma of input perturbation.
+            The recommended value is 0.1 for Input Perturbation.
+            Defaults to 0.0.
+        finetune_text_encoder (bool, optional): Whether to fine-tune text
+            encoder. Defaults to False.
+        gradient_checkpointing (bool): Whether or not to use gradient
+            checkpointing to save memory at the expense of slower backward
+            pass. Defaults to False.
+    """
+
+    def __init__(
+        self,
+        decoder_model: str = "warp-ai/wuerstchen",
+        prior_model: str = "warp-ai/wuerstchen-prior",
+        loss: dict | None = None,
+        lora_config: dict | None = None,
+        prior_loss_weight: float = 1.,
+        data_preprocessor: dict | nn.Module | None = None,
+        noise_generator: dict | None = None,
+        timesteps_generator: dict | None = None,
+        input_perturbation_gamma: float = 0.0,
+        *,
+        finetune_text_encoder: bool = False,
+        gradient_checkpointing: bool = False,
+    ) -> None:
+        if data_preprocessor is None:
+            data_preprocessor = {"type": "SDDataPreprocessor"}
+        if noise_generator is None:
+            noise_generator = {"type": "WhiteNoise"}
+        if timesteps_generator is None:
+            timesteps_generator = {"type": "WuerstchenRandomTimeSteps"}
+        if loss is None:
+            loss = {"type": "L2Loss", "loss_weight": 1.0}
+        super().__init__(data_preprocessor=data_preprocessor)
+        self.decoder_model = decoder_model
+        self.prior_model = prior_model
+        self.lora_config = deepcopy(lora_config)
+        self.finetune_text_encoder = finetune_text_encoder
+        self.prior_loss_weight = prior_loss_weight
+        self.gradient_checkpointing = gradient_checkpointing
+        self.input_perturbation_gamma = input_perturbation_gamma
+
+        if not isinstance(loss, nn.Module):
+            loss = MODELS.build(loss)
+        self.loss_module: nn.Module = loss
+        assert not self.loss_module.use_snr, \
+            "WuerstchenPriorModel does not support SNR loss."
+
+        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(
+            prior_model, subfolder="tokenizer",
+        )
+        self.text_encoder = CLIPTextModel.from_pretrained(
+            prior_model, subfolder="text_encoder")
+
+        pretrained_checkpoint_file = hf_hub_download(
+            "dome272/wuerstchen", filename="model_v2_stage_b.pt")
+        state_dict = torch.load(pretrained_checkpoint_file, map_location="cpu")
+        self.image_encoder = EfficientNetEncoder()
+        self.image_encoder.load_state_dict(state_dict["effnet_state_dict"])
+
+        self.scheduler = DDPMWuerstchenScheduler()
+
+        self.prior = WuerstchenPrior.from_pretrained(
+            prior_model, subfolder="prior")
+        self.noise_generator = MODELS.build(noise_generator)
+        self.timesteps_generator = MODELS.build(timesteps_generator)
+        self.prepare_model()
+        self.set_lora()
+
+    def set_lora(self) -> None:
+        """Set LORA for model."""
+        if self.lora_config is not None:
+            if self.finetune_text_encoder:
+                self.text_encoder.requires_grad_(requires_grad=False)
+                set_text_encoder_lora(self.text_encoder, self.lora_config)
+            self.prior.requires_grad_(requires_grad=False)
+            # set prior lora
+            rank = self.lora_config.get("rank", 4)
+            lora_attn_procs = {}
+            for name in self.prior.attn_processors:
+                lora_attn_procs[name] = LoRAAttnProcessor(
+                    hidden_size=self.prior.config["c"], rank=rank)
+            self.prior.set_attn_processor(lora_attn_procs)
+
+    def prepare_model(self) -> None:
+        """Prepare model for training.
+
+        Disable gradient for some models.
+        """
+        if self.gradient_checkpointing:
+            self.prior.enable_gradient_checkpointing()
+            if self.finetune_text_encoder:
+                self.text_encoder.gradient_checkpointing_enable()
+
+        self.image_encoder.requires_grad_(requires_grad=False)
+        print_log("Set Image Encoder untrainable.", "current")
+        if not self.finetune_text_encoder:
+            self.text_encoder.requires_grad_(requires_grad=False)
+            print_log("Set Text Encoder untrainable.", "current")
+
+    @property
+    def device(self) -> torch.device:
+        """Get device information.
+
+        Returns
+        -------
+            torch.device: device.
+        """
+        return next(self.parameters()).device
+
+    def train(self, *, mode=True) -> None:
+        """Convert the model into training mode."""
+        super().train(mode)
+        self.image_encoder.eval()
+        if not self.finetune_text_encoder:
+            self.text_encoder.eval()
+
+    @torch.no_grad()
+    def infer(self,
+              prompt: list[str],
+              negative_prompt: str | None = None,
+              height: int | None = None,
+              width: int | None = None,
+              num_inference_steps: int = 50,
+              output_type: str = "pil",
+              **kwargs) -> list[np.ndarray]:
+        """Inference function.
+
+        Args:
+        ----
+            prompt (`List[str]`):
+                The prompt or prompts to guide the image generation.
+            negative_prompt (`Optional[str]`):
+                The prompt or prompts to guide the image generation.
+                Defaults to None.
+            height (int, optional):
+                The height in pixels of the generated image. Defaults to None.
+            width (int, optional):
+                The width in pixels of the generated image. Defaults to None.
+            num_inference_steps (int): Number of inference steps.
+                Defaults to 50.
+            output_type (str): The output format of the generate image.
+                Choose between 'pil' and 'latent'. Defaults to 'pil'.
+            **kwargs: Other arguments.
+        """
+        pipeline = AutoPipelineForText2Image.from_pretrained(
+            self.decoder_model,
+            prior_prior=self.prior,
+            prior_text_encoder=self.text_encoder,
+            prior_tokenizer=self.tokenizer,
+            torch_dtype=torch.float32,
+        )
+        pipeline.to(self.device)
+        pipeline.set_progress_bar_config(disable=True)
+        images = []
+        for p in prompt:
+            image = pipeline(
+                p,
+                negative_prompt=negative_prompt,
+                num_inference_steps=num_inference_steps,
+                prior_timesteps=DEFAULT_STAGE_C_TIMESTEPS,
+                height=height,
+                width=width,
+                output_type=output_type,
+                **kwargs).images[0]
+            if output_type == "latent":
+                images.append(image)
+            else:
+                images.append(np.array(image))
+
+        del pipeline
+        torch.cuda.empty_cache()
+
+        return images
+
+    def val_step(
+            self,
+            data: Union[tuple, dict, list]  # noqa
+    ) -> list:
+        """Val step."""
+        msg = "val_step is not implemented now, please use infer."
+        raise NotImplementedError(msg)
+
+    def test_step(
+            self,
+            data: Union[tuple, dict, list]  # noqa
+    ) -> list:
+        """Test step."""
+        msg = "test_step is not implemented now, please use infer."
+        raise NotImplementedError(msg)
+
+    def loss(self,
+             model_pred: torch.Tensor,
+             noise: torch.Tensor,
+             timesteps: torch.Tensor,
+             weight: torch.Tensor | None = None) -> dict[str, torch.Tensor]:
+        """Calculate loss."""
+        loss_dict = {}
+        # calculate loss in FP32
+        if self.loss_module.use_snr:
+            loss = self.loss_module(
+                model_pred.float(),
+                noise.float(),
+                timesteps,
+                self.scheduler._alpha_cumprod(timesteps, self.device),  # noqa
+                "epsilon",
+                weight=weight)
+        else:
+            loss = self.loss_module(
+                model_pred.float(), noise.float(), weight=weight)
+        loss_dict["loss"] = loss
+        return loss_dict
+
+    def _preprocess_model_input(self,
+                                latents: torch.Tensor,
+                                noise: torch.Tensor,
+                                timesteps: torch.Tensor) -> torch.Tensor:
+        """Preprocess model input."""
+        if self.input_perturbation_gamma > 0:
+            input_noise = noise + self.input_perturbation_gamma * torch.randn_like(
+                noise)
+        else:
+            input_noise = noise
+        return self.scheduler.add_noise(latents, input_noise, timesteps)
+
+    def forward(
+            self,
+            inputs: torch.Tensor,
+            data_samples: Optional[list] = None,  # noqa
+            mode: str = "loss") -> dict:
+        """Forward function.
+
+        Args:
+        ----
+            inputs (torch.Tensor): The input tensor.
+            data_samples (Optional[list], optional): The data samples.
+                Defaults to None.
+            mode (str, optional): The mode. Defaults to "loss".
+
+        Returns:
+        -------
+            dict: The loss dict.
+        """
+        assert mode == "loss"
+        num_batches = len(inputs["img"])
+        if "result_class_image" in inputs:
+            # use prior_loss_weight
+            weight = torch.cat([
+                torch.ones((num_batches // 2, )),
+                torch.ones((num_batches // 2, )) * self.prior_loss_weight,
+            ]).float().reshape(-1, 1, 1, 1)
+        else:
+            weight = None
+
+        image_embeds = self.image_encoder(inputs["img"])
+        # scale
+        image_embeds = image_embeds.add(1.0).div(42.0)
+
+        noise = self.noise_generator(image_embeds)
+
+        timesteps = self.timesteps_generator(num_batches,
+                                            self.device)
+
+        noisy_latents = self._preprocess_model_input(image_embeds, noise, timesteps)
+
+        inputs_text = self.tokenizer(
+            inputs["text"],
+            max_length=self.tokenizer.model_max_length,
+            padding="max_length",
+            truncation=True,
+            return_tensors="pt")
+        prompt_embeds = self.text_encoder(
+            inputs_text.input_ids.to(self.device),
+            attention_mask=inputs_text.attention_mask.to(self.device),
+        ).last_hidden_state
+
+        model_pred = self.prior(
+            noisy_latents,
+            timesteps,
+            prompt_embeds)
+
+        return self.loss(model_pred, noise, timesteps, weight)

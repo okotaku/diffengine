@@ -2,7 +2,11 @@ import os.path as osp
 from collections import OrderedDict
 
 from diffusers import StableDiffusionXLPipeline
-from diffusers.loaders import LoraLoaderMixin, text_encoder_lora_state_dict
+from diffusers.loaders import (
+    AttnProcsLayers,
+    LoraLoaderMixin,
+    text_encoder_lora_state_dict,
+)
 from mmengine.hooks import Hook
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
@@ -33,7 +37,11 @@ class LoRASaveHook(Hook):
         model = runner.model
         if is_model_wrapper(model):
             model = model.module
-        unet_lora_layers_to_save = unet_attn_processors_state_dict(model.unet)
+        if hasattr(model, "unet"):
+            unet_lora_layers_to_save = unet_attn_processors_state_dict(model.unet)
+        elif hasattr(model, "prior"):
+            # Wuerstchen
+            unet_lora_layers_to_save = AttnProcsLayers(model.prior.attn_processors)
         ckpt_path = osp.join(runner.work_dir, f"step{runner.iter}")
         if hasattr(model,
                    "finetune_text_encoder") and model.finetune_text_encoder:
