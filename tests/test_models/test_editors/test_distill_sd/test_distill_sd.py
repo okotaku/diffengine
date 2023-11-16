@@ -19,6 +19,30 @@ class TestStableDiffusionXL(TestCase):
                 model_type="dummy",
                 data_preprocessor=SDXLDataPreprocessor())
 
+        with pytest.raises(
+                AssertionError, match="`unet_lora_config` should be None"):
+            _ = DistillSDXL(
+                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+                unet_lora_config=dict(type="dummy"),
+                model_type="sd_tiny",
+                data_preprocessor=SDXLDataPreprocessor())
+
+        with pytest.raises(
+                AssertionError, match="`text_encoder_lora_config` should be"):
+            _ = DistillSDXL(
+                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+                text_encoder_lora_config=dict(type="dummy"),
+                model_type="sd_tiny",
+                data_preprocessor=SDXLDataPreprocessor())
+
+        with pytest.raises(
+                AssertionError, match="`finetune_text_encoder` should be"):
+            _ = DistillSDXL(
+                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+                finetune_text_encoder=True,
+                model_type="sd_tiny",
+                data_preprocessor=SDXLDataPreprocessor())
+
     def test_infer(self):
         StableDiffuser = DistillSDXL(
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",

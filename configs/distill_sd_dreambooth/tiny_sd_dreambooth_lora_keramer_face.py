@@ -17,5 +17,5 @@ custom_hooks = [
         prompt=["Portrait photo of a sks person in suits"] * 4,
         by_epoch=False,
         interval=100),
-    dict(type="LoRASaveHook"),
+    dict(type="PeftSaveHook"),
 ]

@@ -1,7 +1,9 @@
 from argparse import ArgumentParser
+from pathlib import Path
 
 import torch
 from diffusers import DiffusionPipeline, IFPipeline
+from peft import PeftModel
 
 
 def main() -> None:
@@ -17,6 +19,8 @@ def main() -> None:
         "--device", help="Device used for inference", default="cuda")
     args = parser.parse_args()
 
+    checkpoint = Path(args.checkpoint)
+
     pipe = IFPipeline.from_pretrained(args.if1_model)
     pipe2 = DiffusionPipeline.from_pretrained(
         args.if2_model, text_encoder=None, torch_dtype=torch.float16)
@@ -29,7 +33,12 @@ def main() -> None:
     pipe2.to(args.device)
     pipe3.to(args.device)
 
-    pipe.load_lora_weights(args.checkpoint)
+    pipe.unet = PeftModel.from_pretrained(
+        pipe.unet, checkpoint / "unet", adapter_name="default")
+    if (checkpoint / "text_encoder").exists():
+        pipe.text_encoder = PeftModel.from_pretrained(
+            pipe.text_encoder, checkpoint / "text_encoder", adapter_name="default",
+        )
 
     prompt_embeds, negative_embeds = pipe.encode_prompt(args.prompt)
     image = pipe(

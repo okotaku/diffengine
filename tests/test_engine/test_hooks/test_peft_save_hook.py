@@ -1,6 +1,6 @@
 import copy
-import os
 import os.path as osp
+import shutil
 from copy import deepcopy
 from pathlib import Path
 
@@ -12,7 +12,7 @@ from mmengine.testing import RunnerTestCase
 from torch import nn
 from transformers import CLIPTextConfig, CLIPTextModel, CLIPTokenizer
 
-from diffengine.engine.hooks import LoRASaveHook
+from diffengine.engine.hooks import PeftSaveHook
 from diffengine.models.editors import (
     SDDataPreprocessor,
     SDXLDataPreprocessor,
@@ -33,7 +33,8 @@ class DummyWuerstchenPriorModel(WuerstchenPriorModel):
         decoder_model: str = "warp-ai/wuerstchen",
         prior_model: str = "warp-ai/wuerstchen-prior",
         loss: dict | None = None,
-        lora_config: dict | None = None,
+        prior_lora_config: dict | None = None,
+        text_encoder_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         data_preprocessor: dict | nn.Module | None = None,
         noise_generator: dict | None = None,
@@ -52,9 +53,21 @@ class DummyWuerstchenPriorModel(WuerstchenPriorModel):
         if loss is None:
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super(WuerstchenPriorModel, self).__init__(data_preprocessor=data_preprocessor)
+        if text_encoder_lora_config is not None:
+            assert finetune_text_encoder, (
+                "If you want to use LoRA for text encoder, "
+                "you should set finetune_text_encoder=True."
+            )
+        if finetune_text_encoder and prior_lora_config is not None:
+            assert text_encoder_lora_config is not None, (
+                "If you want to finetune text encoder with LoRA Unet, "
+                "you should set text_encoder_lora_config."
+            )
+
         self.decoder_model = decoder_model
         self.prior_model = prior_model
-        self.lora_config = deepcopy(lora_config)
+        self.prior_lora_config = deepcopy(prior_lora_config)
+        self.text_encoder_lora_config = deepcopy(text_encoder_lora_config)
         self.finetune_text_encoder = finetune_text_encoder
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
@@ -112,7 +125,7 @@ class DummyWrapper(BaseModel):
         return self.module(*args, **kwargs)
 
 
-class TestLoRASaveHook(RunnerTestCase):
+class TestPeftSaveHook(RunnerTestCase):
 
     def setUp(self) -> None:
         MODELS.register_module(name="DummyWrapper", module=DummyWrapper)
@@ -146,27 +159,31 @@ class TestLoRASaveHook(RunnerTestCase):
         return super().tearDown()
 
     def test_init(self):
-        LoRASaveHook()
+        PeftSaveHook()
 
     def test_before_save_checkpoint(self):
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "StableDiffusion"
-        cfg.model.lora_config = dict(rank=4)
+        cfg.model.unet_lora_config = dict(
+                    type="LoRA", r=4,
+                    target_modules=["to_q", "to_v", "to_k", "to_out.0"])
         cfg.model.model = "diffusers/tiny-stable-diffusion-torch"
         runner = self.build_runner(cfg)
         checkpoint = dict(
             state_dict=StableDiffusion(
                 model="diffusers/tiny-stable-diffusion-torch",
-                lora_config=dict(rank=4)).state_dict())
-        hook = LoRASaveHook()
+                unet_lora_config=dict(
+                    type="LoRA", r=4,
+                    target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
+                ).state_dict())
+        hook = PeftSaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
         assert Path(
-            osp.join(runner.work_dir, f"step{runner.iter}",
-                     "pytorch_lora_weights.safetensors")).exists()
-        os.remove(
-            osp.join(runner.work_dir, f"step{runner.iter}",
-                     "pytorch_lora_weights.safetensors"))
+            osp.join(runner.work_dir, f"step{runner.iter}/unet",
+                     "adapter_model.bin")).exists()
+        shutil.rmtree(
+            osp.join(runner.work_dir, f"step{runner.iter}"))
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("unet", "text_encoder"))
@@ -175,24 +192,36 @@ class TestLoRASaveHook(RunnerTestCase):
         # with text encoder
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "StableDiffusion"
-        cfg.model.lora_config = dict(rank=4)
+        cfg.model.unet_lora_config = dict(
+                    type="LoRA", r=4,
+                    target_modules=["to_q", "to_v", "to_k", "to_out.0"])
+        cfg.model.text_encoder_lora_config = dict(
+                    type="LoRA", r=4,
+                    target_modules=["q_proj", "k_proj", "v_proj", "out_proj"])
         cfg.model.finetune_text_encoder = True
         cfg.model.model = "diffusers/tiny-stable-diffusion-torch"
         runner = self.build_runner(cfg)
         checkpoint = dict(
             state_dict=StableDiffusion(
                 model="diffusers/tiny-stable-diffusion-torch",
-                lora_config=dict(rank=4),
+                unet_lora_config=dict(
+                    type="LoRA", r=4,
+                    target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
+                text_encoder_lora_config=dict(
+                    type="LoRA", r=4,
+                    target_modules=["q_proj", "k_proj", "v_proj", "out_proj"]),
                 finetune_text_encoder=True).state_dict())
-        hook = LoRASaveHook()
+        hook = PeftSaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
         assert Path(
-            osp.join(runner.work_dir, f"step{runner.iter}",
-                     "pytorch_lora_weights.safetensors")).exists()
-        os.remove(
-            osp.join(runner.work_dir, f"step{runner.iter}",
-                     "pytorch_lora_weights.safetensors"))
+            osp.join(runner.work_dir, f"step{runner.iter}/unet",
+                     "adapter_model.bin")).exists()
+        assert Path(
+            osp.join(runner.work_dir, f"step{runner.iter}/text_encoder",
+                     "adapter_model.bin")).exists()
+        shutil.rmtree(
+            osp.join(runner.work_dir, f"step{runner.iter}"))
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("unet", "text_encoder"))
@@ -200,24 +229,39 @@ class TestLoRASaveHook(RunnerTestCase):
         # sdxl
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "StableDiffusionXL"
-        cfg.model.lora_config = dict(rank=4)
+        cfg.model.unet_lora_config = dict(
+                    type="LoRA", r=4,
+                    target_modules=["to_q", "to_v", "to_k", "to_out.0"])
+        cfg.model.text_encoder_lora_config = dict(
+                    type="LoRA", r=4,
+                    target_modules=["q_proj", "k_proj", "v_proj", "out_proj"])
         cfg.model.finetune_text_encoder = True
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
         runner = self.build_runner(cfg)
         checkpoint = dict(
             state_dict=StableDiffusionXL(
                 model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-                lora_config=dict(rank=4),
+                unet_lora_config=dict(
+                    type="LoRA", r=4,
+                    target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
+                text_encoder_lora_config=dict(
+                    type="LoRA", r=4,
+                    target_modules=["q_proj", "k_proj", "v_proj", "out_proj"]),
                 finetune_text_encoder=True).state_dict())
-        hook = LoRASaveHook()
+        hook = PeftSaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
         assert Path(
-            osp.join(runner.work_dir, f"step{runner.iter}",
-                     "pytorch_lora_weights.safetensors")).exists()
-        os.remove(
-            osp.join(runner.work_dir, f"step{runner.iter}",
-                     "pytorch_lora_weights.safetensors"))
+            osp.join(runner.work_dir, f"step{runner.iter}/unet",
+                     "adapter_model.bin")).exists()
+        assert Path(
+            osp.join(runner.work_dir, f"step{runner.iter}/text_encoder_one",
+                     "adapter_model.bin")).exists()
+        assert Path(
+            osp.join(runner.work_dir, f"step{runner.iter}/text_encoder_two",
+                     "adapter_model.bin")).exists()
+        shutil.rmtree(
+            osp.join(runner.work_dir, f"step{runner.iter}"))
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("unet", "text_encoder"))
@@ -226,22 +270,34 @@ class TestLoRASaveHook(RunnerTestCase):
         # with text encoder
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "DummyWuerstchenPriorModel"
-        cfg.model.lora_config = dict(rank=4)
+        cfg.model.prior_lora_config = dict(
+                    type="LoRA", r=4,
+                    target_modules=["to_q", "to_v", "to_k", "to_out.0"])
+        cfg.model.text_encoder_lora_config = dict(
+                    type="LoRA", r=4,
+                    target_modules=["q_proj", "k_proj", "v_proj", "out_proj"])
         cfg.model.finetune_text_encoder = True
         runner = self.build_runner(cfg)
         checkpoint = dict(
             state_dict=DummyWuerstchenPriorModel(
-                lora_config=dict(rank=4),
+                prior_lora_config=dict(
+                    type="LoRA", r=4,
+                    target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
+                text_encoder_lora_config=dict(
+                    type="LoRA", r=4,
+                    target_modules=["q_proj", "k_proj", "v_proj", "out_proj"]),
                 finetune_text_encoder=True).state_dict())
-        hook = LoRASaveHook()
+        hook = PeftSaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
         assert Path(
-            osp.join(runner.work_dir, f"step{runner.iter}",
-                     "pytorch_lora_weights.safetensors")).exists()
-        os.remove(
-            osp.join(runner.work_dir, f"step{runner.iter}",
-                     "pytorch_lora_weights.safetensors"))
+            osp.join(runner.work_dir, f"step{runner.iter}/prior",
+                     "adapter_model.bin")).exists()
+        assert Path(
+            osp.join(runner.work_dir, f"step{runner.iter}/text_encoder",
+                     "adapter_model.bin")).exists()
+        shutil.rmtree(
+            osp.join(runner.work_dir, f"step{runner.iter}"))
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("prior", "text_encoder"))

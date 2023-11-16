@@ -18,7 +18,7 @@ _base_ = [
 
 custom_hooks = [
     dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
-    dict(type='LoRASaveHook'),  # Need to change from SDCheckpointHook
+    dict(type='PeftSaveHook'),  # Need to change from SDCheckpointHook
 ]
 ```
 
@@ -39,7 +39,7 @@ model = dict(
 )
 custom_hooks = [
     dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
-    dict(type='LoRASaveHook'),  # Need to change from SDCheckpointHook
+    dict(type='PeftSaveHook'),  # Need to change from SDCheckpointHook
 ]
 ```
 
@@ -62,10 +62,13 @@ $ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --
 Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 ```py
+from pathlib import Path
+
 import torch
 from diffusers import DiffusionPipeline, AutoencoderKL
+from peft import PeftModel
 
-checkpoint = 'work_dirs/stable_diffusion_xl_lora_pokemon_blip/step20850'
+checkpoint = Path('work_dirs/stable_diffusion_xl_lora_pokemon_blip/step20850')
 prompt = 'yoda pokemon'
 
 vae = AutoencoderKL.from_pretrained(
@@ -75,7 +78,15 @@ vae = AutoencoderKL.from_pretrained(
 pipe = DiffusionPipeline.from_pretrained(
     'stabilityai/stable-diffusion-xl-base-1.0', vae=vae, torch_dtype=torch.float16)
 pipe.to('cuda')
-pipe.load_lora_weights(checkpoint)
+pipe.unet = PeftModel.from_pretrained(pipe.unet, checkpoint / "unet", adapter_name="default")
+if (checkpoint / "text_encoder_one").exists():
+    pipe.text_encoder_one = PeftModel.from_pretrained(
+        pipe.text_encoder_one, checkpoint / "text_encoder_one", adapter_name="default"
+    )
+if (checkpoint / "text_encoder_two").exists():
+    pipe.text_encoder_one = PeftModel.from_pretrained(
+        pipe.text_encoder_two, checkpoint / "text_encoder_two", adapter_name="default"
+    )
 
 image = pipe(
     prompt,
@@ -89,7 +100,7 @@ image.save('demo.png')
 We also provide inference demo scripts:
 
 ```bash
-$ mim run diffengine demo_lora "yoda pokemon" work_dirs/stable_diffusion_xl_lora_pokemon_blip/step20850 --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --height 1024 --width 1024
+$ mim run diffengine demo_lora "yoda pokemon" work_dirs/stable_diffusion_xl_lora_pokemon_blip/step20850/unet --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --height 1024 --width 1024
 ```
 
 ## Results Example

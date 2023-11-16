@@ -11,6 +11,22 @@ from diffengine.models.losses import L2Loss
 
 class TestStableDiffusionXL(TestCase):
 
+    def test_init(self):
+        with pytest.raises(
+                AssertionError, match="If you want to use LoRA"):
+            _ = StableDiffusionXL(
+                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+                text_encoder_lora_config=dict(type="dummy"),
+                data_preprocessor=SDXLDataPreprocessor())
+
+        with pytest.raises(
+                AssertionError, match="If you want to finetune text"):
+            _ = StableDiffusionXL(
+                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+                unet_lora_config=dict(type="dummy"),
+                finetune_text_encoder=True,
+                data_preprocessor=SDXLDataPreprocessor())
+
     def test_infer(self):
         StableDiffuser = StableDiffusionXL(
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
@@ -46,6 +62,25 @@ class TestStableDiffusionXL(TestCase):
         assert type(result[0]) == torch.Tensor
         assert result[0].shape == (4, 32, 32)
 
+    def test_infer_with_lora(self):
+        StableDiffuser = StableDiffusionXL(
+            "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+            unet_lora_config=dict(
+                type="LoRA", r=4,
+                target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
+            text_encoder_lora_config = dict(
+                type="LoRA", r=4,
+                target_modules=["q_proj", "k_proj", "v_proj", "out_proj"]),
+            data_preprocessor=SDXLDataPreprocessor())
+
+        # test infer
+        result = StableDiffuser.infer(
+            ["an insect robot preparing a delicious meal"],
+            height=64,
+            width=64)
+        assert len(result) == 1
+        assert result[0].shape == (64, 64, 3)
+
     def test_infer_with_pre_compute_embs(self):
         StableDiffuser = StableDiffusionXL(
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
@@ -73,6 +108,31 @@ class TestStableDiffusionXL(TestCase):
         StableDiffuser = StableDiffusionXL(
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             loss=L2Loss(),
+            data_preprocessor=SDXLDataPreprocessor())
+
+        # test train step
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                text=["a dog"],
+                time_ids=[torch.zeros((1, 6))]))
+        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+        optim_wrapper = OptimWrapper(optimizer)
+        log_vars = StableDiffuser.train_step(data, optim_wrapper)
+        assert log_vars
+        assert isinstance(log_vars["loss"], torch.Tensor)
+
+    def test_train_step_with_lora(self):
+        # test load with loss module
+        StableDiffuser = StableDiffusionXL(
+            "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+            loss=L2Loss(),
+            unet_lora_config=dict(
+                type="LoRA", r=4,
+                target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
+            text_encoder_lora_config = dict(
+                type="LoRA", r=4,
+                target_modules=["q_proj", "k_proj", "v_proj", "out_proj"]),
             data_preprocessor=SDXLDataPreprocessor())
 
         # test train step

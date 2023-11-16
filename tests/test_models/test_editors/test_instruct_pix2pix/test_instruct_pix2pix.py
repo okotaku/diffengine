@@ -16,11 +16,18 @@ class TestStableDiffusionXLInstructPix2Pix(TestCase):
 
     def test_init(self):
         with pytest.raises(
-                AssertionError, match="`lora_config` should be None"):
+                AssertionError, match="`unet_lora_config` should be None"):
             _ = StableDiffusionXLInstructPix2Pix(
                 "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 data_preprocessor=SDXLControlNetDataPreprocessor(),
-                lora_config=dict(rank=4))
+                unet_lora_config=dict(type="dummy"))
+
+        with pytest.raises(
+                AssertionError, match="`text_encoder_lora_config` should be None"):
+            _ = StableDiffusionXLInstructPix2Pix(
+                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+                data_preprocessor=SDXLControlNetDataPreprocessor(),
+                text_encoder_lora_config=dict(type="dummy"))
 
         with pytest.raises(
                 AssertionError,

@@ -13,12 +13,20 @@ class TestIPAdapterXL(TestCase):
 
     def test_init(self):
         with pytest.raises(
-                AssertionError, match="`lora_config` should be None"):
+                AssertionError, match="`unet_lora_config` should be None"):
             _ = IPAdapterXLPlus(
                 "hf-internal-testing/tiny-stable-diffusion-pipe",
                 image_encoder="hf-internal-testing/unidiffuser-diffusers-test",
                 data_preprocessor=IPAdapterXLDataPreprocessor(),
-                lora_config=dict(rank=4))
+                unet_lora_config=dict(type="dummy"))
+
+        with pytest.raises(
+                AssertionError, match="`text_encoder_lora_config` should be None"):
+            _ = IPAdapterXLPlus(
+                "hf-internal-testing/tiny-stable-diffusion-pipe",
+                image_encoder="hf-internal-testing/unidiffuser-diffusers-test",
+                data_preprocessor=IPAdapterXLDataPreprocessor(),
+                text_encoder_lora_config=dict(type="dummy"))
 
         with pytest.raises(
                 AssertionError,

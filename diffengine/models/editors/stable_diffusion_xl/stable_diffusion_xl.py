@@ -11,10 +11,11 @@ from diffusers import (
 )
 from mmengine import print_log
 from mmengine.model import BaseModel
+from peft import get_peft_model
 from torch import nn
 from transformers import AutoTokenizer, PretrainedConfig
 
-from diffengine.models.archs import set_text_encoder_lora, set_unet_lora
+from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
 
 
@@ -55,8 +56,16 @@ class StableDiffusionXL(BaseModel):
             Defaults to None.
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
-        lora_config (dict, optional): The LoRA config dict.
-            example. dict(rank=4). Defaults to None.
+        unet_lora_config (dict, optional): The LoRA config dict for Unet.
+            example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
+            `LoHa`, `LoKr`. Other config are same as the config of PEFT.
+            https://github.com/huggingface/peft
+            Defaults to None.
+        text_encoder_lora_config (dict, optional): The LoRA config dict for
+            Text Encoder. example. dict(type="LoRA", r=4). `type` is chosen
+            from `LoRA`, `LoHa`, `LoKr`. Other config are same as the config of
+            PEFT. https://github.com/huggingface/peft
+            Defaults to None.
         prior_loss_weight (float): The weight of prior preservation loss.
             It works when training dreambooth with class images.
         prediction_type (str): The prediction_type that shall be used for
@@ -81,12 +90,13 @@ class StableDiffusionXL(BaseModel):
             embeddings to save memory. Defaults to False.
     """
 
-    def __init__(
+    def __init__(  # noqa: C901
         self,
         model: str = "stabilityai/stable-diffusion-xl-base-1.0",
         vae_model: str | None = None,
         loss: dict | None = None,
-        lora_config: dict | None = None,
+        unet_lora_config: dict | None = None,
+        text_encoder_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         prediction_type: str | None = None,
         data_preprocessor: dict | nn.Module | None = None,
@@ -107,15 +117,37 @@ class StableDiffusionXL(BaseModel):
         if loss is None:
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super().__init__(data_preprocessor=data_preprocessor)
+
+        if (
+            unet_lora_config is not None) and (
+                text_encoder_lora_config is not None) and (
+                    not finetune_text_encoder):
+                print_log(
+                    "You are using LoRA for Unet and text encoder. "
+                    "But you are not set `finetune_text_encoder=True`. "
+                    "We will set `finetune_text_encoder=True` for you.")
+                finetune_text_encoder = True
+        if text_encoder_lora_config is not None:
+            assert finetune_text_encoder, (
+                "If you want to use LoRA for text encoder, "
+                "you should set finetune_text_encoder=True."
+            )
+        if finetune_text_encoder and unet_lora_config is not None:
+            assert text_encoder_lora_config is not None, (
+                "If you want to finetune text encoder with LoRA Unet, "
+                "you should set text_encoder_lora_config."
+            )
+        if pre_compute_text_embeddings:
+            assert not finetune_text_encoder
+
         self.model = model
-        self.lora_config = deepcopy(lora_config)
+        self.unet_lora_config = deepcopy(unet_lora_config)
+        self.text_encoder_lora_config = deepcopy(text_encoder_lora_config)
         self.finetune_text_encoder = finetune_text_encoder
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
         self.pre_compute_text_embeddings = pre_compute_text_embeddings
         self.input_perturbation_gamma = input_perturbation_gamma
-        if pre_compute_text_embeddings:
-            assert not finetune_text_encoder
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
@@ -154,14 +186,19 @@ class StableDiffusionXL(BaseModel):
 
     def set_lora(self) -> None:
         """Set LORA for model."""
-        if self.lora_config is not None:
-            if self.finetune_text_encoder:
-                self.text_encoder_one.requires_grad_(requires_grad=False)
-                self.text_encoder_two.requires_grad_(requires_grad=False)
-                set_text_encoder_lora(self.text_encoder_one, self.lora_config)
-                set_text_encoder_lora(self.text_encoder_two, self.lora_config)
-            self.unet.requires_grad_(requires_grad=False)
-            set_unet_lora(self.unet, self.lora_config)
+        if self.text_encoder_lora_config is not None:
+            text_encoder_lora_config = create_peft_config(
+                self.text_encoder_lora_config)
+            self.text_encoder_one = get_peft_model(
+                self.text_encoder_one, text_encoder_lora_config)
+            self.text_encoder_one.print_trainable_parameters()
+            self.text_encoder_two = get_peft_model(
+                self.text_encoder_two, text_encoder_lora_config)
+            self.text_encoder_two.print_trainable_parameters()
+        if self.unet_lora_config is not None:
+            unet_lora_config = create_peft_config(self.unet_lora_config)
+            self.unet = get_peft_model(self.unet, unet_lora_config)
+            self.unet.print_trainable_parameters()
 
     def prepare_model(self) -> None:
         """Prepare model for training.

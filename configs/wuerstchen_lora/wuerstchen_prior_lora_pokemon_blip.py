@@ -17,5 +17,5 @@ optim_wrapper = dict(
 custom_hooks = [
     dict(type="VisualizationHook", prompt=["A robot pokemon, 4k photo"] * 4,
          height=768, width=768),
-    dict(type="LoRASaveHook"),
+    dict(type="PeftSaveHook"),
 ]

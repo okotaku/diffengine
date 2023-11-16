@@ -18,5 +18,5 @@ custom_hooks = [
         prompt=["1girl, sks, in a bucket"] * 4,
         by_epoch=False,
         interval=100),
-    dict(type="LoRASaveHook"),
+    dict(type="PeftSaveHook"),
 ]

@@ -64,7 +64,7 @@ class ESDXL(StableDiffusionXL):
         self.noise_generator = None
         self.timesteps_generator = None
 
-        if self.lora_config is None:
+        if self.unet_lora_config is None:
             self.orig_unet = deepcopy(
                 self.unet).requires_grad_(requires_grad=False)
         super().prepare_model()
@@ -150,7 +150,7 @@ class ESDXL(StableDiffusionXL):
         }
 
         with torch.no_grad():
-            if self.lora_config is None:
+            if self.unet_lora_config is None:
                 null_model_pred = self.orig_unet(
                     latents,
                     timesteps,

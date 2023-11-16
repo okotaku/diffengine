@@ -520,3 +520,22 @@ def set_controlnet_ip_adapter(controlnet,
     controlnet.set_attn_processor(
         attn_processor_class(
             clip_extra_context_tokens=clip_extra_context_tokens))
+
+
+def unet_attn_processors_state_dict(unet) -> dict[str, torch.tensor]:
+    """Unet attention processors state dict.
+
+    Returns a state dict containing just the attention processor parameters.
+    """
+    attn_processors = unet.attn_processors
+
+    attn_processors_state_dict = {}
+
+    for attn_processor_key, attn_processor in attn_processors.items():
+        # skip 'AttnProcessor2_0'
+        if hasattr(attn_processor, "state_dict"):
+            for parameter_key, parameter in attn_processor.state_dict().items():
+                attn_processors_state_dict[
+                    f"{attn_processor_key}.{parameter_key}"] = parameter
+
+    return attn_processors_state_dict

@@ -25,8 +25,16 @@ class IPAdapterXL(StableDiffusionXL):
             Defaults to 'takuoko/IP-Adapter-XL'.
         clip_extra_context_tokens (int): The number of expansion ratio of proj
             network hidden layer channels Defaults to 4.
-        lora_config (dict, optional): The LoRA config dict. This should be
-            `None` when training ControlNet. Defaults to None.
+        unet_lora_config (dict, optional): The LoRA config dict for Unet.
+            example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
+            `LoHa`, `LoKr`. Other config are same as the config of PEFT.
+            https://github.com/huggingface/peft
+            Defaults to None.
+        text_encoder_lora_config (dict, optional): The LoRA config dict for
+            Text Encoder. example. dict(type="LoRA", r=4). `type` is chosen
+            from `LoRA`, `LoHa`, `LoKr`. Other config are same as the config of
+            PEFT. https://github.com/huggingface/peft
+            Defaults to None.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. This should be `False` when training ControlNet.
             Defaults to False.
@@ -40,17 +48,20 @@ class IPAdapterXL(StableDiffusionXL):
                  *args,
                  image_encoder: str = "takuoko/IP-Adapter-XL-test",
                  clip_extra_context_tokens: int = 4,
-                 lora_config: dict | None = None,
+                 unet_lora_config: dict | None = None,
+                 text_encoder_lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
                  zeros_image_embeddings_prob: float = 0.1,
                  data_preprocessor: dict | nn.Module | None = None,
                  **kwargs) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "IPAdapterXLDataPreprocessor"}
-        assert lora_config is None, \
-            "`lora_config` should be None when training ControlNet"
+        assert unet_lora_config is None, \
+            "`unet_lora_config` should be None when training IPAdapter"
+        assert text_encoder_lora_config is None, \
+            "`text_encoder_lora_config` should be None when training IPAdapter"
         assert not finetune_text_encoder, \
-            "`finetune_text_encoder` should be False when training ControlNet"
+            "`finetune_text_encoder` should be False when training IPAdapter"
 
         self.image_encoder_name = image_encoder
         self.clip_extra_context_tokens = clip_extra_context_tokens
@@ -58,12 +69,16 @@ class IPAdapterXL(StableDiffusionXL):
 
         super().__init__(
             *args,
-            lora_config=lora_config,
+            unet_lora_config=unet_lora_config,
+            text_encoder_lora_config=text_encoder_lora_config,
             finetune_text_encoder=finetune_text_encoder,
             data_preprocessor=data_preprocessor,
             **kwargs)  # type: ignore[misc]
 
         self.set_ip_adapter()
+
+    def set_lora(self) -> None:
+        """Set LORA for model."""
 
     def prepare_model(self) -> None:
         """Prepare model for training.

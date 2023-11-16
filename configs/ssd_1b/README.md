@@ -15,14 +15,6 @@ Today, Segmind is thrilled to announce the open sourcing of our new foundational
 ```
 ```
 
-## Dependencies
-
-Note that install diffusers from source to use SSD-1B.
-
-```
-pip install -U git+https://github.com/huggingface/diffusers.git
-```
-
 ## Run Training
 
 Run Training

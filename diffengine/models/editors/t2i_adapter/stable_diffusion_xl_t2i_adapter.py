@@ -24,8 +24,16 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
             Defaults to [320, 640, 1280, 1280].
         adapter_downscale_factor (int): The downscale factor of adapter.
             Defaults to 16.
-        lora_config (dict, optional): The LoRA config dict. This should be
-            `None` when training ControlNet. Defaults to None.
+        unet_lora_config (dict, optional): The LoRA config dict for Unet.
+            example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
+            `LoHa`, `LoKr`. Other config are same as the config of PEFT.
+            https://github.com/huggingface/peft
+            Defaults to None.
+        text_encoder_lora_config (dict, optional): The LoRA config dict for
+            Text Encoder. example. dict(type="LoRA", r=4). `type` is chosen
+            from `LoRA`, `LoHa`, `LoKr`. Other config are same as the config of
+            PEFT. https://github.com/huggingface/peft
+            Defaults to None.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. This should be `False` when training ControlNet.
             Defaults to False.
@@ -40,7 +48,8 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
                  adapter_model: str | None = None,
                  adapter_model_channels: list[int] | None = None,
                  adapter_downscale_factor: int = 16,
-                 lora_config: dict | None = None,
+                 unet_lora_config: dict | None = None,
+                 text_encoder_lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
                  timesteps_generator: dict | None = None,
                  data_preprocessor: dict | nn.Module | None = None,
@@ -51,10 +60,12 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
             timesteps_generator = {"type": "CubicSamplingTimeSteps"}
         if adapter_model_channels is None:
             adapter_model_channels = [320, 640, 1280, 1280]
-        assert lora_config is None, \
-            "`lora_config` should be None when training ControlNet"
+        assert unet_lora_config is None, \
+            "`unet_lora_config` should be None when training T2IAdapter"
+        assert text_encoder_lora_config is None, \
+            "`text_encoder_lora_config` should be None when training T2IAdapter"
         assert not finetune_text_encoder, \
-            "`finetune_text_encoder` should be False when training ControlNet"
+            "`finetune_text_encoder` should be False when training T2IAdapter"
 
         self.adapter_model = adapter_model
         self.adapter_model_channels = adapter_model_channels
@@ -62,7 +73,8 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
 
         super().__init__(
             *args,
-            lora_config=lora_config,
+            unet_lora_config=unet_lora_config,
+            text_encoder_lora_config=text_encoder_lora_config,
             finetune_text_encoder=finetune_text_encoder,
             timesteps_generator=timesteps_generator,
             data_preprocessor=data_preprocessor,

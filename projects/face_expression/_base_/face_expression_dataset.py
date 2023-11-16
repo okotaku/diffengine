@@ -31,5 +31,5 @@ custom_hooks = [
             "1girl, @_@, blue hair",
             "1girl, =_=, blue hair",
         ]),
-    dict(type="LoRASaveHook"),
+    dict(type="PeftSaveHook"),
 ]

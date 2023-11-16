@@ -29,7 +29,7 @@ class DummyWrapper(BaseModel):
         return self.module(*args, **kwargs)
 
 
-class TestLoRASaveHook(RunnerTestCase):
+class TestControlNetSaveHook(RunnerTestCase):
 
     def setUp(self) -> None:
         MODELS.register_module(name="DummyWrapper", module=DummyWrapper)

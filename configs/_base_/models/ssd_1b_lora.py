@@ -2,4 +2,8 @@ model = dict(
     type="StableDiffusionXL",
     model="segmind/SSD-1B",
     vae_model="madebyollin/sdxl-vae-fp16-fix",
-    lora_config=dict(rank=8))
+    unet_lora_config=dict(
+        type="LoRA",
+        r=8,
+        lora_alpha=1,
+        target_modules=["to_q", "to_v", "to_k", "to_out.0"]))

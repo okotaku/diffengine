@@ -1,7 +1,9 @@
 from argparse import ArgumentParser
+from pathlib import Path
 
 import torch
 from diffusers import AutoencoderKL, DiffusionPipeline
+from peft import PeftModel
 
 
 def main() -> None:
@@ -31,6 +33,8 @@ def main() -> None:
         "--device", help="Device used for inference", default="cuda")
     args = parser.parse_args()
 
+    checkpoint = Path(args.checkpoint)
+
     if args.vaemodel is not None:
         vae = AutoencoderKL.from_pretrained(
             args.vaemodel,
@@ -41,12 +45,30 @@ def main() -> None:
             vae=vae,
             torch_dtype=torch.float16,
             safety_checker=None)
+        pipe.to(args.device)
+
+        pipe.unet = PeftModel.from_pretrained(pipe.unet, checkpoint / "unet",
+                                              adapter_name="default")
+        if (checkpoint / "text_encoder_one").exists():
+            pipe.text_encoder_one = PeftModel.from_pretrained(
+                pipe.text_encoder_one, checkpoint / "text_encoder_one",
+                adapter_name="default",
+            )
+        if (checkpoint / "text_encoder_two").exists():
+            pipe.text_encoder_one = PeftModel.from_pretrained(
+                pipe.text_encoder_two, checkpoint / "text_encoder_two",
+                adapter_name="default",
+            )
     else:
         pipe = DiffusionPipeline.from_pretrained(
             args.sdmodel, torch_dtype=torch.float16, safety_checker=None)
-
-    pipe.to(args.device)
-    pipe.load_lora_weights(args.checkpoint)
+        pipe.to(args.device)
+        pipe.unet = PeftModel.from_pretrained(
+            pipe.unet, checkpoint / "unet", adapter_name="default")
+        if (checkpoint / "text_encoder").exists():
+            pipe.text_encoder = PeftModel.from_pretrained(
+                pipe.text_encoder, checkpoint / "text_encoder", adapter_name="default",
+            )
 
     image = pipe(
         args.prompt,

@@ -22,12 +22,20 @@ class TestSSD1B(TestCase):
                 finetune_text_encoder=True)
 
         with pytest.raises(
-                AssertionError, match="`lora_config` should be None"):
+                AssertionError, match="`unet_lora_config` should be None"):
             _ = SSD1B(
                 "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
                 data_preprocessor=SDXLDataPreprocessor(),
-                lora_config=dict(rank=8))
+                unet_lora_config=dict(type="dummy"))
+
+        with pytest.raises(
+                AssertionError, match="`text_encoder_lora_config` should be None"):
+            _ = SSD1B(
+                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+                student_model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+                data_preprocessor=SDXLDataPreprocessor(),
+                text_encoder_lora_config=dict(type="dummy"))
 
         with pytest.raises(
                 AssertionError, match="`student_model_weight` should be"):

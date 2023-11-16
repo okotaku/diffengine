@@ -25,8 +25,16 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
             The number of layers per block in the transformer. More details:
             https://huggingface.co/diffusers/controlnet-canny-sdxl-1.0-small.
             Defaults to None.
-        lora_config (dict, optional): The LoRA config dict. This should be
-            `None` when training ControlNet. Defaults to None.
+        unet_lora_config (dict, optional): The LoRA config dict for Unet.
+            example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
+            `LoHa`, `LoKr`. Other config are same as the config of PEFT.
+            https://github.com/huggingface/peft
+            Defaults to None.
+        text_encoder_lora_config (dict, optional): The LoRA config dict for
+            Text Encoder. example. dict(type="LoRA", r=4). `type` is chosen
+            from `LoRA`, `LoHa`, `LoKr`. Other config are same as the config of
+            PEFT. https://github.com/huggingface/peft
+            Defaults to None.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. This should be `False` when training ControlNet.
             Defaults to False.
@@ -38,14 +46,17 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
                  *args,
                  controlnet_model: str | None = None,
                  transformer_layers_per_block: list[int] | None = None,
-                 lora_config: dict | None = None,
+                 unet_lora_config: dict | None = None,
+                 text_encoder_lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
                  data_preprocessor: dict | nn.Module | None = None,
                  **kwargs) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDXLControlNetDataPreprocessor"}
-        assert lora_config is None, \
-            "`lora_config` should be None when training ControlNet"
+        assert unet_lora_config is None, \
+            "`unet_lora_config` should be None when training ControlNet"
+        assert text_encoder_lora_config is None, \
+            "`text_encoder_lora_config` should be None when training ControlNet"
         assert not finetune_text_encoder, \
             "`finetune_text_encoder` should be False when training ControlNet"
 
@@ -54,7 +65,8 @@ class StableDiffusionXLControlNet(StableDiffusionXL):
 
         super().__init__(
             *args,
-            lora_config=lora_config,
+            unet_lora_config=unet_lora_config,
+            text_encoder_lora_config=text_encoder_lora_config,
             finetune_text_encoder=finetune_text_encoder,
             data_preprocessor=data_preprocessor,
             **kwargs)  # type: ignore[misc]

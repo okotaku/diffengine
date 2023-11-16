@@ -59,20 +59,29 @@ Settings:
 Once you have trained a model, specify the path to where the model is saved, and use it for inference with the `diffusers`.
 
 ```py
+from pathlib import Path
+
 import torch
 from diffusers import DiffusionPipeline
+from peft import PeftModel
 
-checkpoint = 'work_dirs/small_sd_dreambooth_lora_dog/step999'
+checkpoint = Path('work_dirs/small_sd_dreambooth_lora_dog/step999')
 prompt = 'A photo of sks dog in a bucket'
 
 pipe = DiffusionPipeline.from_pretrained(
-    'segmind/small-sd', torch_dtype=torch.float16)
+    'runwayml/stable-diffusion-v1-5', torch_dtype=torch.float16)
 pipe.to('cuda')
-pipe.load_lora_weights(checkpoint)
+pipe.unet = PeftModel.from_pretrained(pipe.unet, checkpoint / "unet", adapter_name="default")
+if (checkpoint / "text_encoder").exists():
+    pipe.text_encoder = PeftModel.from_pretrained(
+        pipe.text_encoder, checkpoint / "text_encoder", adapter_name="default"
+    )
 
 image = pipe(
     prompt,
     num_inference_steps=50,
+    height=1024,
+    width=1024,
 ).images[0]
 image.save('demo.png')
 ```

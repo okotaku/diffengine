@@ -20,7 +20,7 @@ model = dict(lora_config=dict(rank=32))  # set LoRA and rank parameter
 
 custom_hooks = [
     dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
-    dict(type='LoRASaveHook'),  # Need to change from SDCheckpointHook
+    dict(type='PeftSaveHook'),  # Need to change from SDCheckpointHook
 ]
 ```
 
@@ -41,7 +41,7 @@ model = dict(
 )
 custom_hooks = [
     dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
-    dict(type='LoRASaveHook'),  # Need to change from SDCheckpointHook
+    dict(type='PeftSaveHook'),  # Need to change from SDCheckpointHook
 ]
 ```
 
@@ -66,20 +66,29 @@ $ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --
 Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 ```py
+from pathlib import Path
+
 import torch
 from diffusers import DiffusionPipeline
+from peft import PeftModel
 
-checkpoint = 'work_dirs/stable_diffusion_v15_lora_pokemon_blip/step10450'
+checkpoint = Path('work_dirs/stable_diffusion_v15_lora_pokemon_blip/step10450')
 prompt = 'yoda pokemon'
 
 pipe = DiffusionPipeline.from_pretrained(
     'runwayml/stable-diffusion-v1-5', torch_dtype=torch.float16)
 pipe.to('cuda')
-pipe.load_lora_weights(checkpoint)
+pipe.unet = PeftModel.from_pretrained(pipe.unet, checkpoint / "unet", adapter_name="default")
+if (checkpoint / "text_encoder").exists():
+    pipe.text_encoder = PeftModel.from_pretrained(
+        pipe.text_encoder, checkpoint / "text_encoder", adapter_name="default"
+    )
 
 image = pipe(
     prompt,
     num_inference_steps=50,
+    height=1024,
+    width=1024,
 ).images[0]
 image.save('demo.png')
 ```

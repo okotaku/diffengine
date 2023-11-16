@@ -34,5 +34,5 @@ custom_hooks = [
         interval=100,
         height=1024,
         width=1024),
-    dict(type="LoRASaveHook"),
+    dict(type="PeftSaveHook"),
 ]

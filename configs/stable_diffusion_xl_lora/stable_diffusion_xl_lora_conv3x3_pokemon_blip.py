@@ -5,6 +5,11 @@ _base_ = [
     "../_base_/default_runtime.py",
 ]
 
+model = dict(
+    unet_lora_config=dict(
+        target_modules=["to_q", "to_v", "to_k", "to_out.0",
+                        "conv_shortcut", "conv1", "conv2", "conv_out", "conv"]))
+
 custom_hooks = [
     dict(
         type="VisualizationHook",

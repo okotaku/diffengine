@@ -1,6 +1,6 @@
 import copy
-import os
 import os.path as osp
+import shutil
 from pathlib import Path
 
 from mmengine.model import BaseModel
@@ -26,7 +26,7 @@ class DummyWrapper(BaseModel):
         return self.module(*args, **kwargs)
 
 
-class TestLoRASaveHook(RunnerTestCase):
+class TestIPAdapterSaveHook(RunnerTestCase):
 
     def setUp(self) -> None:
         MODELS.register_module(name="DummyWrapper", module=DummyWrapper)
@@ -68,16 +68,11 @@ class TestLoRASaveHook(RunnerTestCase):
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}",
                      "pytorch_lora_weights.safetensors")).exists()
-        os.remove(
-            osp.join(runner.work_dir, f"step{runner.iter}",
-                     "pytorch_lora_weights.safetensors"))
-
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/image_projection",
                      "diffusion_pytorch_model.safetensors")).exists()
-        os.remove(
-            osp.join(runner.work_dir, f"step{runner.iter}/image_projection",
-                     "diffusion_pytorch_model.safetensors"))
+        shutil.rmtree(
+            osp.join(runner.work_dir, f"step{runner.iter}"))
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("unet", "image_projection"))

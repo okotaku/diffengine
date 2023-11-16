@@ -28,5 +28,5 @@ custom_hooks = [
         prompt=["A photo of sks dog in a bucket"] * 4,
         by_epoch=False,
         interval=100),
-    dict(type="LoRASaveHook"),
+    dict(type="PeftSaveHook"),
 ]
