@@ -17,16 +17,32 @@ class DistillSDXL(StableDiffusionXL):
     ----
         model_type (str): The type of model to use. Choice from `sd_tiny`,
             `sd_small`.
+        unet_lora_config (dict, optional): The LoRA config dict for Unet.
+            example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
+            `LoHa`, `LoKr`. Other config are same as the config of PEFT.
+            https://github.com/huggingface/peft
+            Defaults to None.
+        text_encoder_lora_config (dict, optional): The LoRA config dict for
+            Text Encoder. example. dict(type="LoRA", r=4). `type` is chosen
+            from `LoRA`, `LoHa`, `LoKr`. Other config are same as the config of
+            PEFT. https://github.com/huggingface/peft
+            Defaults to None.
+        finetune_text_encoder (bool, optional): Whether to fine-tune text
+            encoder. This should be `False` when training ControlNet.
+            Defaults to False.
     """
 
     def __init__(self,
                  *args,
                  model_type: str,
-                 lora_config: dict | None = None,
+                 unet_lora_config: dict | None = None,
+                 text_encoder_lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
                  **kwargs) -> None:
-        assert lora_config is None, \
-            "`lora_config` should be None when training DistillSDXL"
+        assert unet_lora_config is None, \
+            "`unet_lora_config` should be None when training DistillSDXL"
+        assert text_encoder_lora_config is None, \
+            "`text_encoder_lora_config` should be None when training DistillSDXL"
         assert not finetune_text_encoder, \
             "`finetune_text_encoder` should be False when training DistillSDXL"
         assert model_type in ["sd_tiny", "sd_small"], \
@@ -36,7 +52,8 @@ class DistillSDXL(StableDiffusionXL):
 
         super().__init__(
             *args,
-            lora_config=lora_config,
+            unet_lora_config=unet_lora_config,
+            text_encoder_lora_config=text_encoder_lora_config,
             finetune_text_encoder=finetune_text_encoder,
             **kwargs)  # type: ignore[misc]
 

@@ -43,10 +43,13 @@ $ mim train diffengine configs/stable_diffusion_xl_lora/stable_diffusion_xl_lora
 Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 ```py
+from pathlib import Path
+
 import torch
 from diffusers import DiffusionPipeline, AutoencoderKL
+from peft import PeftModel
 
-checkpoint = 'work_dirs/stable_diffusion_xl_lora_pokemon_blip/step20850'
+checkpoint = Path('work_dirs/stable_diffusion_xl_lora_pokemon_blip/step20850')
 prompt = 'yoda pokemon'
 
 vae = AutoencoderKL.from_pretrained(
@@ -56,13 +59,21 @@ vae = AutoencoderKL.from_pretrained(
 pipe = DiffusionPipeline.from_pretrained(
     'stabilityai/stable-diffusion-xl-base-1.0', vae=vae, torch_dtype=torch.float16)
 pipe.to('cuda')
-pipe.load_lora_weights(checkpoint)
+pipe.unet = PeftModel.from_pretrained(pipe.unet, checkpoint / "unet", adapter_name="default")
+if (checkpoint / "text_encoder_one").exists():
+    pipe.text_encoder_one = PeftModel.from_pretrained(
+        pipe.text_encoder_one, checkpoint / "text_encoder_one", adapter_name="default"
+    )
+if (checkpoint / "text_encoder_two").exists():
+    pipe.text_encoder_one = PeftModel.from_pretrained(
+        pipe.text_encoder_two, checkpoint / "text_encoder_two", adapter_name="default"
+    )
 
 image = pipe(
     prompt,
     num_inference_steps=50,
-    width=1024,
     height=1024,
+    width=1024,
 ).images[0]
 image.save('demo.png')
 ```
@@ -74,3 +85,11 @@ You can see more details on [`docs/source/run_guides/run_lora_xl.md`](../../docs
 #### stable_diffusion_xl_lora_pokemon_blip
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/22d1f3c0-05d8-413f-b0ac-d6bb72283945)
+
+#### stable_diffusion_xl_lora_conv1x1_pokemon_blip
+
+![example2](https://github.com/okotaku/diffengine/assets/24734142/9eca7f49-2d7c-4d08-90b5-045b14e32fe0)
+
+#### stable_diffusion_xl_lora_conv3x3_pokemon_blip
+
+![example3](https://github.com/okotaku/diffengine/assets/24734142/8ec55900-c08f-4e36-bd18-e6e81d35de6c)

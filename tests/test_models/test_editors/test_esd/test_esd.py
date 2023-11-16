@@ -38,6 +38,30 @@ class TestESDXL(TestCase):
     def test_infer(self):
         StableDiffuser = ESDXL(
             "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+            unet_lora_config=dict(
+                    type="LoRA", r=4,
+                    target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
+            data_preprocessor=ESDXLDataPreprocessor())
+
+        assert not hasattr(StableDiffuser, "tokenizer_one")
+        assert not hasattr(StableDiffuser, "text_encoder_one")
+        assert not hasattr(StableDiffuser, "tokenizer_two")
+        assert not hasattr(StableDiffuser, "text_encoder_two")
+
+        # test infer
+        result = StableDiffuser.infer(
+            ["an insect robot preparing a delicious meal"],
+            height=64,
+            width=64)
+        assert len(result) == 1
+        assert result[0].shape == (64, 64, 3)
+
+        # test device
+        assert StableDiffuser.device.type == "cpu"
+
+    def test_infer_with_lora(self):
+        StableDiffuser = ESDXL(
+            "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
             data_preprocessor=ESDXLDataPreprocessor())
 
         assert not hasattr(StableDiffuser, "tokenizer_one")
@@ -64,6 +88,33 @@ class TestESDXL(TestCase):
             height=64,
             width=64,
             loss=L2Loss(),
+            data_preprocessor=ESDXLDataPreprocessor())
+
+        # test train step
+        data = dict(
+            inputs=dict(
+                text=["dog"],
+                prompt_embeds=[torch.zeros((2, 64))],
+                pooled_prompt_embeds=[torch.zeros(32)],
+                null_prompt_embeds=[torch.zeros((2, 64))],
+                null_pooled_prompt_embeds=[torch.zeros(32)]))
+        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+        optim_wrapper = OptimWrapper(optimizer)
+        log_vars = StableDiffuser.train_step(data, optim_wrapper)
+        assert log_vars
+        assert isinstance(log_vars["loss"], torch.Tensor)
+
+    def test_train_step_with_lora(self):
+        # test load with loss module
+        StableDiffuser = ESDXL(
+            "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+            train_method="xattn",
+            height=64,
+            width=64,
+            loss=L2Loss(),
+            unet_lora_config=dict(
+                    type="LoRA", r=4,
+                    target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
             data_preprocessor=ESDXLDataPreprocessor())
 
         # test train step

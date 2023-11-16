@@ -5,6 +5,7 @@ import pytest
 import torch
 from diffusers import DDPMWuerstchenScheduler
 from diffusers.pipelines.wuerstchen import WuerstchenPrior
+from mmengine import print_log
 from mmengine.optim import OptimWrapper
 from torch import nn
 from torch.optim import SGD
@@ -24,7 +25,8 @@ class DummyWuerstchenPriorModel(WuerstchenPriorModel):
         decoder_model: str = "warp-ai/wuerstchen",
         prior_model: str = "warp-ai/wuerstchen-prior",
         loss: dict | None = None,
-        lora_config: dict | None = None,
+        prior_lora_config: dict | None = None,
+        text_encoder_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         data_preprocessor: dict | nn.Module | None = None,
         noise_generator: dict | None = None,
@@ -43,9 +45,30 @@ class DummyWuerstchenPriorModel(WuerstchenPriorModel):
         if loss is None:
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super(WuerstchenPriorModel, self).__init__(data_preprocessor=data_preprocessor)
+        if (
+            prior_lora_config is not None) and (
+                text_encoder_lora_config is not None) and (
+                    not finetune_text_encoder):
+                print_log(
+                    "You are using LoRA for Prior and text encoder. "
+                    "But you are not set `finetune_text_encoder=True`. "
+                    "We will set `finetune_text_encoder=True` for you.")
+                finetune_text_encoder = True
+        if text_encoder_lora_config is not None:
+            assert finetune_text_encoder, (
+                "If you want to use LoRA for text encoder, "
+                "you should set finetune_text_encoder=True."
+            )
+        if finetune_text_encoder and prior_lora_config is not None:
+            assert text_encoder_lora_config is not None, (
+                "If you want to finetune text encoder with LoRA Prior, "
+                "you should set text_encoder_lora_config."
+            )
+
         self.decoder_model = decoder_model
         self.prior_model = prior_model
-        self.lora_config = deepcopy(lora_config)
+        self.prior_lora_config = deepcopy(prior_lora_config)
+        self.text_encoder_lora_config = deepcopy(text_encoder_lora_config)
         self.finetune_text_encoder = finetune_text_encoder
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
@@ -91,12 +114,47 @@ class DummyWuerstchenPriorModel(WuerstchenPriorModel):
         self.set_lora()
 
 
-class TestStableDiffusion(TestCase):
+class TestWuerstchenPrior(TestCase):
+
+    def test_init(self):
+        with pytest.raises(
+                AssertionError, match="If you want to use LoRA"):
+            _ = DummyWuerstchenPriorModel(
+                text_encoder_lora_config=dict(type="dummy"),
+                data_preprocessor=SDDataPreprocessor())
+
+        with pytest.raises(
+                AssertionError, match="If you want to finetune text"):
+            _ = DummyWuerstchenPriorModel(
+                prior_lora_config=dict(type="dummy"),
+                finetune_text_encoder=True,
+                data_preprocessor=SDDataPreprocessor())
 
     def test_train_step(self):
         # test load with loss module
         StableDiffuser = DummyWuerstchenPriorModel(
             loss=L2Loss(),
+            data_preprocessor=SDDataPreprocessor())
+
+        # test train step
+        data = dict(
+            inputs=dict(img=[torch.zeros((3, 64, 64))], text=["a dog"]))
+        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+        optim_wrapper = OptimWrapper(optimizer)
+        log_vars = StableDiffuser.train_step(data, optim_wrapper)
+        assert log_vars
+        assert isinstance(log_vars["loss"], torch.Tensor)
+
+    def test_train_step_with_lora(self):
+        # test load with loss module
+        StableDiffuser = DummyWuerstchenPriorModel(
+            loss=L2Loss(),
+            prior_lora_config=dict(
+                type="LoRA", r=4,
+                target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
+            text_encoder_lora_config = dict(
+                type="LoRA", r=4,
+                target_modules=["q_proj", "k_proj", "v_proj", "out_proj"]),
             data_preprocessor=SDDataPreprocessor())
 
         # test train step

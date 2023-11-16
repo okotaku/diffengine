@@ -22,14 +22,6 @@ Large text-to-image models achieved a remarkable leap in the evolution of AI, en
 }
 ```
 
-## Dependencies
-
-Note that install diffusers from source to use SSD-1B.
-
-```
-pip install -U git+https://github.com/huggingface/diffusers.git
-```
-
 ## Run Training
 
 Run Training
@@ -66,10 +58,13 @@ Settings:
 Once you have trained a model, specify the path to where the model is saved, and use it for inference with the `diffusers`.
 
 ```py
+from pathlib import Path
+
 import torch
 from diffusers import DiffusionPipeline, AutoencoderKL
+from peft import PeftModel
 
-checkpoint = 'work_dirs/ssd_1b_dreambooth_lora_dog/step499'
+checkpoint = Path('work_dirs/ssd_1b_dreambooth_lora_dog/step499')
 prompt = 'A photo of sks dog in a bucket'
 
 vae = AutoencoderKL.from_pretrained(
@@ -79,13 +74,21 @@ vae = AutoencoderKL.from_pretrained(
 pipe = DiffusionPipeline.from_pretrained(
     'segmind/SSD-1B', vae=vae, torch_dtype=torch.float16)
 pipe.to('cuda')
-pipe.load_lora_weights(checkpoint)
+pipe.unet = PeftModel.from_pretrained(pipe.unet, checkpoint / "unet", adapter_name="default")
+if (checkpoint / "text_encoder_one").exists():
+    pipe.text_encoder_one = PeftModel.from_pretrained(
+        pipe.text_encoder_one, checkpoint / "text_encoder_one", adapter_name="default"
+    )
+if (checkpoint / "text_encoder_two").exists():
+    pipe.text_encoder_one = PeftModel.from_pretrained(
+        pipe.text_encoder_two, checkpoint / "text_encoder_two", adapter_name="default"
+    )
 
 image = pipe(
     prompt,
     num_inference_steps=50,
-    width=1024,
     height=1024,
+    width=1024,
 ).images[0]
 image.save('demo.png')
 ```

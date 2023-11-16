@@ -1,6 +1,6 @@
 import copy
-import os
 import os.path as osp
+import shutil
 from pathlib import Path
 
 from mmengine.model import BaseModel
@@ -29,7 +29,7 @@ class DummyWrapper(BaseModel):
         return self.module(*args, **kwargs)
 
 
-class TestLoRASaveHook(RunnerTestCase):
+class TestT2IAdapterSaveHook(RunnerTestCase):
 
     def setUp(self) -> None:
         MODELS.register_module(name="DummyWrapper", module=DummyWrapper)
@@ -73,9 +73,8 @@ class TestLoRASaveHook(RunnerTestCase):
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/adapter",
                      "diffusion_pytorch_model.safetensors")).exists()
-        os.remove(
-            osp.join(runner.work_dir, f"step{runner.iter}/adapter",
-                     "diffusion_pytorch_model.safetensors"))
+        shutil.rmtree(
+            osp.join(runner.work_dir, f"step{runner.iter}"))
 
         assert len(checkpoint["state_dict"]) > 0
         for key in checkpoint["state_dict"]:

@@ -17,12 +17,20 @@ class TestStableDiffusionControlNet(TestCase):
 
     def test_init(self):
         with pytest.raises(
-                AssertionError, match="`lora_config` should be None"):
+                AssertionError, match="`unet_lora_config` should be None"):
             _ = StableDiffusionControlNet(
                 "hf-internal-testing/tiny-stable-diffusion-pipe",
                 controlnet_model="hf-internal-testing/tiny-controlnet",
                 data_preprocessor=SDControlNetDataPreprocessor(),
-                lora_config=dict(rank=4))
+                unet_lora_config=dict(type="dummy"))
+
+        with pytest.raises(
+                AssertionError, match="`text_encoder_lora_config` should be"):
+            _ = StableDiffusionControlNet(
+                "hf-internal-testing/tiny-stable-diffusion-pipe",
+                controlnet_model="hf-internal-testing/tiny-controlnet",
+                data_preprocessor=SDControlNetDataPreprocessor(),
+                text_encoder_lora_config=dict(type="dummy"))
 
         with pytest.raises(
                 AssertionError,

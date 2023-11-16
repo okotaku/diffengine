@@ -76,10 +76,13 @@ $ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --
 Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
 
 ```py
+from pathlib import Path
+
 import torch
 from diffusers import DiffusionPipeline, AutoencoderKL
+from peft import PeftModel
 
-checkpoint = 'work_dirs/stable_diffusion_xl_dreambooth_lora_dog/step499'
+checkpoint = Path('work_dirs/stable_diffusion_xl_dreambooth_lora_dog/step499')
 prompt = 'A photo of sks dog in a bucket'
 
 vae = AutoencoderKL.from_pretrained(
@@ -87,11 +90,17 @@ vae = AutoencoderKL.from_pretrained(
     torch_dtype=torch.float16,
 )
 pipe = DiffusionPipeline.from_pretrained(
-    'stabilityai/stable-diffusion-xl-base-1.0',
-    vae=vae,
-    torch_dtype=torch.float16)
+    'stabilityai/stable-diffusion-xl-base-1.0', vae=vae, torch_dtype=torch.float16)
 pipe.to('cuda')
-pipe.load_lora_weights(checkpoint)
+pipe.unet = PeftModel.from_pretrained(pipe.unet, checkpoint / "unet", adapter_name="default")
+if (checkpoint / "text_encoder_one").exists():
+    pipe.text_encoder_one = PeftModel.from_pretrained(
+        pipe.text_encoder_one, checkpoint / "text_encoder_one", adapter_name="default"
+    )
+if (checkpoint / "text_encoder_two").exists():
+    pipe.text_encoder_one = PeftModel.from_pretrained(
+        pipe.text_encoder_two, checkpoint / "text_encoder_two", adapter_name="default"
+    )
 
 image = pipe(
     prompt,

@@ -9,5 +9,5 @@ model = dict(lora_config=dict(rank=32))
 
 custom_hooks = [
     dict(type="VisualizationHook", prompt=["yoda pokemon"] * 4),
-    dict(type="LoRASaveHook"),
+    dict(type="PeftSaveHook"),
 ]

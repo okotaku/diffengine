@@ -19,8 +19,16 @@ class StableDiffusionXLInstructPix2Pix(StableDiffusionXL):
     ----
         zeros_image_embeddings_prob (float): The probabilities to
             generate zeros image embeddings. Defaults to 0.1.
-        lora_config (dict, optional): The LoRA config dict. This should be
-            `None` when training ControlNet. Defaults to None.
+        unet_lora_config (dict, optional): The LoRA config dict for Unet.
+            example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
+            `LoHa`, `LoKr`. Other config are same as the config of PEFT.
+            https://github.com/huggingface/peft
+            Defaults to None.
+        text_encoder_lora_config (dict, optional): The LoRA config dict for
+            Text Encoder. example. dict(type="LoRA", r=4). `type` is chosen
+            from `LoRA`, `LoHa`, `LoKr`. Other config are same as the config of
+            PEFT. https://github.com/huggingface/peft
+            Defaults to None.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. This should be `False` when training ControlNet.
             Defaults to False.
@@ -31,22 +39,30 @@ class StableDiffusionXLInstructPix2Pix(StableDiffusionXL):
     def __init__(self,
                  *args,
                  zeros_image_embeddings_prob: float = 0.1,
-                 lora_config: dict | None = None,
+                 unet_lora_config: dict | None = None,
+                 text_encoder_lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
                  data_preprocessor: dict | nn.Module | None = None,
                  **kwargs) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDXLControlNetDataPreprocessor"}
-        assert lora_config is None, \
-            "`lora_config` should be None when training ControlNet"
-        assert not finetune_text_encoder, \
-            "`finetune_text_encoder` should be False when training ControlNet"
+        assert unet_lora_config is None, \
+            "`unet_lora_config` should be None when training InstructPix2Pix"
+        assert text_encoder_lora_config is None, (
+            "`text_encoder_lora_config` should be None when training "
+            "InstructPix2Pix"
+        )
+        assert not finetune_text_encoder, (
+            "`finetune_text_encoder` should be False when training "
+            "InstructPix2Pix"
+        )
 
         self.zeros_image_embeddings_prob = zeros_image_embeddings_prob
 
         super().__init__(
             *args,
-            lora_config=lora_config,
+            unet_lora_config=unet_lora_config,
+            text_encoder_lora_config=text_encoder_lora_config,
             finetune_text_encoder=finetune_text_encoder,
             data_preprocessor=data_preprocessor,
             **kwargs)  # type: ignore[misc]

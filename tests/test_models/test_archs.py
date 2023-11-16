@@ -1,48 +1,20 @@
+from typing import Any
+
+import pytest
 from diffusers import ControlNetModel, UNet2DConditionModel
-from diffusers.loaders import text_encoder_lora_state_dict
-from transformers import CLIPTextModel
+from peft import LoHaConfig, LoKrConfig, LoraConfig
 
 from diffengine.models.archs import (
+    create_peft_config,
     set_controlnet_ip_adapter,
-    set_text_encoder_lora,
     set_unet_ip_adapter,
-    set_unet_lora,
     unet_attn_processors_state_dict,
 )
 from diffengine.models.archs.ip_adapter import CNAttnProcessor, CNAttnProcessor2_0
 from diffengine.models.editors import (
     IPAdapterXL,
     IPAdapterXLDataPreprocessor,
-    SDDataPreprocessor,
-    StableDiffusion,
 )
-
-
-def test_set_lora():
-    unet = UNet2DConditionModel.from_pretrained(
-        "diffusers/tiny-stable-diffusion-torch", subfolder="unet")
-    assert not any("processor" in k for k in unet.state_dict())
-    set_unet_lora(unet, config={})
-    assert any("processor" in k for k in unet.state_dict())
-
-    text_encoder = CLIPTextModel.from_pretrained(
-        "diffusers/tiny-stable-diffusion-torch", subfolder="text_encoder")
-    assert not any("lora_linear_layer" in k for k in text_encoder.state_dict())
-    set_text_encoder_lora(text_encoder, config={})
-    assert any("lora_linear_layer" in k for k in text_encoder.state_dict())
-
-
-def test_unet_lora_layers_to_save():
-    model = StableDiffusion(
-        "diffusers/tiny-stable-diffusion-torch",
-        lora_config=dict(rank=4),
-        finetune_text_encoder=True,
-        data_preprocessor=SDDataPreprocessor())
-    unet_lora_layers_to_save = unet_attn_processors_state_dict(model.unet)
-    text_encoder_lora_layers_to_save = text_encoder_lora_state_dict(
-        model.text_encoder)
-    assert len(unet_lora_layers_to_save) > 0
-    assert len(text_encoder_lora_layers_to_save) > 0
 
 
 def test_set_unet_ip_adapter():
@@ -74,3 +46,39 @@ def test_unet_ip_adapter_layers_to_save():
 
     unet_lora_layers_to_save = unet_attn_processors_state_dict(model.unet)
     assert len(unet_lora_layers_to_save) > 0
+
+
+def test_create_peft_config():
+    config: dict[str, Any] = dict(
+        type="Dummy",
+    )
+    with pytest.raises(AssertionError, match="Unknown PEFT type"):
+        create_peft_config(config)
+
+    config = dict(
+        type="LoRA",
+        r=4,
+    )
+    config = create_peft_config(config)
+    assert isinstance(config, LoraConfig)
+    assert config.r == 4
+
+    config = dict(
+        type="LoHa",
+        r=8,
+        alpha=2,
+    )
+    config = create_peft_config(config)
+    assert isinstance(config, LoHaConfig)
+    assert config.r == 8
+    assert config.alpha == 2
+
+    config = dict(
+        type="LoKr",
+        r=8,
+        alpha=2,
+    )
+    config = create_peft_config(config)
+    assert isinstance(config, LoKrConfig)
+    assert config.r == 8
+    assert config.alpha == 2

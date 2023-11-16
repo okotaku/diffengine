@@ -1,5 +1,4 @@
 # flake8: noqa: PLR0915, PLR0912, C901
-from copy import deepcopy
 from typing import Optional
 
 import torch
@@ -41,8 +40,16 @@ class SSD1B(StableDiffusionXL):
             Defaults to None.
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
-        lora_config (dict, optional): The LoRA config dict.
-            example. dict(rank=4). Defaults to None.
+        unet_lora_config (dict, optional): The LoRA config dict for Unet.
+            example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
+            `LoHa`, `LoKr`. Other config are same as the config of PEFT.
+            https://github.com/huggingface/peft
+            Defaults to None.
+        text_encoder_lora_config (dict, optional): The LoRA config dict for
+            Text Encoder. example. dict(type="LoRA", r=4). `type` is chosen
+            from `LoRA`, `LoHa`, `LoKr`. Other config are same as the config of
+            PEFT. https://github.com/huggingface/peft
+            Defaults to None.
         prior_loss_weight (float): The weight of prior preservation loss.
             It works when training dreambooth with class images.
         prediction_type (str): The prediction_type that shall be used for
@@ -74,7 +81,8 @@ class SSD1B(StableDiffusionXL):
         student_model_weight: str = "orig_unet",
         vae_model: str | None = None,
         loss: dict | None = None,
-        lora_config: dict | None = None,
+        unet_lora_config: dict | None = None,
+        text_encoder_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         prediction_type: str | None = None,
         data_preprocessor: dict | nn.Module | None = None,
@@ -86,8 +94,10 @@ class SSD1B(StableDiffusionXL):
         gradient_checkpointing: bool = False,
         pre_compute_text_embeddings: bool = False,
     ) -> None:
-        assert lora_config is None, \
-            "`lora_config` should be None when training SSD1B"
+        assert unet_lora_config is None, \
+            "`unet_lora_config` should be None when training SSD1B"
+        assert text_encoder_lora_config is None, \
+            "`text_encoder_lora_config` should be None when training SSD1B"
         assert not finetune_text_encoder, \
             "`finetune_text_encoder` should be False when training SSD1B"
         assert student_model_weight in ["orig_unet", "unet"], \
@@ -103,14 +113,11 @@ class SSD1B(StableDiffusionXL):
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super(StableDiffusionXL, self).__init__(data_preprocessor=data_preprocessor)
         self.model = model
-        self.lora_config = deepcopy(lora_config)
         self.finetune_text_encoder = finetune_text_encoder
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
         self.pre_compute_text_embeddings = pre_compute_text_embeddings
         self.input_perturbation_gamma = input_perturbation_gamma
-        if pre_compute_text_embeddings:
-            assert not finetune_text_encoder
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)

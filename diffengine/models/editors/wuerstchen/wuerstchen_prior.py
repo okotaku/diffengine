@@ -7,15 +7,15 @@ from diffusers import (
     AutoPipelineForText2Image,
     DDPMWuerstchenScheduler,
 )
-from diffusers.models.attention_processor import LoRAAttnProcessor
 from diffusers.pipelines.wuerstchen import DEFAULT_STAGE_C_TIMESTEPS, WuerstchenPrior
 from huggingface_hub import hf_hub_download
 from mmengine import print_log
 from mmengine.model import BaseModel
+from peft import get_peft_model
 from torch import nn
 from transformers import CLIPTextModel, PreTrainedTokenizerFast
 
-from diffengine.models.archs import set_text_encoder_lora
+from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
 
 from .efficient_net_encoder import EfficientNetEncoder
@@ -35,8 +35,16 @@ class WuerstchenPriorModel(BaseModel):
             Defaults to 'warp-ai/wuerstchen-prior'.
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
-        lora_config (dict, optional): The LoRA config dict.
-            example. dict(rank=4). Defaults to None.
+        prior_lora_config (dict, optional): The LoRA config dict for Prior.
+            example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
+            `LoHa`, `LoKr`. Other config are same as the config of PEFT.
+            https://github.com/huggingface/peft
+            Defaults to None.
+        text_encoder_lora_config (dict, optional): The LoRA config dict for
+            Text Encoder. example. dict(type="LoRA", r=4). `type` is chosen
+            from `LoRA`, `LoHa`, `LoKr`. Other config are same as the config of
+            PEFT. https://github.com/huggingface/peft
+            Defaults to None.
         prior_loss_weight (float): The weight of prior preservation loss.
             It works when training dreambooth with class images.
         data_preprocessor (dict, optional): The pre-process config of
@@ -60,7 +68,8 @@ class WuerstchenPriorModel(BaseModel):
         decoder_model: str = "warp-ai/wuerstchen",
         prior_model: str = "warp-ai/wuerstchen-prior",
         loss: dict | None = None,
-        lora_config: dict | None = None,
+        prior_lora_config: dict | None = None,
+        text_encoder_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         data_preprocessor: dict | nn.Module | None = None,
         noise_generator: dict | None = None,
@@ -79,9 +88,30 @@ class WuerstchenPriorModel(BaseModel):
         if loss is None:
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super().__init__(data_preprocessor=data_preprocessor)
+        if (
+            prior_lora_config is not None) and (
+                text_encoder_lora_config is not None) and (
+                    not finetune_text_encoder):
+                print_log(
+                    "You are using LoRA for Prior and text encoder. "
+                    "But you are not set `finetune_text_encoder=True`. "
+                    "We will set `finetune_text_encoder=True` for you.")
+                finetune_text_encoder = True
+        if text_encoder_lora_config is not None:
+            assert finetune_text_encoder, (
+                "If you want to use LoRA for text encoder, "
+                "you should set finetune_text_encoder=True."
+            )
+        if finetune_text_encoder and prior_lora_config is not None:
+            assert text_encoder_lora_config is not None, (
+                "If you want to finetune text encoder with LoRA Prior, "
+                "you should set text_encoder_lora_config."
+            )
+
         self.decoder_model = decoder_model
         self.prior_model = prior_model
-        self.lora_config = deepcopy(lora_config)
+        self.prior_lora_config = deepcopy(prior_lora_config)
+        self.text_encoder_lora_config = deepcopy(text_encoder_lora_config)
         self.finetune_text_encoder = finetune_text_encoder
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
@@ -116,18 +146,17 @@ class WuerstchenPriorModel(BaseModel):
 
     def set_lora(self) -> None:
         """Set LORA for model."""
-        if self.lora_config is not None:
-            if self.finetune_text_encoder:
-                self.text_encoder.requires_grad_(requires_grad=False)
-                set_text_encoder_lora(self.text_encoder, self.lora_config)
-            self.prior.requires_grad_(requires_grad=False)
-            # set prior lora
-            rank = self.lora_config.get("rank", 4)
-            lora_attn_procs = {}
-            for name in self.prior.attn_processors:
-                lora_attn_procs[name] = LoRAAttnProcessor(
-                    hidden_size=self.prior.config["c"], rank=rank)
-            self.prior.set_attn_processor(lora_attn_procs)
+        if self.text_encoder_lora_config is not None:
+            text_encoder_lora_config = create_peft_config(
+                self.text_encoder_lora_config)
+            self.text_encoder = get_peft_model(
+                self.text_encoder, text_encoder_lora_config)
+            self.text_encoder.print_trainable_parameters()
+
+        if self.prior_lora_config is not None:
+            prior_lora_config = create_peft_config(self.prior_lora_config)
+            self.prior = get_peft_model(self.prior, prior_lora_config)
+            self.prior.print_trainable_parameters()
 
     def prepare_model(self) -> None:
         """Prepare model for training.
