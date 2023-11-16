@@ -66,8 +66,9 @@ work_dirs/stable_diffusion_v15_dreambooth_lora_dog
 |         ├── 20230802_033741.json  # log json file
 |         ├── config.py  # config file for each experiment
 |         └── vis_image  # visualized image from each step
-├── step999
-|   └── pytorch_lora_weights.bin  # weight for inferencing with diffusers.pipeline
+├── step999/unet
+|   ├── adapter_config.json  # adapter conrfig file
+|   └── adapter_model.bin  # weight for inferencing with diffusers.pipeline
 ├── iter_1000.pth  # checkpoint from each step
 ├── last_checkpoint  # last checkpoint, it can be used for resuming
 └── stable_diffusion_v15_dreambooth_lora_dog.py  # latest config file
@@ -80,20 +81,27 @@ An illustrative output example is provided below:
 4. **Inference with diffusers.pipeline**: Once you have trained a model, simply specify the path to the saved model and inference by the `diffusers.pipeline` module.
 
 ```py
+from pathlib import Path
+
 import torch
 from diffusers import DiffusionPipeline
+from peft import PeftModel
 
-checkpoint = 'work_dirs/stable_diffusion_v15_dreambooth_lora_dog/step999'
+checkpoint = Path('work_dirs/stable_diffusion_v15_dreambooth_lora_dog/step999')
 prompt = 'A photo of sks dog in a bucket'
 
 pipe = DiffusionPipeline.from_pretrained(
     'runwayml/stable-diffusion-v1-5', torch_dtype=torch.float16)
 pipe.to('cuda')
-pipe.load_lora_weights(checkpoint)
+pipe.unet = PeftModel.from_pretrained(pipe.unet, checkpoint / "unet", adapter_name="default")
+if (checkpoint / "text_encoder").exists():
+    pipe.text_encoder = PeftModel.from_pretrained(
+        pipe.text_encoder, checkpoint / "text_encoder", adapter_name="default"
+    )
 
 image = pipe(
     prompt,
-    num_inference_steps=50,
+    num_inference_steps=50
 ).images[0]
 image.save('demo.png')
 ```
@@ -298,5 +306,14 @@ Also, please check the following openmmlab and huggingface projects and the corr
   publisher = {GitHub},
   journal = {GitHub repository},
   howpublished = {\url{https://github.com/huggingface/diffusers}}
+}
+```
+
+```
+@Misc{peft,
+  title =        {PEFT: State-of-the-art Parameter-Efficient Fine-Tuning methods},
+  author =       {Sourab Mangrulkar and Sylvain Gugger and Lysandre Debut and Younes Belkada and Sayak Paul and Benjamin Bossan},
+  howpublished = {\url{https://github.com/huggingface/peft}},
+  year =         {2022}
 }
 ```
