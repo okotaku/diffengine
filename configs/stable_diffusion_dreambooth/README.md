@@ -61,8 +61,6 @@ if (checkpoint / "text_encoder").exists():
 image = pipe(
     prompt,
     num_inference_steps=50,
-    height=1024,
-    width=1024,
 ).images[0]
 image.save('demo.png')
 ```
