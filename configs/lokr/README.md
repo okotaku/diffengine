@@ -1,4 +1,4 @@
-# Stable Diffusion XL LoKr
+# LoKr
 
 [KronA: Parameter Efficient Tuning with Kronecker Adapter](https://arxiv.org/abs/2212.10650)
 

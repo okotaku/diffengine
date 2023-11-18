@@ -105,6 +105,24 @@ class TestDeepFloydIF(TestCase):
         assert log_vars
         assert isinstance(log_vars["loss"], torch.Tensor)
 
+    def test_train_step_v_prediction(self):
+        # test load with loss module
+        StableDiffuser = DeepFloydIF(
+            "hf-internal-testing/tiny-if-pipe",
+            loss=L2Loss(),
+            data_preprocessor=SDDataPreprocessor(),
+            prediction_type="v_prediction")
+        assert StableDiffuser.prediction_type == "v_prediction"
+
+        # test train step
+        data = dict(
+            inputs=dict(img=[torch.zeros((3, 64, 64))], text=["a dog"]))
+        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+        optim_wrapper = OptimWrapper(optimizer)
+        log_vars = StableDiffuser.train_step(data, optim_wrapper)
+        assert log_vars
+        assert isinstance(log_vars["loss"], torch.Tensor)
+
     def test_train_step_input_perturbation(self):
         # test load with loss module
         StableDiffuser = DeepFloydIF(

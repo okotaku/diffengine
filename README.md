@@ -201,8 +201,8 @@ For detailed user guides and advanced guides, please refer to our [Documentation
           <li><a href="configs/esd/README.md">Erasing Concepts from Diffusion Models (2023)</a></li>
           <li><a href="configs/ssd_1b/README.md">SSD-1B (2023)</a></li>
           <li><a href="configs/instruct_pix2pix/README.md">InstructPix2Pix (2022)</a></li>
-          <li><a href="configs/stable_diffusion_xl_loha/README.md">LoHa (ICLR'2022)</a></li>
-          <li><a href="configs/stable_diffusion_xl_lokr/README.md">LoKr (2022)</a></li>
+          <li><a href="configs/loha/README.md">LoHa (ICLR'2022)</a></li>
+          <li><a href="configs/lokr/README.md">LoKr (2022)</a></li>
         </ul>
       </td>
       <td>
@@ -219,6 +219,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
             <li><a href="configs/pyramid_noise/README.md">Pyramid Noise (2023)</a></li>
             <li><a href="configs/input_perturbation/README.md">Input Perturbation (2023)</a></li>
             <li><a href="configs/timesteps_bias/README.md">Time Steps Bias (2023)</a></li>
+            <li><a href="configs/v_prediction/README.md">V Prediction (ICLR'2022)</a></li>
       </ul>
       </td>
     </tr>
