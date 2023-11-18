@@ -86,7 +86,7 @@ class TestSDCheckpointHook(RunnerTestCase):
                      "diffusion_pytorch_model.safetensors")).exists()
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}", "text_encoder",
-                     "pytorch_model.bin")).exists()
+                     "model.safetensors")).exists()
         shutil.rmtree(osp.join(runner.work_dir), ignore_errors=True)
 
         for key in checkpoint["state_dict"]:
