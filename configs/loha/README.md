@@ -1,4 +1,4 @@
-# Stable Diffusion XL LoHa
+# LoHa
 
 [FedPara: Low-Rank Hadamard Product for Communication-Efficient Federated Learning](https://arxiv.org/abs/2108.06098)
 

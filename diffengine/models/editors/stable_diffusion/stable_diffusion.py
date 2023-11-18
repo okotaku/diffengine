@@ -214,8 +214,9 @@ class StableDiffusion(BaseModel):
         )
         if self.prediction_type is not None:
             # set prediction_type of scheduler if defined
-            pipeline.scheduler.register_to_config(
-                prediction_type=self.prediction_type)
+            scheduler_args = {"prediction_type": self.prediction_type}
+            pipeline.scheduler = pipeline.scheduler.from_config(
+                pipeline.scheduler.config, **scheduler_args)
         pipeline.set_progress_bar_config(disable=True)
         images = []
         for p in prompt:
