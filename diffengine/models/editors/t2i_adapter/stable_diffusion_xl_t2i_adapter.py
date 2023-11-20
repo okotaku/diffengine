@@ -260,7 +260,7 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
             "text_embeds": pooled_prompt_embeds,
         }
 
-        model_pred = self._forward_controlnet(
+        model_pred = self._forward_compile(
             noisy_latents, timesteps, prompt_embeds, unet_added_conditions,
             inputs)
 
