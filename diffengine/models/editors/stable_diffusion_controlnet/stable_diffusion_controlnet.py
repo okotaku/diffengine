@@ -184,16 +184,37 @@ class StableDiffusionControlNet(StableDiffusion):
 
         return images
 
+    def _forward_compile(self,
+                         noisy_latents: torch.Tensor,
+                         timesteps: torch.Tensor,
+                         encoder_hidden_states: torch.Tensor,
+                         inputs: dict) -> torch.Tensor:
+        """Forward function for torch.compile."""
+        down_block_res_samples, mid_block_res_sample = self.controlnet(
+            noisy_latents,
+            timesteps,
+            encoder_hidden_states=encoder_hidden_states,
+            controlnet_cond=inputs["condition_img"],
+            return_dict=False,
+        )
+
+        return self.unet(
+            noisy_latents,
+            timesteps,
+            encoder_hidden_states=encoder_hidden_states,
+            down_block_additional_residuals=down_block_res_samples,
+            mid_block_additional_residual=mid_block_res_sample).sample
+
     def forward(
             self,
-            inputs: torch.Tensor,
+            inputs: dict,
             data_samples: Optional[list] = None,  # noqa
             mode: str = "loss") -> dict:
         """Forward function.
 
         Args:
         ----
-            inputs (torch.Tensor): The input tensor.
+            inputs (dict): The input dict.
             data_samples (Optional[list], optional): The data samples.
                 Defaults to None.
             mode (str, optional): The mode. Defaults to "loss".
@@ -231,19 +252,8 @@ class StableDiffusionControlNet(StableDiffusion):
 
         encoder_hidden_states = self.text_encoder(inputs["text"])[0]
 
-        down_block_res_samples, mid_block_res_sample = self.controlnet(
-            noisy_latents,
-            timesteps,
-            encoder_hidden_states=encoder_hidden_states,
-            controlnet_cond=inputs["condition_img"],
-            return_dict=False,
-        )
-
-        model_pred = self.unet(
-            noisy_latents,
-            timesteps,
-            encoder_hidden_states=encoder_hidden_states,
-            down_block_additional_residuals=down_block_res_samples,
-            mid_block_additional_residual=mid_block_res_sample).sample
+        model_pred = self._forward_compile(
+            noisy_latents, timesteps, encoder_hidden_states,
+            inputs)
 
         return self.loss(model_pred, noise, latents, timesteps, weight)

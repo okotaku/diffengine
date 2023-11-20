@@ -44,12 +44,15 @@ class FastNormHook(Hook):
             normalization. Defaults to False.
         fuse_unet_ln (bool): Whether to replace the layer
             normalization. Defaults to True.
+        fuse_gn (bool) : Whether to replace the group normalization.
+            Defaults to False.
     """
 
     priority = "VERY_LOW"
 
     def __init__(self, *, fuse_text_encoder_ln: bool = False,
-                 fuse_unet_ln: bool = True) -> None:
+                 fuse_unet_ln: bool = True,
+                 fuse_gn: bool = False) -> None:
         super().__init__()
         if apex is None:
             msg = "Please install apex to use FastNormHook."
@@ -57,6 +60,7 @@ class FastNormHook(Hook):
                 msg)
         self.fuse_text_encoder_ln = fuse_text_encoder_ln
         self.fuse_unet_ln = fuse_unet_ln
+        self.fuse_gn = fuse_gn
 
     def _replace_ln(self, module: nn.Module, name: str, device: str) -> None:
         """Replace the layer normalization with a fused one."""
@@ -77,19 +81,39 @@ class FastNormHook(Hook):
         for name, immediate_child_module in module.named_children():
             self._replace_ln(immediate_child_module, name, device)
 
+    def _replace_gn(self, module: nn.Module, name: str, device: str) -> None:
+        """Replace the layer normalization with a fused one."""
+        from apex.contrib.group_norm import GroupNorm
+        for attr_str in dir(module):
+            target_attr = getattr(module, attr_str)
+            if isinstance(target_attr, torch.nn.GroupNorm):
+                print_log(f"replaced GN: {name}")
+                num_groups = target_attr.num_groups
+                num_channels = target_attr.num_channels
+                eps = target_attr.eps
+                affine = target_attr.affine
+                # Create a new fused layer normalization with the same arguments
+                fused_gn = GroupNorm(num_groups, num_channels, eps, affine)
+                fused_gn.load_state_dict(target_attr.state_dict())
+                fused_gn.to(device)
+                setattr(module, attr_str, fused_gn)
+
+        for name, immediate_child_module in module.named_children():
+            self._replace_gn(immediate_child_module, name, device)
+
     def _replace_gn_forward(self, module: nn.Module, name: str) -> None:
         """Replace the group normalization forward with a faster one."""
         for attr_str in dir(module):
             target_attr = getattr(module, attr_str)
             if isinstance(target_attr, torch.nn.GroupNorm):
-                print_log(f"replaced GN: {name}")
+                print_log(f"replaced GN Forward: {name}")
                 target_attr.forward = _fast_gn_forward.__get__(
                     target_attr, torch.nn.GroupNorm)
 
         for name, immediate_child_module in module.named_children():
             self._replace_gn_forward(immediate_child_module, name)
 
-    def before_train(self, runner) -> None:
+    def before_train(self, runner) -> None:  # noqa: C901
         """Replace the normalization layer with a faster one.
 
         Args:
@@ -104,9 +128,14 @@ class FastNormHook(Hook):
             if hasattr(model, "controlnet"):
                 self._replace_ln(model.controlnet, "model", model.device)
 
-        self._replace_gn_forward(model.unet, "unet")
-        if hasattr(model, "controlnet"):
-            self._replace_gn_forward(model.controlnet, "unet")
+        if self.fuse_gn:
+            self._replace_gn(model.unet, "model", model.device)
+            if hasattr(model, "controlnet"):
+                self._replace_gn(model.controlnet, "model", model.device)
+        else:
+            self._replace_gn_forward(model.unet, "unet")
+            if hasattr(model, "controlnet"):
+                self._replace_gn_forward(model.controlnet, "unet")
 
         if self.fuse_text_encoder_ln:
             if hasattr(model, "text_encoder"):

@@ -175,7 +175,7 @@ class IPAdapterXLPipeline(BaseModel):
 
     def forward(
             self,
-            inputs: torch.Tensor,  # noqa
+            inputs: dict,  # noqa
             data_samples: Optional[list] = None,  # noqa
             mode: str = "tensor",  # noqa
     ) -> dict[str, torch.Tensor] | list:

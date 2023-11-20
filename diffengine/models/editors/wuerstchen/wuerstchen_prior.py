@@ -301,14 +301,14 @@ class WuerstchenPriorModel(BaseModel):
 
     def forward(
             self,
-            inputs: torch.Tensor,
+            inputs: dict,
             data_samples: Optional[list] = None,  # noqa
             mode: str = "loss") -> dict:
         """Forward function.
 
         Args:
         ----
-            inputs (torch.Tensor): The input tensor.
+            inputs (dict): The input dict.
             data_samples (Optional[list], optional): The data samples.
                 Defaults to None.
             mode (str, optional): The mode. Defaults to "loss".
