@@ -35,9 +35,18 @@ class CompileHook(Hook):
         model = runner.model
         if is_model_wrapper(model):
             model = model.module
+
         if self.compile_unet:
-            model.unet = torch.compile(model.unet, backend=self.backend,
-                                       mode=self.mode)
+            if hasattr(model, "_forward_compile"):
+                # controlnet / t2i adapter
+                target = "_forward_compile"
+                func = getattr(model, target)
+                compiled_func = torch.compile(
+                    func, backend=self.backend, mode=self.mode)
+                setattr(model, target, compiled_func)
+            else:
+                model.unet = torch.compile(model.unet, backend=self.backend,
+                                        mode=self.mode)
 
         if hasattr(model, "text_encoder"):
             model.text_encoder = torch.compile(

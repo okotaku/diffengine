@@ -185,16 +185,33 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
 
         return images
 
+    def _forward_compile(self,
+                         noisy_latents: torch.Tensor,
+                         timesteps: torch.Tensor,
+                         prompt_embeds: torch.Tensor,
+                         unet_added_conditions: dict,
+                         inputs: dict) -> torch.Tensor:
+        """Forward function for torch.compile."""
+        down_block_additional_residuals = self.adapter(inputs["condition_img"])
+
+        return self.unet(
+            noisy_latents,
+            timesteps,
+            prompt_embeds,
+            added_cond_kwargs=unet_added_conditions,
+            down_block_additional_residuals=down_block_additional_residuals,
+        ).sample
+
     def forward(
             self,
-            inputs: torch.Tensor,
+            inputs: dict,
             data_samples: Optional[list] = None,  # noqa
             mode: str = "loss") -> dict:
         """Forward function.
 
         Args:
         ----
-            inputs (torch.Tensor): The input tensor.
+            inputs (dict): The input dict.
             data_samples (Optional[list], optional): The data samples.
                 Defaults to None.
             mode (str, optional): The mode. Defaults to "loss".
@@ -243,14 +260,8 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
             "text_embeds": pooled_prompt_embeds,
         }
 
-        down_block_additional_residuals = self.adapter(inputs["condition_img"])
-
-        model_pred = self.unet(
-            noisy_latents,
-            timesteps,
-            prompt_embeds,
-            added_cond_kwargs=unet_added_conditions,
-            down_block_additional_residuals=down_block_additional_residuals,
-        ).sample
+        model_pred = self._forward_compile(
+            noisy_latents, timesteps, prompt_embeds, unet_added_conditions,
+            inputs)
 
         return self.loss(model_pred, noise, latents, timesteps, weight)
