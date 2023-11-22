@@ -30,12 +30,12 @@ Run LoRA training:
 
 ```
 # single gpu
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE}
+$ mim train diffengine ${CONFIG_FILE}
 # Example
-$ docker compose exec diffengine mim train diffengine configs/wuerstchen_lora/wuerstchen_prior_lora_pokemon_blip.py
+$ mim train diffengine configs/wuerstchen_lora/wuerstchen_prior_lora_pokemon_blip.py
 
 # multi gpus
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 ```
 
 ## Inference with diffusers

@@ -1,35 +1,42 @@
 {
-    "dockerComposeFile": ["../docker-compose.yml"],
-    "service": "diffengine",
-    "workspaceFolder": "/workspace",
-    "postCreateCommand": "pre-commit install",
-    "customizations": {
-      "vscode": {
-        "extensions": [
-          "njpwerner.autodocstring",
-          "ms-python.black-formatter",
-          "ms-vscode-remote.remote-containers",
-          "ms-azuretools.vscode-docker",
-          "usernamehw.errorlens",
-          "GitHub.copilot",
-          "GitHub.copilot-chat",
-          "GitHub.vscode-pull-request-github",
-          "ms-toolsai.jupyter",
-          "ms-toolsai.vscode-jupyter-cell-tags",
-          "ms-toolsai.jupyter-keymap",
-          "ms-toolsai.jupyter-renderers",
-          "ms-toolsai.vscode-jsupyter-slideshow",
-          "ms-python.vscode-pylance",
-          "ms-python.python",
-          "KevinRose.vsc-python-indent",
-          "ms-vscode-remote.remote-ssh",
-          "ms-vscode-remote.remote-ssh-edit",
-          "ms-vscode.remote-explorer",
-          "wayou.vscode-todo-highlight",
-          "Gruntfuggly.todo-tree",
-          "streetsidesoftware.code-spell-checker",
-          "charliermarsh.ruff"
-        ]
-      }
+  "dockerComposeFile": [
+    "../docker-compose.yml"
+  ],
+  "service": "diffengine",
+  "workspaceFolder": "/workspace",
+  "postCreateCommand": "pre-commit install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "njpwerner.autodocstring",
+        "ms-python.black-formatter",
+        "ms-vscode-remote.remote-containers",
+        "ms-azuretools.vscode-docker",
+        "usernamehw.errorlens",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "GitHub.vscode-pull-request-github",
+        "ms-toolsai.jupyter",
+        "ms-toolsai.vscode-jupyter-cell-tags",
+        "ms-toolsai.jupyter-keymap",
+        "ms-toolsai.jupyter-renderers",
+        "ms-toolsai.vscode-jsupyter-slideshow",
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "KevinRose.vsc-python-indent",
+        "ms-vscode-remote.remote-ssh",
+        "ms-vscode-remote.remote-ssh-edit",
+        "ms-vscode.remote-explorer",
+        "wayou.vscode-todo-highlight",
+        "Gruntfuggly.todo-tree",
+        "streetsidesoftware.code-spell-checker",
+        "charliermarsh.ruff",
+        "github.vscode-github-actions",
+        "tamasfe.even-better-toml",
+        "oderwat.indent-rainbow",
+        "yzhang.markdown-all-in-one",
+        "ionutvmi.path-autocomplete"
+      ]
     }
   }
+}

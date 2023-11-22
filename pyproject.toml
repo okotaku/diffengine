@@ -1,7 +1,7 @@
 [project]
 name = "diffengine"
 description = "diffengine"
-authors = [{name="takuoko",email="to78314910@gmail.com"}]
+authors = [{ name = "takuoko", email = "to78314910@gmail.com" }]
 version = "0.2.1"
 requires-python = ">= 3.10"
 readme = "README.md"
@@ -18,14 +18,11 @@ dependencies = [
     "ujson",
     "peft>=0.6.2",
 ]
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 keywords = ["computer vision", "diffusion models"]
 
 [project.optional-dependencies]
-dev = [
-    "pytest",
-    "coverage"
-]
+dev = ["pytest", "coverage"]
 docs = [
     "docutils==0.18.1",
     "modelindex",
@@ -39,7 +36,7 @@ docs = [
     "sphinx-rtd-theme",
     "sphinx-tabs",
     "sphinxcontrib-jquery",
-    "tabulate"
+    "tabulate",
 ]
 
 [tool.setuptools.cmdclass]
@@ -47,11 +44,35 @@ build = "add_mim_extension.MIMBuild"
 
 [tool.setuptools.packages.find]
 include = ["diffengine*", "add_mim_extension.py"]
-exclude = ["build*", "docs*", "dist*", "tools*", "configs*", "tests*", "docker*", "demo*", "data*", "work_dirs*", "projects*"]
+exclude = [
+    "build*",
+    "docs*",
+    "dist*",
+    "tools*",
+    "configs*",
+    "tests*",
+    "docker*",
+    "demo*",
+    "data*",
+    "work_dirs*",
+    "projects*",
+]
 
 [tool.wheel]
 include = ["diffengine*", "add_mim_extension.py"]
-exclude = ["build*", "docs*", "dist*", "tools*", "configs*", "tests*", "docker*", "demo*", "data*", "work_dirs*", "projects*"]
+exclude = [
+    "build*",
+    "docs*",
+    "dist*",
+    "tools*",
+    "configs*",
+    "tests*",
+    "docker*",
+    "demo*",
+    "data*",
+    "work_dirs*",
+    "projects*",
+]
 
 [tool.distutils.bdist_wheel]
 universal = true
@@ -81,10 +102,28 @@ ignore = [
 ]
 
 [tool.ruff.per-file-ignores]
-"add_mim_extension.py" = ["C901", "FBT002", "PLW2901", "PLR0912", "PTH", "S102", "D",
- "ANN201", "INP001", "T201"]
-"tests/*" = ["PLR2004", "N806", "PTH", "SLF001", "PT009", "D", "ANN201",
- "INP001"]
+"add_mim_extension.py" = [
+    "C901",
+    "FBT002",
+    "PLW2901",
+    "PLR0912",
+    "PTH",
+    "S102",
+    "D",
+    "ANN201",
+    "INP001",
+    "T201",
+]
+"tests/*" = [
+    "PLR2004",
+    "N806",
+    "PTH",
+    "SLF001",
+    "PT009",
+    "D",
+    "ANN201",
+    "INP001",
+]
 "tools/*" = ["T201", "ISC002", "PTH", "D", "INP001"]
 
 [tool.mypy]
