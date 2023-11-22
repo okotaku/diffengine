@@ -97,7 +97,7 @@ class LatentConsistencyModelsXL(StableDiffusionXL):
         """
         self.teacher_unet = deepcopy(
             self.unet).requires_grad_(requires_grad=False)
-        if self.unet_lora_config is not None:
+        if self.unet_lora_config is None:
             self.target_unet = MODELS.build(
                 self.ema_cfg, default_args=dict(model=self.unet))
 
