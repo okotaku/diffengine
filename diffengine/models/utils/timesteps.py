@@ -220,3 +220,38 @@ class WuerstchenRandomTimeSteps(nn.Module):
             device (str): Device.
         """
         return torch.rand((num_batches, ), device=device)
+
+
+@MODELS.register_module()
+class DDIMTimeSteps(nn.Module):
+    """DDIM Time Steps module.
+
+    Args:
+    ----
+        num_ddim_timesteps (int): Number of DDIM timesteps. Defaults to 50.
+    """
+
+    def __init__(self, num_ddim_timesteps: int = 50) -> None:
+        super().__init__()
+        self.num_ddim_timesteps = num_ddim_timesteps
+        self.register_buffer("ddim_timesteps",
+                             torch.arange(1, num_ddim_timesteps + 1))
+
+    def forward(self, scheduler: DDPMScheduler, num_batches: int, device: str,
+                ) -> torch.Tensor:
+        """Forward pass.
+
+        Generates time steps for the given batches.
+
+        Args:
+        ----
+            scheduler (DDPMScheduler): Scheduler for training diffusion model.
+            num_batches (int): Batch size.
+            device (str): Device.
+        """
+        step_ratio = scheduler.config.num_train_timesteps // self.num_ddim_timesteps
+        index = torch.randint(0, self.num_ddim_timesteps,
+                              (num_batches,),
+                              device=device)
+        timesteps = self.ddim_timesteps[index] * step_ratio - 1
+        return timesteps.long()

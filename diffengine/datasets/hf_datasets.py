@@ -158,6 +158,7 @@ class HFDatasetPreComputeEmbs(HFDataset):
         self.dataset = self.dataset.map(
             compute_embeddings_fn,
             batched=True,
+            batch_size=32,
             new_fingerprint=new_fingerprint)
 
         del text_encoder_one, text_encoder_two, tokenizer_one, tokenizer_two

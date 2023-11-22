@@ -78,12 +78,12 @@ Run train
 
 ```
 # single gpu
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE}
+$ mim train diffengine ${CONFIG_FILE}
 # Example
-$ docker compose exec diffengine mim train diffengine configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py
+$ mim train diffengine configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py
 
 # multi gpus
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 ```
 
 ## Inference with diffusers

@@ -28,12 +28,12 @@ Run train
 
 ```
 # single gpu
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE}
+$ mim train diffengine ${CONFIG_FILE}
 # multi gpus
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 
 # Example
-$ docker compose exec diffengine mim train diffengine configs/t2i_adapter/stable_diffusion_xl_t2i_adapter_fill50k.py
+$ mim train diffengine configs/t2i_adapter/stable_diffusion_xl_t2i_adapter_fill50k.py
 ```
 
 ## Inference with diffusers

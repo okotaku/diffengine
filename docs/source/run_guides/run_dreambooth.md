@@ -58,12 +58,12 @@ Run DreamBooth train
 
 ```
 # single gpu
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE}
+$ mim train diffengine ${CONFIG_FILE}
 # Example
-$ docker compose exec diffengine mim train diffengine configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py
+$ mim train diffengine configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py
 
 # multi gpus
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 ```
 
 ## Inference with diffusers
