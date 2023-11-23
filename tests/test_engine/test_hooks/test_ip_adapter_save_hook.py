@@ -67,10 +67,7 @@ class TestIPAdapterSaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}",
-                     "pytorch_lora_weights.safetensors")).exists()
-        assert Path(
-            osp.join(runner.work_dir, f"step{runner.iter}/image_projection",
-                     "diffusion_pytorch_model.safetensors")).exists()
+                     "ip_adapter.bin")).exists()
         shutil.rmtree(
             osp.join(runner.work_dir, f"step{runner.iter}"))
 
