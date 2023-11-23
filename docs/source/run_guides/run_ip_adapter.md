@@ -40,40 +40,38 @@ $ mim train diffengine configs/ip_adapter/stable_diffusion_xl_pokemon_blip_ip_ad
 Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffengine` module.
 
 ```py
-from PIL import Image
-from mmengine import Config
-from mmengine.registry import init_default_scope
-from mmengine.runner.checkpoint import _load_checkpoint_to_model, _load_checkpoint
+import torch
+from diffusers import DiffusionPipeline, AutoencoderKL
+from diffusers.utils import load_image
+from transformers import CLIPVisionModelWithProjection
 
-from diffengine.registry import MODELS
+prompt = ''
 
-init_default_scope('diffengine')
+image_encoder = CLIPVisionModelWithProjection.from_pretrained(
+    "h94/IP-Adapter",
+    subfolder="sdxl_models/image_encoder",
+    torch_dtype=torch.float16,
+).to('cuda')
+vae = AutoencoderKL.from_pretrained(
+    'madebyollin/sdxl-vae-fp16-fix',
+    torch_dtype=torch.float16,
+)
+pipe = DiffusionPipeline.from_pretrained(
+    'stabilityai/stable-diffusion-xl-base-1.0',
+    image_encoder=image_encoder,
+    vae=vae, torch_dtype=torch.float16)
+pipe.to('cuda')
+pipe.load_ip_adapter("work_dirs/stable_diffusion_xl_pokemon_blip_ip_adapter/step41650", subfolder="", weight_name="ip_adapter.bin")
 
-prompt = ['']
-example_image = ['https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg']
-config = 'configs/ip_adapter/stable_diffusion_xl_pokemon_blip_ip_adapter.py'
-checkpoint = 'work_dirs/stable_diffusion_xl_pokemon_blip_ip_adapter/epoch_50.pth'
-device = 'cuda'
+image = load_image("https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg")
 
-config = Config.fromfile(config).copy()
-
-StableDiffuser = MODELS.build(config.model)
-StableDiffuser = StableDiffuser.to(device)
-
-checkpoint = _load_checkpoint(checkpoint, map_location='cpu')
-_load_checkpoint_to_model(StableDiffuser, checkpoint['state_dict'],
-                            strict=False)
-
-image = StableDiffuser.infer(prompt, example_image=example_image, width=1024, height=1024)[0]
-Image.fromarray(image).save('demo.png')
-```
-
-We also provide inference demo scripts:
-
-```
-$ mim run diffengine demo_diffengine ${PROMPT} ${CONFIG} ${CHECKPOINT} --height 1024 --width 1024 --example-image  ${EXAMPLE_IMAGE}
-# Example
-$ mim run diffengine demo_diffengine "" configs/ip_adapter/stable_diffusion_xl_pokemon_blip_ip_adapter.py work_dirs/stable_diffusion_xl_pokemon_blip_ip_adapter/epoch_50.pth --height 1024 --width 1024 --example-image https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg
+image = pipe(
+    prompt,
+    ip_adapter_image=image,
+    height=1024,
+    width=1024,
+).images[0]
+image.save('demo.png')
 ```
 
 ## Results Example

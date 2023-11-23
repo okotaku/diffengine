@@ -1,12 +1,11 @@
-import os.path as osp
 from collections import OrderedDict
+from pathlib import Path
 
-from diffusers.loaders import LoraLoaderMixin
+import torch
 from mmengine.hooks import Hook
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
-
-from diffengine.models.archs import unet_attn_processors_state_dict
+from torch import nn
 
 
 @HOOKS.register_module()
@@ -31,21 +30,26 @@ class IPAdapterSaveHook(Hook):
         model = runner.model
         if is_model_wrapper(model):
             model = model.module
-        unet_ipadapter_layers_to_save = unet_attn_processors_state_dict(
-            model.unet)
-        ckpt_path = osp.join(runner.work_dir, f"step{runner.iter}")
-        LoraLoaderMixin.save_lora_weights(
-            ckpt_path,
-            unet_lora_layers=unet_ipadapter_layers_to_save,
-        )
 
-        model.image_projection.save_pretrained(
-            osp.join(ckpt_path, "image_projection"))
+        ckpt_path = Path(runner.work_dir) / f"step{runner.iter}"
+        ckpt_path.mkdir(parents=True, exist_ok=True)
+        adapter_modules = torch.nn.ModuleList([
+            v if isinstance(v, nn.Module) else nn.Identity(
+                ) for v in model.unet.attn_processors.values()])
 
         # not save no grad key
         new_ckpt = OrderedDict()
+        proj_ckpt = OrderedDict()
         sd_keys = checkpoint["state_dict"].keys()
         for k in sd_keys:
+            if k.startswith("image_projection"):
+                new_k = k.replace(
+                    "image_projection.", "").replace("image_embeds.", "proj.")
+                proj_ckpt[new_k] = checkpoint["state_dict"][k]
             if ".processor." in k or k.startswith("image_projection"):
                 new_ckpt[k] = checkpoint["state_dict"][k]
+        torch.save({"image_proj": proj_ckpt,
+                    "ip_adapter": adapter_modules.state_dict()},
+                    ckpt_path / "ip_adapter.bin")
+
         checkpoint["state_dict"] = new_ckpt
