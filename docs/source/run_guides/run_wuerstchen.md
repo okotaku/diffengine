@@ -16,7 +16,7 @@ _base_ = [
     "../_base_/default_runtime.py",
 ]
 
-optim_wrapper_cfg = dict(
+optim_wrapper = dict(
     optimizer=dict(lr=1e-5),
     accumulative_counts=4)  # update every four times
 ```

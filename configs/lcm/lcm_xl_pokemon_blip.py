@@ -7,7 +7,7 @@ _base_ = [
 
 train_dataloader = dict(batch_size=2)
 
-optim_wrapper_cfg = dict(accumulative_counts=2)  # update every four times
+optim_wrapper = dict(accumulative_counts=2)  # update every four times
 
 custom_hooks = [
     dict(
