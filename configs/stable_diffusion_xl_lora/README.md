@@ -93,3 +93,7 @@ You can see more details on [`docs/source/run_guides/run_lora_xl.md`](../../docs
 #### stable_diffusion_xl_lora_conv3x3_pokemon_blip
 
 ![example3](https://github.com/okotaku/diffengine/assets/24734142/8ec55900-c08f-4e36-bd18-e6e81d35de6c)
+
+#### stable_diffusion_xl_lora_waterpainting
+
+![example4](https://github.com/okotaku/diffengine/assets/24734142/9bd797e3-07b5-452f-9f68-5bf017896c2f)

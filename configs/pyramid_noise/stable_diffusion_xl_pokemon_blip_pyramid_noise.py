@@ -9,4 +9,4 @@ model = dict(noise_generator=dict(type="PyramidNoise", discount=0.9))
 
 train_dataloader = dict(batch_size=1)
 
-optim_wrapper_cfg = dict(accumulative_counts=4)  # update every four times
+optim_wrapper = dict(accumulative_counts=4)  # update every four times

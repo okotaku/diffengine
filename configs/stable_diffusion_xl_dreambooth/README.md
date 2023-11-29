@@ -22,6 +22,17 @@ Large text-to-image models achieved a remarkable leap in the evolution of AI, en
 }
 ```
 
+## Prepare Dataset
+
+1. Download style data from [StyleDrop-PyTorch](https://github.com/aim-uofa/StyleDrop-PyTorch/tree/main/data).
+
+2. Unzip the files as follows
+
+```
+data/cat_waterpainting
+└── image_01_03.jpg
+```
+
 ## Run Training
 
 Run Training
@@ -101,6 +112,10 @@ Note that we use 2 GPUs for training all lora models.
 #### stable_diffusion_xl_dreambooth_lora_google_backpack
 
 ![exampleback](https://github.com/okotaku/diffengine/assets/24734142/3dd06582-0eb6-4a10-a065-af5e3d452878)
+
+#### stable_diffusion_xl_dreambooth_lora_cat_waterpainting
+
+![examplewaterpaint](https://github.com/okotaku/diffengine/assets/24734142/d2a83569-d2da-4a24-ae2c-e89b1da93fbf)
 
 ## Acknowledgement
 
