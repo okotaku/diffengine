@@ -14,6 +14,7 @@ Welcome to diffengine's documentation!
 
    user_guides/config.md
    user_guides/dataset_prepare.md
+   user_guides/aspect_ratio_bucketing.md
 
 
 .. _RunGuides:
