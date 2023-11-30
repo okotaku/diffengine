@@ -86,3 +86,19 @@ image.save('demo.png')
 ![input1](https://huggingface.co/datasets/diffusers/diffusers-images-docs/resolve/main/mountain.png)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/f66149fd-e375-4f85-bfbf-d4d046cd469a)
+
+#### stable_diffusion_xl_cartoonization
+
+![input2](https://hf.co/datasets/diffusers/diffusers-images-docs/resolve/main/mountain.png)
+
+![example2](https://github.com/okotaku/diffengine/assets/24734142/1206a53c-c3f7-40a3-9f48-6d01ae176a36)
+
+#### stable_diffusion_xl_low_level_image_process
+
+![input3](https://huggingface.co/datasets/sayakpaul/sample-datasets/resolve/main/derain_the_image_1.png)
+
+![example3](https://github.com/okotaku/diffengine/assets/24734142/55fb5c32-b77c-4667-bf81-3b7c7eb9f8a1)
+
+## Acknowledgement
+
+Some experiments are based on [Instruction-tuning Stable Diffusion with InstructPix2Pix](https://huggingface.co/blog/instruction-tuning-sd). Thank you for the great blog post.

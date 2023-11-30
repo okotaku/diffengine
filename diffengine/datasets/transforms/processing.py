@@ -146,12 +146,14 @@ class RandomCrop(BaseTransform):
             made. If provided a sequence of length 1, it will be interpreted
             as (size[0], size[0])
         keys (List[str]): `keys` to apply augmentation from results.
+        force_same_size (bool): Force same size for all keys. Defaults to True.
     """
 
     def __init__(self,
                  *args,
                  size: Sequence[int] | int,
                  keys: list[str] | None = None,
+                 force_same_size: bool = True,
                  **kwargs) -> None:
         if keys is None:
             keys = ["img"]
@@ -159,6 +161,7 @@ class RandomCrop(BaseTransform):
             size = (size, size)
         self.size = size
         self.keys = keys
+        self.force_same_size = force_same_size
         self.pipeline = torchvision.transforms.RandomCrop(
             *args, size, **kwargs)
 
@@ -174,7 +177,11 @@ class RandomCrop(BaseTransform):
             dict: 'crop_top_left' and  `crop_bottom_right` key is added as crop
                 point.
         """
-        assert all(results["img"].size == results[k].size for k in self.keys)
+        if self.force_same_size:
+            assert all(
+                results["img"].size == results[k].size for k in self.keys), (
+                "Size mismatch. {k: results[k].size for k in self.keys}"
+            )
         y1, x1, h, w = self.pipeline.get_params(results["img"], self.size)
         for k in self.keys:
             results[k] = crop(results[k], y1, x1, h, w)
