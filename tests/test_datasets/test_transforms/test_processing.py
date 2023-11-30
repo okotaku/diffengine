@@ -2,6 +2,7 @@ import os.path as osp
 from unittest import TestCase
 
 import numpy as np
+import pytest
 import torch
 import torchvision
 from mmengine.dataset.base_dataset import Compose
@@ -166,6 +167,31 @@ class TestRandomCrop(TestCase):
             np.array(data["img"]),
             np.array(Image.open(img_path).crop((left, upper, right, lower))))
         np.equal(np.array(data["img"]), np.array(data["condition_img"]))
+
+        # size mismatch
+        data = {
+            "img": Image.open(img_path),
+            "condition_img": Image.open(img_path).resize((298, 398)),
+        }
+        with pytest.raises(
+                AssertionError, match="Size mismatch"):
+            data = trans(data)
+
+        # test transform force_same_size=False
+        trans = TRANSFORMS.build(
+            dict(
+                type="RandomCrop",
+                size=self.crop_size,
+                force_same_size=False,
+                keys=["img", "condition_img"]))
+        data = trans(data)
+        assert "crop_top_left" in data
+        assert len(data["crop_top_left"]) == 2
+        assert data["img"].height == data["img"].width == self.crop_size
+        upper, left = data["crop_top_left"]
+        lower, right = data["crop_bottom_right"]
+        assert lower == upper + self.crop_size
+        assert right == left + self.crop_size
 
 
 class TestCenterCrop(TestCase):
