@@ -5,5 +5,5 @@ model = dict(
     unet_lora_config=dict(
         type="LoHa",
         r=8,
-        alpha=1,
+        alpha=8,
         target_modules=["to_q", "to_v", "to_k", "to_out.0"]))
