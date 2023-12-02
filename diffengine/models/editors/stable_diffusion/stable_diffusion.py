@@ -58,6 +58,8 @@ class StableDiffusion(BaseModel):
         gradient_checkpointing (bool): Whether or not to use gradient
             checkpointing to save memory at the expense of slower backward
             pass. Defaults to False.
+        enable_xformers (bool): Whether or not to enable memory efficient
+            attention. Defaults to False.
     """
 
     def __init__(
@@ -75,6 +77,7 @@ class StableDiffusion(BaseModel):
         *,
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
+        enable_xformers: bool = False,
     ) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDDataPreprocessor"}
@@ -112,6 +115,7 @@ class StableDiffusion(BaseModel):
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
         self.input_perturbation_gamma = input_perturbation_gamma
+        self.enable_xformers = enable_xformers
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
@@ -134,6 +138,7 @@ class StableDiffusion(BaseModel):
         self.timesteps_generator = MODELS.build(timesteps_generator)
         self.prepare_model()
         self.set_lora()
+        self.set_xformers()
 
     def set_lora(self) -> None:
         """Set LORA for model."""
@@ -163,6 +168,18 @@ class StableDiffusion(BaseModel):
         if not self.finetune_text_encoder:
             self.text_encoder.requires_grad_(requires_grad=False)
             print_log("Set Text Encoder untrainable.", "current")
+
+    def set_xformers(self) -> None:
+        """Set xformers for model."""
+        if self.enable_xformers:
+            from diffusers.utils.import_utils import is_xformers_available
+            if is_xformers_available():
+                self.unet.enable_xformers_memory_efficient_attention()
+            else:
+                msg = "Please install xformers to enable memory efficient attention."
+                raise ImportError(
+                    msg,
+                )
 
     @property
     def device(self) -> torch.device:

@@ -110,6 +110,18 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
         self.unet.requires_grad_(requires_grad=False)
         print_log("Set Unet untrainable.", "current")
 
+    def set_xformers(self) -> None:
+        """Set xformers for model."""
+        if self.enable_xformers:
+            from diffusers.utils.import_utils import is_xformers_available
+            if is_xformers_available():
+                self.unet.enable_xformers_memory_efficient_attention()
+            else:
+                msg = "Please install xformers to enable memory efficient attention."
+                raise ImportError(
+                    msg,
+                )
+
     @torch.no_grad()
     def infer(self,
               prompt: list[str],
