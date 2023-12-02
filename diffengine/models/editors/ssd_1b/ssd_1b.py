@@ -72,6 +72,8 @@ class SSD1B(StableDiffusionXL):
             pass. Defaults to False.
         pre_compute_text_embeddings(bool): Whether or not to pre-compute text
             embeddings to save memory. Defaults to False.
+        enable_xformers (bool): Whether or not to enable memory efficient
+            attention. Defaults to False.
     """
 
     def __init__(
@@ -93,6 +95,7 @@ class SSD1B(StableDiffusionXL):
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
         pre_compute_text_embeddings: bool = False,
+        enable_xformers: bool = False,
     ) -> None:
         assert unet_lora_config is None, \
             "`unet_lora_config` should be None when training SSD1B"
@@ -118,6 +121,7 @@ class SSD1B(StableDiffusionXL):
         self.gradient_checkpointing = gradient_checkpointing
         self.pre_compute_text_embeddings = pre_compute_text_embeddings
         self.input_perturbation_gamma = input_perturbation_gamma
+        self.enable_xformers = enable_xformers
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(loss)
@@ -163,6 +167,7 @@ class SSD1B(StableDiffusionXL):
         self.timesteps_generator = MODELS.build(timesteps_generator)
         self.prepare_model()
         self.set_lora()
+        self.set_xformers()
 
     def set_lora(self) -> None:
         """Set LORA for model."""
@@ -241,6 +246,19 @@ class SSD1B(StableDiffusionXL):
                     self.unet.up_blocks[nb].attentions[i].register_forward_hook(
                         get_activation(self.student_feats,f"u{nb}a{i}",
                                        residuals_present=True))
+
+    def set_xformers(self) -> None:
+        """Set xformers for model."""
+        if self.enable_xformers:
+            from diffusers.utils.import_utils import is_xformers_available
+            if is_xformers_available():
+                self.unet.enable_xformers_memory_efficient_attention()
+                self.orig_unet.enable_xformers_memory_efficient_attention()
+            else:
+                msg = "Please install xformers to enable memory efficient attention."
+                raise ImportError(
+                    msg,
+                )
 
     def forward(
             self,
