@@ -26,6 +26,6 @@ custom_hooks = [
         height=1024,
         width=1024),
     dict(type="SDCheckpointHook"),
-    dict(type="FastNormHook", fuse_unet_ln=True, fuse_gn=True),
-    dict(type="CompileHook", compile_unet=False),
+    dict(type="FastNormHook", fuse_main_ln=True, fuse_gn=True),
+    dict(type="CompileHook", compile_main=False),
 ]

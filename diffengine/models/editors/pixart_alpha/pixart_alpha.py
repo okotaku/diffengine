@@ -26,7 +26,11 @@ class PixArtAlpha(BaseModel):
     Args:
     ----
         model (str): pretrained model name of stable diffusion.
-            Defaults to 'runwayml/stable-diffusion-v1-5'.
+            Defaults to 'PixArt-alpha/PixArt-XL-2-1024-MS'.
+        vae_model (str, optional): Path to pretrained VAE model with better
+            numerical stability. More details:
+            https://github.com/huggingface/diffusers/pull/4038.
+            Defaults to None.
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
         transformer_lora_config (dict, optional): The LoRA config dict for
@@ -66,7 +70,8 @@ class PixArtAlpha(BaseModel):
 
     def __init__(
         self,
-        model: str = "runwayml/stable-diffusion-v1-5",
+        model: str = "PixArt-alpha/PixArt-XL-2-1024-MS",
+        vae_model: str | None = None,
         loss: dict | None = None,
         transformer_lora_config: dict | None = None,
         text_encoder_lora_config: dict | None = None,
@@ -135,7 +140,9 @@ class PixArtAlpha(BaseModel):
 
         self.text_encoder = T5EncoderModel.from_pretrained(
             model, subfolder="text_encoder")
-        self.vae = AutoencoderKL.from_pretrained(model, subfolder="vae")
+        vae_path = model if vae_model is None else vae_model
+        self.vae = AutoencoderKL.from_pretrained(
+            vae_path, subfolder="vae" if vae_model is None else None)
         self.transformer = Transformer2DModel.from_pretrained(
             model, subfolder="transformer")
         self.noise_generator = MODELS.build(noise_generator)
@@ -384,5 +391,10 @@ class PixArtAlpha(BaseModel):
             encoder_attention_mask=inputs["attention_mask"],
             timestep=timesteps,
             added_cond_kwargs=added_cond_kwargs).sample
+
+        latent_channels = self.transformer.config.in_channels
+        if self.transformer.config.out_channels // 2 == latent_channels:
+            model_pred = model_pred.chunk(2, dim=1)[0]
+
 
         return self.loss(model_pred, noise, latents, timesteps, weight)

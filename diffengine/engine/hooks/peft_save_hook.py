@@ -39,6 +39,10 @@ class PeftSaveHook(Hook):
         elif hasattr(model, "prior"):
             model.prior.save_pretrained(osp.join(ckpt_path, "prior"))
             model_keys = ["prior"]
+        elif hasattr(model, "transformer"):
+            model.transformer.save_pretrained(
+                osp.join(ckpt_path, "transformer"))
+            model_keys = ["transformer"]
 
         if hasattr(model,
                    "finetune_text_encoder") and model.finetune_text_encoder:

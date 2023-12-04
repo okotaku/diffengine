@@ -42,8 +42,8 @@ class FastNormHook(Hook):
     ----
         fuse_text_encoder_ln (bool): Whether to fuse the text encoder layer
             normalization. Defaults to False.
-        fuse_unet_ln (bool): Whether to replace the layer
-            normalization. Defaults to True.
+        fuse_main_ln (bool): Whether to replace the layer normalization
+            in main module like unet or transformer. Defaults to True.
         fuse_gn (bool) : Whether to replace the group normalization.
             Defaults to False.
     """
@@ -51,7 +51,7 @@ class FastNormHook(Hook):
     priority = "VERY_LOW"
 
     def __init__(self, *, fuse_text_encoder_ln: bool = False,
-                 fuse_unet_ln: bool = True,
+                 fuse_main_ln: bool = True,
                  fuse_gn: bool = False) -> None:
         super().__init__()
         if apex is None:
@@ -59,7 +59,7 @@ class FastNormHook(Hook):
             raise ImportError(
                 msg)
         self.fuse_text_encoder_ln = fuse_text_encoder_ln
-        self.fuse_unet_ln = fuse_unet_ln
+        self.fuse_main_ln = fuse_main_ln
         self.fuse_gn = fuse_gn
 
     def _replace_ln(self, module: nn.Module, name: str, device: str) -> None:
@@ -113,7 +113,7 @@ class FastNormHook(Hook):
         for name, immediate_child_module in module.named_children():
             self._replace_gn_forward(immediate_child_module, name)
 
-    def before_train(self, runner) -> None:  # noqa: C901
+    def before_train(self, runner) -> None:  # noqa: C901 PLR0912
         """Replace the normalization layer with a faster one.
 
         Args:
@@ -123,17 +123,22 @@ class FastNormHook(Hook):
         model = runner.model
         if is_model_wrapper(model):
             model = model.module
-        if self.fuse_unet_ln:
-            self._replace_ln(model.unet, "model", model.device)
+        if self.fuse_main_ln:
+            if hasattr(model, "unet"):
+                self._replace_ln(model.unet, "model", model.device)
+            elif hasattr(model, "transformer"):
+                self._replace_ln(model.transformer, "model", model.device)
             if hasattr(model, "controlnet"):
                 self._replace_ln(model.controlnet, "model", model.device)
 
         if self.fuse_gn:
-            self._replace_gn(model.unet, "model", model.device)
+            if hasattr(model, "unet"):
+                self._replace_gn(model.unet, "model", model.device)
             if hasattr(model, "controlnet"):
                 self._replace_gn(model.controlnet, "model", model.device)
         else:
-            self._replace_gn_forward(model.unet, "unet")
+            if hasattr(model, "unet"):
+                self._replace_gn_forward(model.unet, "unet")
             if hasattr(model, "controlnet"):
                 self._replace_gn_forward(model.controlnet, "unet")
 

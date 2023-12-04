@@ -392,7 +392,7 @@ class ComputePixArtImgInfo(BaseTransform):
             dict: 'time_ids' key is added as original image shape.
         """
         assert "ori_img_shape" in results
-        results["resolution"] = results["ori_img_shape"]
+        results["resolution"] = [float(s) for s in results["ori_img_shape"]]
         results["aspect_ratio"] = results["img"].height / results["img"].width
         return results
 

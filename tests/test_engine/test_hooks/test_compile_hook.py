@@ -72,7 +72,7 @@ class TestCompileHook(RunnerTestCase):
         cfg.model.type = "StableDiffusion"
         cfg.model.model = "diffusers/tiny-stable-diffusion-torch"
         runner = self.build_runner(cfg)
-        hook = CompileHook(compile_unet=True)
+        hook = CompileHook(compile_main=True)
         assert isinstance(runner.model.unet, UNet2DConditionModel)
         assert isinstance(runner.model.vae, AutoencoderKL)
         assert isinstance(runner.model.text_encoder, CLIPTextModel)
@@ -88,7 +88,7 @@ class TestCompileHook(RunnerTestCase):
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-pipe"
         cfg.model.controlnet_model="hf-internal-testing/tiny-controlnet"
         runner = self.build_runner(cfg)
-        hook = CompileHook(compile_unet=True)
+        hook = CompileHook(compile_main=True)
         func = runner.model._forward_compile
         assert runner.model._forward_compile == func
         assert isinstance(runner.model.vae, AutoencoderKL)
@@ -105,7 +105,7 @@ class TestCompileHook(RunnerTestCase):
         cfg.model.type = "StableDiffusionXL"
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
         runner = self.build_runner(cfg)
-        hook = CompileHook(compile_unet=True)
+        hook = CompileHook(compile_main=True)
         assert isinstance(runner.model.unet, UNet2DConditionModel)
         assert isinstance(runner.model.vae, AutoencoderKL)
         assert isinstance(runner.model.text_encoder_one, CLIPTextModel)
@@ -125,7 +125,7 @@ class TestCompileHook(RunnerTestCase):
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
         cfg.model.controlnet_model="hf-internal-testing/tiny-controlnet-sdxl"
         runner = self.build_runner(cfg)
-        hook = CompileHook(compile_unet=True)
+        hook = CompileHook(compile_main=True)
         func = runner.model._forward_compile
         assert runner.model._forward_compile == func
         assert isinstance(runner.model.vae, AutoencoderKL)
@@ -145,7 +145,7 @@ class TestCompileHook(RunnerTestCase):
         cfg.model.type = "StableDiffusionXLT2IAdapter"
         cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
         runner = self.build_runner(cfg)
-        hook = CompileHook(compile_unet=True)
+        hook = CompileHook(compile_main=True)
         func = runner.model._forward_compile
         assert runner.model._forward_compile == func
         assert isinstance(runner.model.vae, AutoencoderKL)

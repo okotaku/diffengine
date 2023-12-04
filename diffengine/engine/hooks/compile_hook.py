@@ -13,17 +13,18 @@ class CompileHook(Hook):
         backend (str): The backend to use for compilation.
             Defaults to "inductor".
         mode (str): The mode to use for compilation. Defaults to None.
-        compile_unet (bool): Whether to compile the unet. Defaults to False.
+        compile_main (bool): Whether to compile the main network like unet or
+            transformer. Defaults to False.
     """
 
     priority = "VERY_LOW"
 
     def __init__(self, backend: str = "inductor", mode: str | None = None, *,
-                 compile_unet: bool = False) -> None:
+                 compile_main: bool = False) -> None:
         super().__init__()
         self.backend = backend
         self.mode = mode
-        self.compile_unet = compile_unet
+        self.compile_main = compile_main
 
     def before_train(self, runner) -> None:
         """Compile the model.
@@ -36,7 +37,7 @@ class CompileHook(Hook):
         if is_model_wrapper(model):
             model = model.module
 
-        if self.compile_unet:
+        if self.compile_main:
             if hasattr(model, "_forward_compile"):
                 # controlnet / t2i adapter
                 target = "_forward_compile"
@@ -44,9 +45,16 @@ class CompileHook(Hook):
                 compiled_func = torch.compile(
                     func, backend=self.backend, mode=self.mode)
                 setattr(model, target, compiled_func)
-            else:
+            elif hasattr(model, "unet"):
                 model.unet = torch.compile(model.unet, backend=self.backend,
                                         mode=self.mode)
+            elif hasattr(model, "transformer"):
+                model.transformer = torch.compile(
+                    model.transformer, backend=self.backend, mode=self.mode)
+            else:
+                msg = "The model has no main network to compile."
+                raise NotImplementedError(
+                    msg)
 
         if hasattr(model, "text_encoder"):
             model.text_encoder = torch.compile(
