@@ -236,8 +236,7 @@ class PixArtAlpha(BaseModel):
             text_encoder=self.text_encoder,
             tokenizer=self.tokenizer,
             transformer=self.transformer,
-            torch_dtype=(torch.float16 if self.device != torch.device("cpu")
-                         else torch.float32),
+            torch_dtype=torch.float32,
         )
         if self.prediction_type is not None:
             # set prediction_type of scheduler if defined
