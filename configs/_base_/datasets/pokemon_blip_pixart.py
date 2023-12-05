@@ -11,7 +11,7 @@ train_pipeline = [
          input_keys=["img", "text", "resolution", "aspect_ratio"]),
 ]
 train_dataloader = dict(
-    batch_size=1,
+    batch_size=2,
     num_workers=4,
     dataset=dict(
         type="HFDataset",
