@@ -84,6 +84,6 @@ img.save("demo.png")
 
 #### pixart_alpha_1024_pokemon_blip
 
-![example1](https://github.com/okotaku/diffengine/assets/24734142/5029f450-d248-4f22-8f90-6588f1d5f91e)
+![example1](https://github.com/okotaku/diffengine/assets/24734142/6b87369a-4746-4067-9a8a-5d7453fc80ce)
 
 You can check [`configs/pixart_alpha/README.md`](../../../configs/pixart_alpha/README.md#results-example) for more details.
