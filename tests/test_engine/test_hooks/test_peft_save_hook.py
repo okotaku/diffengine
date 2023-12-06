@@ -187,6 +187,7 @@ class TestPeftSaveHook(RunnerTestCase):
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("unet", "text_encoder"))
+            assert "default" in key
 
     def test_before_save_checkpoint_text_encoder(self):
         # with text encoder
@@ -225,6 +226,7 @@ class TestPeftSaveHook(RunnerTestCase):
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("unet", "text_encoder"))
+            assert "default" in key
 
         # sdxl
         cfg = copy.deepcopy(self.epoch_based_cfg)
@@ -265,6 +267,7 @@ class TestPeftSaveHook(RunnerTestCase):
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("unet", "text_encoder"))
+            assert "default" in key
 
     def test_before_save_checkpoint_wuerstchen(self):
         # with text encoder
@@ -301,3 +304,4 @@ class TestPeftSaveHook(RunnerTestCase):
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("prior", "text_encoder"))
+            assert "default" in key

@@ -233,11 +233,16 @@ class PixArtAlpha(BaseModel):
         pipeline = PixArtAlphaPipeline.from_pretrained(
             self.model,
             vae=self.vae,
-            text_encoder=self.text_encoder,
+            # text_encoder=self.text_encoder,
             tokenizer=self.tokenizer,
             transformer=self.transformer,
             torch_dtype=torch.float32,
         )
+        if self.finetune_text_encoder:
+            # todo[takuoko]: When parsing text_encoder directly, the  # noqa
+            # results are different. So we need to parse here.
+            pipeline.text_encoder = self.text_encoder
+        pipeline.to(self.device)
         if self.prediction_type is not None:
             # set prediction_type of scheduler if defined
             scheduler_args = {"prediction_type": self.prediction_type}
@@ -394,6 +399,5 @@ class PixArtAlpha(BaseModel):
         latent_channels = self.transformer.config.in_channels
         if self.transformer.config.out_channels // 2 == latent_channels:
             model_pred = model_pred.chunk(2, dim=1)[0]
-
 
         return self.loss(model_pred, noise, latents, timesteps, weight)

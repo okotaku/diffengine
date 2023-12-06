@@ -62,5 +62,8 @@ class PeftSaveHook(Hook):
         for model_key in model_keys:
             state_dict = get_peft_model_state_dict(getattr(model, model_key))
             for k in state_dict:
-                new_ckpt[f"{model_key}.{k}"] = state_dict[k]
+                # add adapter name
+                new_k = ".".join(
+                    k.split(".")[:-1] + ["default", k.split(".")[-1]])
+                new_ckpt[f"{model_key}.{new_k}"] = state_dict[k]
         checkpoint["state_dict"] = new_ckpt
