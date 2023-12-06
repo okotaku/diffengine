@@ -426,3 +426,43 @@ class TestRandomTextDrop(TestCase):
         trans = TRANSFORMS.build(dict(type="RandomTextDrop", p=0.))
         data = trans(data)
         assert data["text"] == "a dog"
+
+
+class TestComputePixArtImgInfo(TestCase):
+
+    def test_register(self):
+        assert "ComputePixArtImgInfo" in TRANSFORMS
+
+    def test_transform(self):
+        img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
+        img = Image.open(img_path)
+        data = {"img": img, "ori_img_shape": [32, 32], "crop_top_left": [0, 0]}
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="ComputePixArtImgInfo"))
+        data = trans(data)
+        self.assertListEqual(data["resolution"],
+                             [float(d) for d in data["ori_img_shape"]])
+        assert data["aspect_ratio"] == img.height / img.width
+
+
+class TestT5TextPreprocess(TestCase):
+
+    def test_register(self):
+        assert "T5TextPreprocess" in TRANSFORMS
+
+    def test_transform(self):
+        data = {
+            "text": "A dog",
+        }
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="T5TextPreprocess"))
+        data = trans(data)
+        assert data["text"] == "a dog"
+
+        data = {
+            "text": "A dog in https://dummy.dummy",
+        }
+        data = trans(data)
+        assert data["text"] == "a dog in dummy. dummy"

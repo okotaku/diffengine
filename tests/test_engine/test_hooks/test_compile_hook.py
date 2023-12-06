@@ -1,9 +1,10 @@
 import copy
 
-from diffusers import AutoencoderKL, UNet2DConditionModel
+from diffusers import AutoencoderKL, Transformer2DModel, UNet2DConditionModel
 from mmengine.registry import MODELS
 from mmengine.testing import RunnerTestCase
-from transformers import CLIPTextModel, CLIPTextModelWithProjection
+from mmengine.testing.runner_test_case import ToyModel
+from transformers import CLIPTextModel, CLIPTextModelWithProjection, T5EncoderModel
 
 from diffengine.engine.hooks import CompileHook
 from diffengine.models.editors import (
@@ -19,6 +20,46 @@ from diffengine.models.editors import (
 )
 from diffengine.models.losses import L2Loss
 from diffengine.models.utils import CubicSamplingTimeSteps, TimeSteps, WhiteNoise
+
+
+class ToyModelPixArt(ToyModel):
+
+    def __init__(self) -> None:
+        super().__init__()
+        height = 12
+        width = 12
+
+        model_kwargs = {
+            "attention_bias": True,
+            "cross_attention_dim": 32,
+            "attention_head_dim": height * width,
+            "num_attention_heads": 1,
+            "num_vector_embeds": 12,
+            "num_embeds_ada_norm": 12,
+            "norm_num_groups": 32,
+            "sample_size": width,
+            "activation_fn": "geglu-approximate",
+        }
+
+        self.transformer = Transformer2DModel(**model_kwargs)
+        self.text_encoder = T5EncoderModel.from_pretrained(
+            "hf-internal-testing/tiny-random-t5")
+        self.vae = AutoencoderKL(
+            in_channels=4,
+            out_channels=4,
+            down_block_types=("DownEncoderBlock2D",),
+            up_block_types=("UpDecoderBlock2D",),
+            block_out_channels=(32,),
+            layers_per_block=1,
+            act_fn="silu",
+            latent_channels=4,
+            norm_num_groups=16,
+            sample_size=16,
+        )
+        self.finetune_text_encoder = True
+
+    def forward(self, *args, **kwargs):
+        return super().forward(*args, **kwargs)
 
 
 class TestCompileHook(RunnerTestCase):
@@ -46,6 +87,7 @@ class TestCompileHook(RunnerTestCase):
         MODELS.register_module(name="TimeSteps", module=TimeSteps)
         MODELS.register_module(
             name="CubicSamplingTimeSteps", module=CubicSamplingTimeSteps)
+        MODELS.register_module(name="ToyModelPixArt", module=ToyModelPixArt)
         return super().setUp()
 
     def tearDown(self) -> None:
@@ -62,6 +104,7 @@ class TestCompileHook(RunnerTestCase):
         MODELS.module_dict.pop("WhiteNoise")
         MODELS.module_dict.pop("TimeSteps")
         MODELS.module_dict.pop("CubicSamplingTimeSteps")
+        MODELS.module_dict.pop("ToyModelPixArt")
         return super().tearDown()
 
     def test_init(self) -> None:
@@ -159,3 +202,17 @@ class TestCompileHook(RunnerTestCase):
         assert not isinstance(runner.model.text_encoder_one, CLIPTextModel)
         assert not isinstance(
             runner.model.text_encoder_two, CLIPTextModelWithProjection)
+
+    def test_before_train_pixart(self) -> None:
+        cfg = copy.deepcopy(self.epoch_based_cfg)
+        cfg.model.type = "ToyModelPixArt"
+        runner = self.build_runner(cfg)
+        hook = CompileHook(compile_main=True)
+        assert isinstance(runner.model.transformer, Transformer2DModel)
+        assert isinstance(runner.model.vae, AutoencoderKL)
+        assert isinstance(runner.model.text_encoder, T5EncoderModel)
+        # compile
+        hook.before_train(runner)
+        assert not isinstance(runner.model.transformer, Transformer2DModel)
+        assert not isinstance(runner.model.vae, AutoencoderKL)
+        assert not isinstance(runner.model.text_encoder, T5EncoderModel)

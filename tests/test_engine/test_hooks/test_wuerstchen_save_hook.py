@@ -58,7 +58,7 @@ class ToyModel2(ToyModel):
         return super().forward(*args, **kwargs)
 
 
-class TestSDCheckpointHook(RunnerTestCase):
+class TestWuerstchenSaveHook(RunnerTestCase):
 
     def setUp(self) -> None:
         MODELS.register_module(name="DummyWrapper", module=DummyWrapper)

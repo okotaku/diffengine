@@ -42,7 +42,7 @@ jobs:
         run: |
           pip install setuptools
       - name: Build and install
-        run: rm -rf .eggs && pip install -e .[dev]
+        run: rm -rf .eggs && pip install -e .[dev,optional]
       - name: Install diffusers from main branch
         run: pip install git+https://github.com/huggingface/diffusers.git
       - name: Run unittests and generate coverage report
