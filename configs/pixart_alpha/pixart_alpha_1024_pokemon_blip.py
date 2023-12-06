@@ -6,6 +6,6 @@ _base_ = [
 ]
 
 optim_wrapper = dict(
-    _delete_=True,
-    optimizer=dict(type="AdamW", lr=1e-5, weight_decay=3e-2),
-    clip_grad=dict(max_norm=1.0))
+    dtype="bfloat16",
+    optimizer=dict(lr=2e-6, weight_decay=3e-2),
+    clip_grad=dict(max_norm=0.01))
