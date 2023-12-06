@@ -181,7 +181,7 @@ class TestPeftSaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/unet",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         shutil.rmtree(
             osp.join(runner.work_dir, f"step{runner.iter}"))
 
@@ -217,10 +217,10 @@ class TestPeftSaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/unet",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/text_encoder",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         shutil.rmtree(
             osp.join(runner.work_dir, f"step{runner.iter}"))
 
@@ -255,13 +255,13 @@ class TestPeftSaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/unet",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/text_encoder_one",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/text_encoder_two",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         shutil.rmtree(
             osp.join(runner.work_dir, f"step{runner.iter}"))
 
@@ -295,10 +295,10 @@ class TestPeftSaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/prior",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/text_encoder",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         shutil.rmtree(
             osp.join(runner.work_dir, f"step{runner.iter}"))
 
