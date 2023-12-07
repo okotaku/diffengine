@@ -79,4 +79,4 @@ image.save('demo.png')
 
 #### stable_diffusion_xl_oft_pokemon_blip
 
-![example1](https://github.com/huggingface/peft/assets/24734142/8d171c0c-aeda-40e3-8565-4e46a7849b9a)
+![example1](https://github.com/huggingface/peft/assets/24734142/30ab6572-ad0c-4703-a375-18215143b909)
