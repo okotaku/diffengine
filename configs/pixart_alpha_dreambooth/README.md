@@ -80,3 +80,7 @@ You can see more details on [Run PixArt-α DreamBooth docs](../../docs/source/ru
 #### pixart_alpha_1024_dreambooth_lora_dog
 
 ![exampledog2](https://github.com/okotaku/diffengine/assets/24734142/a3fc9fcd-7cd0-4dc2-997d-3a9b303c228a)
+
+#### pixart_alpha_1024_dreambooth_lora_cat_waterpainting
+
+![examplestyle](https://github.com/okotaku/diffengine/assets/24734142/e48e845d-c21c-451b-97cb-2df0ec0cfd41)
