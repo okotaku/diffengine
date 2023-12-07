@@ -31,6 +31,8 @@ $ mim train diffengine configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_b
 
 ## Training Speed
 
+#### Single GPU
+
 Environment:
 
 - A6000 Single GPU
@@ -47,6 +49,24 @@ Settings:
 |   stable_diffusion_xl_pokemon_blip_fast   |  9 m 47 s  |
 
 Note that `stable_diffusion_xl_pokemon_blip_fast` took a few minutes to compile. We will disregard it.
+
+#### Multiple GPUs
+
+Environment:
+
+- A100 x 4 GPUs
+- nvcr.io/nvidia/pytorch:23.11-py3
+
+Settings:
+
+- 1epoch training.
+
+|                           Model                           | total time |
+| :-------------------------------------------------------: | :--------: |
+|       stable_diffusion_xl_pokemon_blip_fast (BS=4)        |  1 m 6 s   |
+| stable_diffusion_xl_pokemon_blip_deepspeed_stage3 (BS=8)  |  1 m 5 s   |
+| stable_diffusion_xl_pokemon_blip_deepspeed_stage2 (BS=8)  |    58 s    |
+| stable_diffusion_xl_pokemon_blip_colossal (stage=2, BS=8) |    58s     |
 
 ## Inference with diffusers
 
