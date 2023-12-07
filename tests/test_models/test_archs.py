@@ -57,9 +57,7 @@ def test_create_peft_config():
     config = dict(
         type="OFT",
         r=8,
-        alpha=2,
     )
     config = create_peft_config(config)
     assert isinstance(config, OFTConfig)
     assert config.r == 8
-    assert config.alpha == 2
