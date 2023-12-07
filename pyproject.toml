@@ -16,7 +16,7 @@ dependencies = [
     "tqdm",
     "transformers>=4.35.2",
     "ujson",
-    "peft>=0.6.2",
+    "peft>=0.7.0",
 ]
 license = { file = "LICENSE" }
 keywords = ["computer vision", "diffusion models"]
