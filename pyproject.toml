@@ -23,7 +23,7 @@ keywords = ["computer vision", "diffusion models"]
 
 [project.optional-dependencies]
 dev = ["pytest", "coverage"]
-optional = ["ftfy", "bs4"]
+optional = ["ftfy", "bs4", "deepspeed", "colossalai"]
 docs = [
     "docutils==0.18.1",
     "modelindex",
