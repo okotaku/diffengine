@@ -210,6 +210,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
           <li><a href="configs/instruct_pix2pix/README.md">InstructPix2Pix (2022)</a></li>
           <li><a href="configs/loha/README.md">LoHa (ICLR'2022)</a></li>
           <li><a href="configs/lokr/README.md">LoKr (2022)</a></li>
+          <li><a href="configs/oft/README.md">OFT (NeurIPS'2023)</a></li>
         </ul>
       </td>
       <td>

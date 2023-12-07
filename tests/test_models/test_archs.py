@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 from diffusers import UNet2DConditionModel
-from peft import LoHaConfig, LoKrConfig, LoraConfig
+from peft import LoHaConfig, LoKrConfig, LoraConfig, OFTConfig
 
 from diffengine.models.archs import (
     create_peft_config,
@@ -53,3 +53,11 @@ def test_create_peft_config():
     assert isinstance(config, LoKrConfig)
     assert config.r == 8
     assert config.alpha == 2
+
+    config = dict(
+        type="OFT",
+        r=8,
+    )
+    config = create_peft_config(config)
+    assert isinstance(config, OFTConfig)
+    assert config.r == 8
