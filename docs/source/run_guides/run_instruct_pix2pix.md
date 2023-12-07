@@ -33,12 +33,12 @@ Run train
 
 ```
 # single gpu
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE}
+$ mim train diffengine ${CONFIG_FILE}
 # multi gpus
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 
 # Example
-$ docker compose exec diffengine mim train diffengine configs/instruct_pix2pix/stable_diffusion_xl_instruct_pix2pix.py
+$ mim train diffengine configs/instruct_pix2pix/stable_diffusion_xl_instruct_pix2pix.py
 ```
 
 ## Inference with diffusers

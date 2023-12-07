@@ -77,17 +77,18 @@ class StableDiffusionXLInstructPix2Pix(StableDiffusionXL):
         """
         # Fix input channels of Unet
         in_channels = 8
-        out_channels = self.unet.conv_in.out_channels
-        self.unet.register_to_config(in_channels=in_channels)
+        if self.unet.in_channels != in_channels:
+            out_channels = self.unet.conv_in.out_channels
+            self.unet.register_to_config(in_channels=in_channels)
 
-        with torch.no_grad():
-            new_conv_in = nn.Conv2d(
-                in_channels, out_channels, self.unet.conv_in.kernel_size,
-                self.unet.conv_in.stride, self.unet.conv_in.padding,
-            )
-            new_conv_in.weight.zero_()
-            new_conv_in.weight[:, :4, :, :].copy_(self.unet.conv_in.weight)
-            self.unet.conv_in = new_conv_in
+            with torch.no_grad():
+                new_conv_in = nn.Conv2d(
+                    in_channels, out_channels, self.unet.conv_in.kernel_size,
+                    self.unet.conv_in.stride, self.unet.conv_in.padding,
+                )
+                new_conv_in.weight.zero_()
+                new_conv_in.weight[:, :4, :, :].copy_(self.unet.conv_in.weight)
+                self.unet.conv_in = new_conv_in
 
         super().prepare_model()
 

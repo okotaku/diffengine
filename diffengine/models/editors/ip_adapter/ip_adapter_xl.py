@@ -3,13 +3,13 @@ from typing import Optional
 import numpy as np
 import torch
 from diffusers import DiffusionPipeline
+from diffusers.models.embeddings import ImageProjection
 from diffusers.utils import load_image
 from PIL import Image
 from torch import nn
 from transformers import CLIPVisionModelWithProjection
 
 from diffengine.models.archs import set_unet_ip_adapter
-from diffengine.models.editors.ip_adapter.image_projection import ImageProjModel
 from diffengine.models.editors.ip_adapter.resampler import Resampler
 from diffengine.models.editors.stable_diffusion_xl import StableDiffusionXL
 from diffengine.registry import MODELS
@@ -23,7 +23,7 @@ class IPAdapterXL(StableDiffusionXL):
     ----
         image_encoder (str, optional): Path to pretrained Image Encoder model.
             Defaults to 'takuoko/IP-Adapter-XL'.
-        clip_extra_context_tokens (int): The number of expansion ratio of proj
+        num_image_text_embeds (int): The number of expansion ratio of proj
             network hidden layer channels Defaults to 4.
         unet_lora_config (dict, optional): The LoRA config dict for Unet.
             example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
@@ -47,7 +47,7 @@ class IPAdapterXL(StableDiffusionXL):
     def __init__(self,
                  *args,
                  image_encoder: str = "takuoko/IP-Adapter-XL-test",
-                 clip_extra_context_tokens: int = 4,
+                 num_image_text_embeds: int = 4,
                  unet_lora_config: dict | None = None,
                  text_encoder_lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
@@ -64,7 +64,7 @@ class IPAdapterXL(StableDiffusionXL):
             "`finetune_text_encoder` should be False when training IPAdapter"
 
         self.image_encoder_name = image_encoder
-        self.clip_extra_context_tokens = clip_extra_context_tokens
+        self.num_image_text_embeds = num_image_text_embeds
         self.zeros_image_embeddings_prob = zeros_image_embeddings_prob
 
         super().__init__(
@@ -87,10 +87,10 @@ class IPAdapterXL(StableDiffusionXL):
         """
         self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
             self.image_encoder_name, subfolder="image_encoder")
-        self.image_projection = ImageProjModel(
+        self.image_projection = ImageProjection(
             cross_attention_dim=self.unet.config.cross_attention_dim,
-            clip_embeddings_dim=self.image_encoder.config.projection_dim,
-            clip_extra_context_tokens=self.clip_extra_context_tokens,
+            image_embed_dim=self.image_encoder.config.projection_dim,
+            num_image_text_embeds=self.num_image_text_embeds,
         )
         self.image_encoder.requires_grad_(requires_grad=False)
         super().prepare_model()
@@ -303,17 +303,17 @@ class IPAdapterXLPlus(IPAdapterXL):
 
     Args:
     ----
-        clip_extra_context_tokens (int): The number of expansion ratio of proj
+        num_image_text_embeds (int): The number of expansion ratio of proj
             network hidden layer channels Defaults to 16.
     """
 
     def __init__(self,
                  *args,
-                 clip_extra_context_tokens: int = 16,
+                 num_image_text_embeds: int = 16,
                  **kwargs) -> None:
         super().__init__(
             *args,
-            clip_extra_context_tokens=clip_extra_context_tokens,
+            num_image_text_embeds=num_image_text_embeds,
             **kwargs)
 
     def prepare_model(self) -> None:
@@ -330,7 +330,7 @@ class IPAdapterXLPlus(IPAdapterXL):
             depth=4,
             head_dims=64,
             num_heads=20,
-            num_queries=self.clip_extra_context_tokens,
+            num_queries=self.num_image_text_embeds,
             ffn_ratio=4)
         self.image_encoder.requires_grad_(requires_grad=False)
         super(IPAdapterXL, self).prepare_model()

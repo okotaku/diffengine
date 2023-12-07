@@ -5,12 +5,14 @@ from .processing import (
     TRANSFORMS,
     CenterCrop,
     CLIPImageProcessor,
+    ComputePixArtImgInfo,
     ComputeTimeIds,
     MultiAspectRatioResizeCenterCrop,
     RandomCrop,
     RandomHorizontalFlip,
     RandomTextDrop,
     SaveImageShape,
+    T5TextPreprocess,
 )
 
 __all__ = [
@@ -26,4 +28,6 @@ __all__ = [
     "MultiAspectRatioResizeCenterCrop",
     "CLIPImageProcessor",
     "RandomTextDrop",
+    "ComputePixArtImgInfo",
+    "T5TextPreprocess",
 ]

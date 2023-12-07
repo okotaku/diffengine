@@ -13,17 +13,19 @@
 
 ## 📄 Table of Contents
 
-- [📖 Introduction](#-introduction-)
-- [🛠️ Installation](#-installation-)
-- [👨‍🏫 Get Started](#-get-started-)
-- [🖋 Example Notebook](#-example-notebook-)
-- [📘 Documentation](#-documentation-)
-- [📊 Model Zoo](#-model-zoo-)
-- [🙌 Contributing](#-contributing-)
-- [🎫 License](#-license-)
-- [🖊️ Citation](#-citation-)
-- [💻 Sponsors](#-sponsors-)
-- [🤝 Acknowledgement](#-acknowledgement-)
+- [DiffEngine](#diffengine)
+  - [📄 Table of Contents](#-table-of-contents)
+  - [📖 Introduction 🔝](#-introduction-)
+  - [🛠️ Installation 🔝](#️-installation-)
+  - [👨‍🏫 Get Started 🔝](#-get-started-)
+  - [🖋 Example Notebook 🔝](#-example-notebook-)
+  - [📘 Documentation 🔝](#-documentation-)
+  - [📊 Model Zoo 🔝](#-model-zoo-)
+  - [🙌 Contributing 🔝](#-contributing-)
+  - [🎫 License 🔝](#-license-)
+  - [🖊️ Citation 🔝](#️-citation-)
+  - [💻 Sponsors](#-sponsors)
+  - [🤝 Acknowledgement 🔝](#-acknowledgement-)
 
 ## 📖 Introduction [🔝](#-table-of-contents)
 
@@ -134,6 +136,11 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 - [Run InstructPix2Pix](https://diffengine.readthedocs.io/en/latest/run_guides/run_instruct_pix2pix.html)
 - [Run Wuerstchen](https://diffengine.readthedocs.io/en/latest/run_guides/run_wuerstchen.html)
 - [Run Wuerstchen LoRA](https://diffengine.readthedocs.io/en/latest/run_guides/run_wuerstchen_lora.html)
+- [Run LCM XL](https://diffengine.readthedocs.io/en/latest/run_guides/run_lcm.html)
+- [Run LCM XL LoRA](https://diffengine.readthedocs.io/en/latest/run_guides/run_lcm_lora.html)
+- [Run PixArt-α](https://diffengine.readthedocs.io/en/latest/run_guides/run_pixart_alpha.html)
+- [Run PixArt-α LoRA](https://diffengine.readthedocs.io/en/latest/run_guides/run_pixart_alpha_lora.html)
+- [Run PixArt-α DreamBooth](https://diffengine.readthedocs.io/en/latest/run_guides/run_pixart_alpha_dreambooth.html)
 - [Inference](https://diffengine.readthedocs.io/en/latest/run_guides/inference.html)
 
 </details>
@@ -231,12 +238,31 @@ For detailed user guides and advanced guides, please refer to our [Documentation
       <td>
         <b>Wuerstchen</b>
       </td>
+      <td>
+        <b>Latent Consistency Models</b>
+      </td>
+      <td>
+        <b>PixArt-α</b>
+      </td>
     </tr>
     <tr valign="top">
       <td>
         <ul>
             <li><a href="configs/wuerstchen/README.md">Wuerstchen (2023)</a></li>
             <li><a href="configs/wuerstchen_lora/README.md">LoRA (ICLR'2022)</a></li>
+      </ul>
+      </td>
+      <td>
+        <ul>
+            <li><a href="configs/lcm/README.md">Latent Consistency Models (2023)</a></li>
+            <li><a href="configs/lcm_lora/README.md">LoRA (ICLR'2022)</a></li>
+      </ul>
+      </td>
+      <td>
+        <ul>
+            <li><a href="configs/pixart_alpha/README.md">PixArt-α (2023)</a></li>
+            <li><a href="configs/pixart_alpha_lora/README.md">LoRA (ICLR'2022)</a></li>
+            <li><a href="configs/pixart_alpha_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
       </ul>
       </td>
     </tr>

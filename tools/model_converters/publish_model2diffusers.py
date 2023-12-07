@@ -18,7 +18,7 @@ def parse_args():  # noqa
         "--save-keys",
         nargs="+",
         type=str,
-        default=["unet", "text_encoder"],
+        default=["unet", "text_encoder", "transformer"],
         help="keys to save in the published checkpoint")
     return parser.parse_args()
 
@@ -34,7 +34,7 @@ def process_checkpoint(runner, out_dir, save_keys=None) -> None:
 
 def main() -> None:
     args = parse_args()
-    allowed_save_keys = ["unet", "text_encoder"]
+    allowed_save_keys = ["unet", "text_encoder", "transformer"]
     if not set(args.save_keys).issubset(set(allowed_save_keys)):
         msg = (f"These metrics are supported: {allowed_save_keys}, "
                f"but got {args.save_keys}")

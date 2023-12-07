@@ -16,7 +16,7 @@ _base_ = [
     "../_base_/default_runtime.py",
 ]
 
-optim_wrapper_cfg = dict(
+optim_wrapper = dict(
     optimizer=dict(lr=1e-5),
     accumulative_counts=4)  # update every four times
 ```
@@ -27,12 +27,12 @@ Run train
 
 ```
 # single gpu
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE}
+$ mim train diffengine ${CONFIG_FILE}
 # multi gpus
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 
 # Example
-$ docker compose exec diffengine mim train diffengine configs/wuerstchen/wuerstchen_prior_pokemon_blip.py
+$ mim train diffengine configs/wuerstchen/wuerstchen_prior_pokemon_blip.py
 ```
 
 ## Inference with diffusers

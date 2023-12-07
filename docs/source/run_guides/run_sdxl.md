@@ -18,7 +18,7 @@ _base_ = [
 
 train_dataloader = dict(batch_size=1)  # Because of GPU memory limit
 
-optim_wrapper_cfg = dict(accumulative_counts=4)  # update every four times
+optim_wrapper = dict(accumulative_counts=4)  # update every four times
 ```
 
 #### Finetuning the text encoder and UNet
@@ -35,7 +35,7 @@ _base_ = [
 
 train_dataloader = dict(batch_size=1)  # Because of GPU memory limit
 
-optim_wrapper_cfg = dict(accumulative_counts=4)  # update every four times
+optim_wrapper = dict(accumulative_counts=4)  # update every four times
 
 model = dict(finetune_text_encoder=True)  # fine tune text encoder
 ```
@@ -54,7 +54,7 @@ _base_ = [
 
 train_dataloader = dict(batch_size=1)  # Because of GPU memory limit
 
-optim_wrapper_cfg = dict(accumulative_counts=4)  # update every four times
+optim_wrapper = dict(accumulative_counts=4)  # update every four times
 
 custom_hooks = [  # Hook is list, we should write all custom_hooks again.
     dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
@@ -77,7 +77,7 @@ _base_ = [
 
 train_dataloader = dict(batch_size=1)  # Because of GPU memory limit
 
-optim_wrapper_cfg = dict(accumulative_counts=4)  # update every four times
+optim_wrapper = dict(accumulative_counts=4)  # update every four times
 
 model = dict(loss=dict(type='SNRL2Loss', snr_gamma=5.0, loss_weight=1.0))  # setup Min-SNR Weighting Strategy
 ```
@@ -88,12 +88,12 @@ Run train
 
 ```
 # single gpu
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE}
+$ mim train diffengine ${CONFIG_FILE}
 # Example
-$ docker compose exec diffengine mim train diffengine configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py
+$ mim train diffengine configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py
 
 # multi gpus
-$ docker compose exec diffengine mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
 ```
 
 ## Inference with diffusers

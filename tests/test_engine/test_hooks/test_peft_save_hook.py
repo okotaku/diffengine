@@ -181,12 +181,13 @@ class TestPeftSaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/unet",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         shutil.rmtree(
             osp.join(runner.work_dir, f"step{runner.iter}"))
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("unet", "text_encoder"))
+            assert "default" in key
 
     def test_before_save_checkpoint_text_encoder(self):
         # with text encoder
@@ -216,15 +217,16 @@ class TestPeftSaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/unet",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/text_encoder",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         shutil.rmtree(
             osp.join(runner.work_dir, f"step{runner.iter}"))
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("unet", "text_encoder"))
+            assert "default" in key
 
         # sdxl
         cfg = copy.deepcopy(self.epoch_based_cfg)
@@ -253,18 +255,19 @@ class TestPeftSaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/unet",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/text_encoder_one",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/text_encoder_two",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         shutil.rmtree(
             osp.join(runner.work_dir, f"step{runner.iter}"))
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("unet", "text_encoder"))
+            assert "default" in key
 
     def test_before_save_checkpoint_wuerstchen(self):
         # with text encoder
@@ -292,12 +295,13 @@ class TestPeftSaveHook(RunnerTestCase):
 
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/prior",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         assert Path(
             osp.join(runner.work_dir, f"step{runner.iter}/text_encoder",
-                     "adapter_model.bin")).exists()
+                     "adapter_model.safetensors")).exists()
         shutil.rmtree(
             osp.join(runner.work_dir, f"step{runner.iter}"))
 
         for key in checkpoint["state_dict"]:
             assert key.startswith(("prior", "text_encoder"))
+            assert "default" in key

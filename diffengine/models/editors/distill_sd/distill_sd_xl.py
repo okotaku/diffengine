@@ -146,6 +146,19 @@ class DistillSDXL(StableDiffusionXL):
                 get_activation(
                     self.student_feats, "u" + str(i), residuals_present=False))
 
+    def set_xformers(self) -> None:
+        """Set xformers for model."""
+        if self.enable_xformers:
+            from diffusers.utils.import_utils import is_xformers_available
+            if is_xformers_available():
+                self.unet.enable_xformers_memory_efficient_attention()
+                self.orig_unet.enable_xformers_memory_efficient_attention()
+            else:
+                msg = "Please install xformers to enable memory efficient attention."
+                raise ImportError(
+                    msg,
+                )
+
     def forward(
             self,
             inputs: dict,

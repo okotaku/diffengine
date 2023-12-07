@@ -40,10 +40,11 @@ Settings:
 
 - 1epoch training.
 
-|                  Model                  | total time |
-| :-------------------------------------: | :--------: |
-| stable_diffusion_xl_pokemon_blip (fp16) | 12 m 37 s  |
-|  stable_diffusion_xl_pokemon_blip_fast  |  9 m 47 s  |
+|                   Model                   | total time |
+| :---------------------------------------: | :--------: |
+|  stable_diffusion_xl_pokemon_blip (fp16)  | 12 m 37 s  |
+| stable_diffusion_xl_pokemon_blip_xformers |  10 m 6 s  |
+|   stable_diffusion_xl_pokemon_blip_fast   |  9 m 47 s  |
 
 Note that `stable_diffusion_xl_pokemon_blip_fast` took a few minutes to compile. We will disregard it.
 

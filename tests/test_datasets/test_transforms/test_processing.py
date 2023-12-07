@@ -2,6 +2,7 @@ import os.path as osp
 from unittest import TestCase
 
 import numpy as np
+import pytest
 import torch
 import torchvision
 from mmengine.dataset.base_dataset import Compose
@@ -166,6 +167,31 @@ class TestRandomCrop(TestCase):
             np.array(data["img"]),
             np.array(Image.open(img_path).crop((left, upper, right, lower))))
         np.equal(np.array(data["img"]), np.array(data["condition_img"]))
+
+        # size mismatch
+        data = {
+            "img": Image.open(img_path),
+            "condition_img": Image.open(img_path).resize((298, 398)),
+        }
+        with pytest.raises(
+                AssertionError, match="Size mismatch"):
+            data = trans(data)
+
+        # test transform force_same_size=False
+        trans = TRANSFORMS.build(
+            dict(
+                type="RandomCrop",
+                size=self.crop_size,
+                force_same_size=False,
+                keys=["img", "condition_img"]))
+        data = trans(data)
+        assert "crop_top_left" in data
+        assert len(data["crop_top_left"]) == 2
+        assert data["img"].height == data["img"].width == self.crop_size
+        upper, left = data["crop_top_left"]
+        lower, right = data["crop_bottom_right"]
+        assert lower == upper + self.crop_size
+        assert right == left + self.crop_size
 
 
 class TestCenterCrop(TestCase):
@@ -400,3 +426,43 @@ class TestRandomTextDrop(TestCase):
         trans = TRANSFORMS.build(dict(type="RandomTextDrop", p=0.))
         data = trans(data)
         assert data["text"] == "a dog"
+
+
+class TestComputePixArtImgInfo(TestCase):
+
+    def test_register(self):
+        assert "ComputePixArtImgInfo" in TRANSFORMS
+
+    def test_transform(self):
+        img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
+        img = Image.open(img_path)
+        data = {"img": img, "ori_img_shape": [32, 32], "crop_top_left": [0, 0]}
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="ComputePixArtImgInfo"))
+        data = trans(data)
+        self.assertListEqual(data["resolution"],
+                             [float(d) for d in data["ori_img_shape"]])
+        assert data["aspect_ratio"] == img.height / img.width
+
+
+class TestT5TextPreprocess(TestCase):
+
+    def test_register(self):
+        assert "T5TextPreprocess" in TRANSFORMS
+
+    def test_transform(self):
+        data = {
+            "text": "A dog",
+        }
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="T5TextPreprocess"))
+        data = trans(data)
+        assert data["text"] == "a dog"
+
+        data = {
+            "text": "A dog in https://dummy.dummy",
+        }
+        data = trans(data)
+        assert data["text"] == "a dog in dummy. dummy"
