@@ -63,7 +63,7 @@ pipe.to('cuda')
 
 image = pipe(
     prompt,
-    condition_image,
+    image=condition_image,
     num_inference_steps=50,
 ).images[0]
 image.save('demo.png')
@@ -78,8 +78,6 @@ You can see more details on [`docs/source/run_guides/run_controlnet_xl.md`](../.
 ![input1](https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/a331a413-a9e7-4b9a-aa75-72279c4cc77a)
-
-Note that some of the results are not good. We should attempt further tuning.
 
 ## Acknowledgement
 
