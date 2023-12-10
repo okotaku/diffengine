@@ -61,4 +61,12 @@ class DumpImage:
                 cv2.imwrite(cond_out_file,
                             condition_img.numpy().astype(np.uint8)[..., ::-1])
 
+            if "mask" in results:
+                mask = results["mask"]
+                if condition_img.shape[0] in [1, 3]:
+                    mask = mask.permute(1, 2, 0) * 255
+                mask_out_file = osp.join(self.dump_dir, f"{dump_id}_mask.png")
+                cv2.imwrite(mask_out_file,
+                            mask.numpy().astype(np.uint8))
+
         return results
