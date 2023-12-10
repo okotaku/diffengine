@@ -1,12 +1,15 @@
 from .base import BaseTransform
 from .dump_image import DumpImage
 from .formatting import PackInputs
+from .loading import LoadMask
 from .processing import (
     TRANSFORMS,
     CenterCrop,
     CLIPImageProcessor,
     ComputePixArtImgInfo,
     ComputeTimeIds,
+    GetMaskedImage,
+    MaskToTensor,
     MultiAspectRatioResizeCenterCrop,
     RandomCrop,
     RandomHorizontalFlip,
@@ -30,4 +33,7 @@ __all__ = [
     "RandomTextDrop",
     "ComputePixArtImgInfo",
     "T5TextPreprocess",
+    "LoadMask",
+    "MaskToTensor",
+    "GetMaskedImage",
 ]

@@ -194,6 +194,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
             <li><a href="configs/stable_diffusion_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
             <li><a href="configs/stable_diffusion_lora/README.md">LoRA (ICLR'2022)</a></li>
             <li><a href="configs/distill_sd_dreambooth/README.md">Distill SD DreamBooth (2023)</a></li>
+            <li><a href="configs/stable_diffusion_inpaint/README.md">Inpaint</a></li>
       </ul>
       </td>
       <td>
@@ -212,6 +213,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
           <li><a href="configs/lokr/README.md">LoKr (2022)</a></li>
           <li><a href="configs/oft/README.md">OFT (NeurIPS'2023)</a></li>
           <li><a href="configs/stable_diffusion_xl_controlnetxs/README.md">ControlNet-XS (2023)</a></li>
+          <li><a href="configs/stable_diffusion_xl_inpaint/README.md">Inpaint</a></li>
         </ul>
       </td>
       <td>
