@@ -22,6 +22,7 @@ from transformers import (
 
 from diffengine.models.editors import (
     SDXLControlNetDataPreprocessor,
+    StableDiffusionXL,
     StableDiffusionXLControlNetXS,
 )
 from diffengine.models.losses import L2Loss
@@ -66,7 +67,8 @@ class DummyStableDiffusionXLControlNetXS(StableDiffusionXLControlNetXS):
             timesteps_generator = {"type": "TimeSteps"}
         if loss is None:
             loss = {"type": "L2Loss", "loss_weight": 1.0}
-        super().__init__(data_preprocessor=data_preprocessor)
+        super(StableDiffusionXL, self).__init__(
+            data_preprocessor=data_preprocessor)
 
         if (
             unet_lora_config is not None) and (
