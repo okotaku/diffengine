@@ -34,12 +34,12 @@ class SDInpaintDataPreprocessor(BaseDataPreprocessor):
                 "result_class_image"].pop("text")
             data["inputs"]["img"] = data["inputs"]["img"] + data["inputs"][
                 "result_class_image"].pop("img")
-            data["inputs"]["masked_images"] = data["inputs"][
-                "masked_images"] + data["inputs"][
-                "result_class_image"].pop("masked_images")
+            data["inputs"]["masked_image"] = data["inputs"][
+                "masked_image"] + data["inputs"][
+                "result_class_image"].pop("masked_image")
             data["inputs"]["mask"] = data["inputs"]["mask"] + data["inputs"][
                 "result_class_image"].pop("mask")
         data["inputs"]["img"] = torch.stack(data["inputs"]["img"])
-        data["inputs"]["masked_images"] = torch.stack(data["inputs"]["masked_images"])
+        data["inputs"]["masked_image"] = torch.stack(data["inputs"]["masked_image"])
         data["inputs"]["mask"] = torch.stack(data["inputs"]["mask"])
         return super().forward(data)

@@ -466,3 +466,39 @@ class TestT5TextPreprocess(TestCase):
         }
         data = trans(data)
         assert data["text"] == "a dog in dummy. dummy"
+
+
+class TestMaskToTensor(TestCase):
+
+    def test_register(self):
+        assert "MaskToTensor" in TRANSFORMS
+
+    def test_transform(self):
+        data = {"mask": np.zeros((32, 32, 1))}
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="MaskToTensor"))
+        data = trans(data)
+        assert data["mask"].shape == (1, 32, 32)
+
+
+class TestGetMaskedImage(TestCase):
+
+    def test_register(self):
+        assert "GetMaskedImage" in TRANSFORMS
+
+    def test_transform(self):
+        img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
+        img = torch.Tensor(np.array(Image.open(img_path)))
+        mask = np.ones((img.shape[0], img.shape[1], 1))
+        mask[:10, :10] = 0
+        mask = torch.Tensor(mask)
+        data = {"img": img, "mask": mask}
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="GetMaskedImage"))
+        data = trans(data)
+        assert "masked_image" in data
+        assert data["masked_image"].shape == img.shape
+        assert torch.allclose(data["masked_image"][10:, 10:], img[10:, 10:])
+        assert data["masked_image"][:10, :10].sum() == 0

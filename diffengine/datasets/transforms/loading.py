@@ -365,14 +365,13 @@ class LoadMask(BaseTransform):
 
     .. code-block:: python
 
-        config = dict(img_shape=(256, 256), max_bbox_shape=128)
+        config = dict(max_bbox_shape=128)
 
     Example config for irregular:
 
     .. code-block:: python
 
         config = dict(
-            img_shape=(256, 256),
             num_vertices=(4, 12),
             max_angle=4.,
             length_range=(10, 100),
@@ -384,7 +383,6 @@ class LoadMask(BaseTransform):
     .. code-block:: python
 
         config = dict(
-            img_shape=(256, 256),
             num_vertices=(4, 12),
             mean_angle=1.2,
             angle_range=0.4,
@@ -419,14 +417,18 @@ class LoadMask(BaseTransform):
         -------
             dict: A dict containing the processed data and information.
         """
+        img_shape = (results["img"].height, results["img"].width)
         if self.mask_mode == "bbox":
-            mask_bbox = random_bbox(**self.mask_config)
-            mask = bbox2mask(self.mask_config["img_shape"], mask_bbox)
+            mask_bbox = random_bbox(img_shape=img_shape,
+                                    **self.mask_config)
+            mask = bbox2mask(img_shape, mask_bbox)
             results["mask_bbox"] = mask_bbox
         elif self.mask_mode == "irregular":
-            mask = get_irregular_mask(**self.mask_config)
+            mask = get_irregular_mask(img_shape=img_shape,
+                                      **self.mask_config)
         elif self.mask_mode == "ff":
-            mask = brush_stroke_mask(**self.mask_config)
+            mask = brush_stroke_mask(img_shape=img_shape,
+                                     **self.mask_config)
         else:
             msg = f"Mask mode {self.mask_mode} has not been implemented."
             raise NotImplementedError(

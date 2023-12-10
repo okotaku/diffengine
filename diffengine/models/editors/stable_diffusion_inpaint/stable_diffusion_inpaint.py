@@ -5,6 +5,7 @@ import torch
 import torch.nn.functional as F  # noqa
 from diffusers import StableDiffusionInpaintPipeline
 from diffusers.utils import load_image
+from mmengine import print_log
 from PIL import Image
 from torch import nn
 
@@ -37,6 +38,37 @@ class StableDiffusionInpaint(StableDiffusion):
             model=model,
             data_preprocessor=data_preprocessor,
             **kwargs)  # type: ignore[misc]
+
+    def prepare_model(self) -> None:
+        """Prepare model for training.
+
+        Disable gradient for some models.
+        """
+        # Fix input channels of Unet
+        in_channels = 9
+        if self.unet.in_channels != in_channels:
+            out_channels = self.unet.conv_in.out_channels
+            self.unet.register_to_config(in_channels=in_channels)
+
+            with torch.no_grad():
+                new_conv_in = nn.Conv2d(
+                    in_channels, out_channels, self.unet.conv_in.kernel_size,
+                    self.unet.conv_in.stride, self.unet.conv_in.padding,
+                )
+                new_conv_in.weight.zero_()
+                new_conv_in.weight[:, :4, :, :].copy_(self.unet.conv_in.weight)
+                self.unet.conv_in = new_conv_in
+
+        if self.gradient_checkpointing:
+            self.unet.enable_gradient_checkpointing()
+            if self.finetune_text_encoder:
+                self.text_encoder.gradient_checkpointing_enable()
+
+        self.vae.requires_grad_(requires_grad=False)
+        print_log("Set VAE untrainable.", "current")
+        if not self.finetune_text_encoder:
+            self.text_encoder.requires_grad_(requires_grad=False)
+            print_log("Set Text Encoder untrainable.", "current")
 
     @torch.no_grad()
     def infer(self,
@@ -153,8 +185,7 @@ class StableDiffusionInpaint(StableDiffusion):
         latents = self.vae.encode(inputs["img"]).latent_dist.sample()
         latents = latents * self.vae.config.scaling_factor
 
-        masked_image = inputs["img"] * inputs["mask"]
-        masked_latents = self.vae.encode(masked_image).latent_dist.sample()
+        masked_latents = self.vae.encode(inputs["masked_image"]).latent_dist.sample()
         masked_latents = masked_latents * self.vae.config.scaling_factor
 
         mask = F.interpolate(inputs["mask"],

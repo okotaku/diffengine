@@ -8,6 +8,7 @@ from .processing import (
     CLIPImageProcessor,
     ComputePixArtImgInfo,
     ComputeTimeIds,
+    GetMaskedImage,
     MaskToTensor,
     MultiAspectRatioResizeCenterCrop,
     RandomCrop,
@@ -34,4 +35,5 @@ __all__ = [
     "T5TextPreprocess",
     "LoadMask",
     "MaskToTensor",
+    "GetMaskedImage",
 ]

@@ -663,3 +663,27 @@ class MaskToTensor(BaseTransform):
         # (1, 3, 224, 224) -> (3, 224, 224)
         results[self.key] = torch.Tensor(results[self.key]).permute(2, 0, 1)
         return results
+
+
+@TRANSFORMS.register_module()
+class GetMaskedImage(BaseTransform):
+    """GetMaskedImage.
+
+    Args:
+    ----
+        key (str): `key` to outputs.
+            Defaults to 'masked_image'.
+    """
+
+    def __init__(self, key: str = "masked_image") -> None:
+        self.key = key
+
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
+        """Transform.
+
+        Args:
+        ----
+            results (dict): The result dict.
+        """
+        results[self.key] = results["img"] * results["mask"]
+        return results
