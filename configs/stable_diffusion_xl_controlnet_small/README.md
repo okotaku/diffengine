@@ -49,7 +49,7 @@ pipe.to('cuda')
 
 image = pipe(
     prompt,
-    condition_image,
+    image=condition_image,
     num_inference_steps=50,
 ).images[0]
 image.save('demo.png')
