@@ -4,6 +4,7 @@ from .formatting import PackInputs
 from .loading import LoadMask
 from .processing import (
     TRANSFORMS,
+    AddConstantCaption,
     CenterCrop,
     CLIPImageProcessor,
     ComputePixArtImgInfo,
@@ -17,6 +18,7 @@ from .processing import (
     SaveImageShape,
     T5TextPreprocess,
 )
+from .wrappers import RandomChoice
 
 __all__ = [
     "BaseTransform",
@@ -36,4 +38,6 @@ __all__ = [
     "LoadMask",
     "MaskToTensor",
     "GetMaskedImage",
+    "RandomChoice",
+    "AddConstantCaption",
 ]

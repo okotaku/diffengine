@@ -239,7 +239,7 @@ class PixArtAlpha(BaseModel):
             torch_dtype=torch.float32,
         )
         if self.finetune_text_encoder:
-            # todo[takuoko]: When parsing text_encoder directly, the  # noqa
+            # TODO(takuoko): When parsing text_encoder directly, the  # noqa
             # results are different. So we need to parse here.
             pipeline.text_encoder = self.text_encoder
         pipeline.to(self.device)
