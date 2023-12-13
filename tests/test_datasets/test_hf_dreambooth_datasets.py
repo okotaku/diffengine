@@ -69,3 +69,16 @@ class TestHFDreamBoothDataset(RunnerTestCase):
         assert data["text"] == "a photo of sks dog"
         assert isinstance(data["img"], Image.Image)
         assert data["img"].width == 400
+
+    def test_dataset_from_local_with_csv(self):
+        dataset = HFDreamBoothDataset(
+            dataset="tests/testdata/dataset",
+            csv="metadata.csv",
+            image_column="file_name",
+            instance_prompt="a photo of sks dog")
+        assert len(dataset) == 1
+
+        data = dataset[0]
+        assert data["text"] == "a photo of sks dog"
+        assert isinstance(data["img"], Image.Image)
+        assert data["img"].width == 400

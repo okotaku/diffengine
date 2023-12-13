@@ -1,6 +1,7 @@
 # flake8: noqa: S311,RUF012
 import copy
 import hashlib
+import os
 import random
 import shutil
 from collections.abc import Sequence
@@ -45,6 +46,9 @@ class HFDreamBoothDataset(Dataset):
         class_prompt (Optional[str]): The prompt to specify images in the same
                 class as provided instance images. Defaults to None.
         pipeline (Sequence): Processing pipeline. Defaults to an empty tuple.
+        csv (str, optional): Image path csv file name when loading local
+            folder. If None, the dataset will be loaded from image folders.
+            Defaults to None.
         cache_dir (str, optional): The directory where the downloaded datasets
             will be stored.Defaults to None.
     """
@@ -65,7 +69,11 @@ class HFDreamBoothDataset(Dataset):
                  class_image_config: dict | None = None,
                  class_prompt: str | None = None,
                  pipeline: Sequence = (),
+                 csv: str | None = None,
                  cache_dir: str | None = None) -> None:
+
+        self.dataset_name = dataset
+        self.csv = csv
 
         if class_image_config is None:
             class_image_config = {
@@ -77,7 +85,12 @@ class HFDreamBoothDataset(Dataset):
             }
         if Path(dataset).exists():
             # load local folder
-            self.dataset = load_dataset(dataset, cache_dir=cache_dir)["train"]
+            if csv is not None:
+                data_file = os.path.join(dataset, csv)
+                self.dataset = load_dataset(
+                    "csv", data_files=data_file, cache_dir=cache_dir)["train"]
+            else:
+                self.dataset = load_dataset(dataset, cache_dir=cache_dir)["train"]
         else:  # noqa
             # load huggingface online
             if dataset_sub_dir is not None:
@@ -172,6 +185,8 @@ class HFDreamBoothDataset(Dataset):
         data_info = self.dataset[idx]
         image = data_info[self.image_column]
         if isinstance(image, str):
+            if self.csv is not None:
+                image = os.path.join(self.dataset_name, image)
             image = Image.open(image)
         image = image.convert("RGB")
         result = {"img": image, "text": self.instance_prompt}

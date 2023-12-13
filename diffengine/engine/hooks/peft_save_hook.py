@@ -37,6 +37,8 @@ class PeftSaveHook(Hook):
             model.unet.save_pretrained(osp.join(ckpt_path, "unet"))
             model_keys = ["unet"]
         elif hasattr(model, "prior"):
+            # todo[okotaku]: Delete if bug is fixed in diffusers.  # noqa
+            model.prior._internal_dict["_name_or_path"] = "prior"  # noqa
             model.prior.save_pretrained(osp.join(ckpt_path, "prior"))
             model_keys = ["prior"]
         elif hasattr(model, "transformer"):
