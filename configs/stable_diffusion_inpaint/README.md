@@ -87,3 +87,11 @@ You can see more details on [`docs/source/run_guides/run_sd.md`](../../docs/sour
 ![mask](https://github.com/okotaku/diffengine/assets/24734142/d0de4fb9-9183-418a-970d-582e9324f05d)
 
 ![example](https://github.com/okotaku/diffengine/assets/24734142/f9ec820b-af75-4c74-8c0b-6558a0a19b95)
+
+#### stable_diffusion_inpaint_dog_multi_mask
+
+![input](https://github.com/okotaku/diffengine/assets/24734142/8e02bd0e-9dcc-49b6-94b0-86ab3b40bc2b)
+
+![mask](https://github.com/okotaku/diffengine/assets/24734142/a40d1a4f-9c47-4fa0-936e-88a49c92c8d7)
+
+![example](https://github.com/okotaku/diffengine/assets/24734142/f9766a71-0845-4dea-a037-f7dabfca200e)

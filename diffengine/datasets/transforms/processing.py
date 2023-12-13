@@ -687,3 +687,34 @@ class GetMaskedImage(BaseTransform):
         """
         results[self.key] = results["img"] * results["mask"]
         return results
+
+
+@TRANSFORMS.register_module()
+class AddConstantCaption(BaseTransform):
+    """AddConstantCaption.
+
+    Example. "a dog." * constant_caption="in szn style"
+        -> "a dog. in szn style"
+
+    Args:
+    ----
+        keys (List[str]): `keys` to apply augmentation from results.
+    """
+
+    def __init__(self, constant_caption: str, keys=None) -> None:
+        if keys is None:
+            keys = ["text"]
+        self.constant_caption: str = constant_caption
+        self.keys = keys
+
+    def transform(self,
+                  results: dict) -> dict | tuple[list, list] | None:
+        """Transform.
+
+        Args:
+        ----
+            results (dict): The result dict.
+        """
+        for k in self.keys:
+            results[k] = results[k] + " " + self.constant_caption
+        return results

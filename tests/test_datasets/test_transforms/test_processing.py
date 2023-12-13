@@ -502,3 +502,20 @@ class TestGetMaskedImage(TestCase):
         assert data["masked_image"].shape == img.shape
         assert torch.allclose(data["masked_image"][10:, 10:], img[10:, 10:])
         assert data["masked_image"][:10, :10].sum() == 0
+
+
+class TestAddConstantCaption(TestCase):
+
+    def test_register(self):
+        assert "AddConstantCaption" in TRANSFORMS
+
+    def test_transform(self):
+        data = {
+            "text": "a dog.",
+        }
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="AddConstantCaption",
+                                      constant_caption="in szn style"))
+        data = trans(data)
+        assert data["text"] == "a dog. in szn style"
