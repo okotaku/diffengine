@@ -4,48 +4,55 @@ train_pipeline = [
     dict(type="RandomHorizontalFlip", p=0.5),
     dict(type="RandomChoice",
          transforms=[
-             [dict(
-                type="LoadMask",
-                mask_mode="irregular",
-                mask_config=dict(
-                    num_vertices=(4, 10),
-                    max_angle=6.0,
-                    length_range=(20, 200),
-                    brush_width=(10, 100),
-                    area_ratio_range=(0.15, 0.65)))],
-             [dict(
-                type="LoadMask",
-                mask_mode="irregular",
-                mask_config=dict(
-                    num_vertices=(1, 5),
-                    max_angle=6.0,
-                    length_range=(40, 450),
-                    brush_width=(20, 250),
-                    area_ratio_range=(0.15, 0.65)))],
-             [dict(
-                type="LoadMask",
-                mask_mode="irregular",
-                mask_config=dict(
-                    num_vertices=(4, 70),
-                    max_angle=6.0,
-                    length_range=(15, 100),
-                    brush_width=(5, 20),
-                    area_ratio_range=(0.15, 0.65)))],
-             [dict(
-                type="LoadMask",
-                mask_mode="bbox",
-                mask_config=dict(
-                    max_bbox_shape=(150, 150),
-                    max_bbox_delta=50,
-                    min_margin=0))],
-             [dict(
-                type="LoadMask",
-                mask_mode="bbox",
-                mask_config=dict(
-                    max_bbox_shape=(300, 300),
-                    max_bbox_delta=100,
-                    min_margin=10))],
-         ]),
+            [dict(type="RandomChoice",
+                transforms=[
+                    [dict(
+                        type="LoadMask",
+                        mask_mode="irregular",
+                        mask_config=dict(
+                            num_vertices=(4, 10),
+                            max_angle=6.0,
+                            length_range=(20, 200),
+                            brush_width=(10, 100),
+                            area_ratio_range=(0.15, 0.65)))],
+                    [dict(
+                        type="LoadMask",
+                        mask_mode="irregular",
+                        mask_config=dict(
+                            num_vertices=(1, 5),
+                            max_angle=6.0,
+                            length_range=(40, 450),
+                            brush_width=(20, 250),
+                            area_ratio_range=(0.15, 0.65)))],
+                    [dict(
+                        type="LoadMask",
+                        mask_mode="irregular",
+                        mask_config=dict(
+                            num_vertices=(4, 70),
+                            max_angle=6.0,
+                            length_range=(15, 100),
+                            brush_width=(5, 20),
+                            area_ratio_range=(0.15, 0.65)))],
+                    [dict(
+                        type="LoadMask",
+                        mask_mode="bbox",
+                        mask_config=dict(
+                            max_bbox_shape=(150, 150),
+                            max_bbox_delta=50,
+                            min_margin=0))],
+                    [dict(
+                        type="LoadMask",
+                        mask_mode="bbox",
+                        mask_config=dict(
+                            max_bbox_shape=(300, 300),
+                            max_bbox_delta=100,
+                            min_margin=10))],
+                ])],
+         [dict(
+                        type="LoadMask",
+                        mask_mode="whole")]],
+         prob=[0.9, 0.1],
+    ),
     dict(type="torchvision/ToTensor"),
     dict(type="MaskToTensor"),
     dict(type="DumpImage", max_imgs=10, dump_dir="work_dirs/dump"),
