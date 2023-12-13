@@ -57,3 +57,12 @@ class TestLoadMask(TestCase):
         assert "mask" in data
         assert data["mask"].shape == (img.height, img.width, 1)
         assert np.all(np.unique(data["mask"]) == [0, 1])
+
+        # test whole
+        trans = TRANSFORMS.build(dict(
+            type="LoadMask",
+            mask_mode="whole"))
+        data = trans(data)
+        assert "mask" in data
+        assert data["mask"].shape == (img.height, img.width, 1)
+        assert np.all(np.unique(data["mask"]) == 1)

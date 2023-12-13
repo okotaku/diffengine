@@ -390,12 +390,14 @@ class LoadMask(BaseTransform):
 
     Args:
     ----
-        mask_mode (str): Mask mode in ['bbox', 'irregular', 'ff', 'set'].
+        mask_mode (str): Mask mode in ['bbox', 'irregular', 'ff', 'set',
+            'whole'].
             Default: 'bbox'.
             * bbox: square bounding box masks.
             * irregular: irregular holes.
             * ff: free-form holes from DeepFillv2.
             * set: randomly get a mask from a mask set.
+            * whole: use the whole image as mask.
         mask_config (dict): Params for creating masks. Each type of mask needs
             different configs. Default: None.
     """
@@ -429,6 +431,8 @@ class LoadMask(BaseTransform):
         elif self.mask_mode == "ff":
             mask = brush_stroke_mask(img_shape=img_shape,
                                      **self.mask_config)
+        elif self.mask_mode == "whole":
+            mask = np.ones(img_shape[:2], dtype=np.uint8)[:, :, None]
         else:
             msg = f"Mask mode {self.mask_mode} has not been implemented."
             raise NotImplementedError(
