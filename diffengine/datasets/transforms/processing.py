@@ -685,7 +685,8 @@ class GetMaskedImage(BaseTransform):
         ----
             results (dict): The result dict.
         """
-        results[self.key] = results["img"] * results["mask"]
+        mask_threahold = 0.5
+        results[self.key] = results["img"] * (results["mask"] < mask_threahold)
         return results
 
 

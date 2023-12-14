@@ -1,5 +1,5 @@
 from .base import BaseTransform
-from .dump_image import DumpImage
+from .dump_image import DumpImage, DumpMaskedImage
 from .formatting import PackInputs
 from .loading import LoadMask
 from .processing import (
@@ -40,4 +40,5 @@ __all__ = [
     "GetMaskedImage",
     "RandomChoice",
     "AddConstantCaption",
+    "DumpMaskedImage",
 ]
