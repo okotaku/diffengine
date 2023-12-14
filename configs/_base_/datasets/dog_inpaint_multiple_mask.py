@@ -58,6 +58,7 @@ train_pipeline = [
     dict(type="DumpImage", max_imgs=10, dump_dir="work_dirs/dump"),
     dict(type="torchvision/Normalize", mean=[0.5], std=[0.5]),
     dict(type="GetMaskedImage"),
+    dict(type="DumpMaskedImage", max_imgs=10, dump_dir="work_dirs/dump"),
     dict(type="PackInputs",
          input_keys=["img", "mask", "masked_image", "text"]),
 ]

@@ -70,3 +70,53 @@ class DumpImage:
                             mask.numpy().astype(np.uint8))
 
         return results
+
+
+@TRANSFORMS.register_module()
+class DumpMaskedImage:
+    """Dump Masked the image processed by the pipeline.
+
+    Args:
+    ----
+        max_imgs (int): Maximum value of output.
+        dump_dir (str): Dump output directory.
+    """
+
+    def __init__(self, max_imgs: int, dump_dir: str) -> None:
+        self.max_imgs = max_imgs
+        self.dump_dir = dump_dir
+        mmengine.mkdir_or_exist(self.dump_dir)
+        self.num_dumped_imgs = Value("i", 0)
+
+    def __call__(self, results) -> dict:
+        """Dump the input image to the specified directory.
+
+        No changes will be
+        made.
+
+        Args:
+        ----
+            results (dict): Result dict from loading pipeline.
+
+        Returns:
+        -------
+            results (dict): Result dict from loading pipeline. (same as input)
+        """
+        enable_dump = False
+        with self.num_dumped_imgs.get_lock():
+            if self.num_dumped_imgs.value < self.max_imgs:
+                self.num_dumped_imgs.value += 1
+                enable_dump = True
+                dump_id = self.num_dumped_imgs.value
+
+        if enable_dump:
+            masked_image = results["masked_image"]
+            masked_image = (masked_image / 2 + 0.5).clamp(0, 1)
+            if masked_image.shape[0] in [1, 3]:
+                masked_image = masked_image.permute(1, 2, 0) * 255
+            masked_image_out_file = osp.join(
+                self.dump_dir, f"{dump_id}_masked_image.png")
+            cv2.imwrite(masked_image_out_file,
+                        masked_image.numpy().astype(np.uint8)[..., ::-1])
+
+        return results

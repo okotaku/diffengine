@@ -490,8 +490,8 @@ class TestGetMaskedImage(TestCase):
     def test_transform(self):
         img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
         img = torch.Tensor(np.array(Image.open(img_path)))
-        mask = np.ones((img.shape[0], img.shape[1], 1))
-        mask[:10, :10] = 0
+        mask = np.zeros((img.shape[0], img.shape[1], 1))
+        mask[:10, :10] = 1
         mask = torch.Tensor(mask)
         data = {"img": img, "mask": mask}
 
