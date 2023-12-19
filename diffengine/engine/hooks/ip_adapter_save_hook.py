@@ -5,7 +5,8 @@ import torch
 from mmengine.hooks import Hook
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
-from torch import nn
+
+from diffengine.models.archs import process_ip_adapter_state_dict
 
 
 @HOOKS.register_module()
@@ -33,23 +34,16 @@ class IPAdapterSaveHook(Hook):
 
         ckpt_path = Path(runner.work_dir) / f"step{runner.iter}"
         ckpt_path.mkdir(parents=True, exist_ok=True)
-        adapter_modules = torch.nn.ModuleList([
-            v if isinstance(v, nn.Module) else nn.Identity(
-                ) for v in model.unet.attn_processors.values()])
+
+        adapter_state_dict = process_ip_adapter_state_dict(
+            model.unet, model.image_projection)
 
         # not save no grad key
         new_ckpt = OrderedDict()
-        proj_ckpt = OrderedDict()
         sd_keys = checkpoint["state_dict"].keys()
         for k in sd_keys:
-            if k.startswith("image_projection"):
-                new_k = k.replace(
-                    "image_projection.", "").replace("image_embeds.", "proj.")
-                proj_ckpt[new_k] = checkpoint["state_dict"][k]
             if ".processor." in k or k.startswith("image_projection"):
                 new_ckpt[k] = checkpoint["state_dict"][k]
-        torch.save({"image_proj": proj_ckpt,
-                    "ip_adapter": adapter_modules.state_dict()},
-                    ckpt_path / "ip_adapter.bin")
+        torch.save(adapter_state_dict, ckpt_path / "ip_adapter.bin")
 
         checkpoint["state_dict"] = new_ckpt

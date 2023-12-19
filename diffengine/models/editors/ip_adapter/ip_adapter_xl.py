@@ -3,14 +3,17 @@ from typing import Optional
 import numpy as np
 import torch
 from diffusers import DiffusionPipeline
-from diffusers.models.embeddings import ImageProjection
+from diffusers.models.embeddings import ImageProjection, Resampler
 from diffusers.utils import load_image
 from PIL import Image
 from torch import nn
-from transformers import CLIPVisionModelWithProjection
+from transformers import CLIPImageProcessor, CLIPVisionModelWithProjection
 
-from diffengine.models.archs import set_unet_ip_adapter
-from diffengine.models.editors.ip_adapter.resampler import Resampler
+from diffengine.models.archs import (
+    load_ip_adapter,
+    process_ip_adapter_state_dict,
+    set_unet_ip_adapter,
+)
 from diffengine.models.editors.stable_diffusion_xl import StableDiffusionXL
 from diffengine.registry import MODELS
 
@@ -22,7 +25,15 @@ class IPAdapterXL(StableDiffusionXL):
     Args:
     ----
         image_encoder (str, optional): Path to pretrained Image Encoder model.
-            Defaults to 'takuoko/IP-Adapter-XL'.
+            Defaults to 'h94/IP-Adapter'.
+        image_encoder_sub_folder (str, optional): Sub folder of pretrained
+            Image Encoder model. Defaults to 'sdxl_models/image_encoder'.
+        pretrained_adapter (str, optional): Path to pretrained IP-Adapter.
+            Defaults to None.
+        pretrained_adapter_subfolder (str, optional): Sub folder of pretrained
+            IP-Adapter. Defaults to ''.
+        pretrained_adapter_weights_name (str, optional): Weights name of
+            pretrained IP-Adapter. Defaults to ''.
         num_image_text_embeds (int): The number of expansion ratio of proj
             network hidden layer channels Defaults to 4.
         unet_lora_config (dict, optional): The LoRA config dict for Unet.
@@ -46,7 +57,11 @@ class IPAdapterXL(StableDiffusionXL):
 
     def __init__(self,
                  *args,
-                 image_encoder: str = "takuoko/IP-Adapter-XL-test",
+                 image_encoder: str = "h94/IP-Adapter",
+                 image_encoder_sub_folder: str = "sdxl_models/image_encoder",
+                 pretrained_adapter: str | None = None,
+                 pretrained_adapter_subfolder: str = "",
+                 pretrained_adapter_weights_name: str = "",
                  num_image_text_embeds: int = 4,
                  unet_lora_config: dict | None = None,
                  text_encoder_lora_config: dict | None = None,
@@ -64,6 +79,10 @@ class IPAdapterXL(StableDiffusionXL):
             "`finetune_text_encoder` should be False when training IPAdapter"
 
         self.image_encoder_name = image_encoder
+        self.image_encoder_sub_folder = image_encoder_sub_folder
+        self.pretrained_adapter = pretrained_adapter
+        self.pretrained_adapter_subfolder = pretrained_adapter_subfolder
+        self.pretrained_adapter_weights_name = pretrained_adapter_weights_name
         self.num_image_text_embeds = num_image_text_embeds
         self.zeros_image_embeddings_prob = zeros_image_embeddings_prob
 
@@ -86,7 +105,7 @@ class IPAdapterXL(StableDiffusionXL):
         Disable gradient for some models.
         """
         self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
-            self.image_encoder_name, subfolder="image_encoder")
+            self.image_encoder_name, subfolder=self.image_encoder_sub_folder)
         self.image_projection = ImageProjection(
             cross_attention_dim=self.unet.config.cross_attention_dim,
             image_embed_dim=self.image_encoder.config.projection_dim,
@@ -99,33 +118,11 @@ class IPAdapterXL(StableDiffusionXL):
         """Set IP-Adapter for model."""
         self.unet.requires_grad_(requires_grad=False)
         set_unet_ip_adapter(self.unet)
-
-    def _encode_image(self, image, num_images_per_prompt):
-        if not isinstance(image, torch.Tensor):
-            from transformers import CLIPImageProcessor
-            image_processor = CLIPImageProcessor.from_pretrained(
-                self.image_encoder_name, subfolder="image_processor")
-            image = image_processor(image, return_tensors="pt").pixel_values
-
-        image = image.to(device=self.device)
-        image_embeddings = self.image_encoder(image).image_embeds
-        image_prompt_embeds = self.image_projection(image_embeddings)
-        uncond_image_prompt_embeds = self.image_projection(
-            torch.zeros_like(image_embeddings))
-
-        # duplicate image embeddings for each generation per prompt, using mps
-        # friendly method
-        bs_embed, seq_len, _ = image_prompt_embeds.shape
-        image_prompt_embeds = image_prompt_embeds.repeat(
-            1, num_images_per_prompt, 1)
-        image_prompt_embeds = image_prompt_embeds.view(
-            bs_embed * num_images_per_prompt, seq_len, -1)
-        uncond_image_prompt_embeds = uncond_image_prompt_embeds.repeat(
-            1, num_images_per_prompt, 1)
-        uncond_image_prompt_embeds = uncond_image_prompt_embeds.view(
-            bs_embed * num_images_per_prompt, seq_len, -1)
-
-        return image_prompt_embeds, uncond_image_prompt_embeds
+        if self.pretrained_adapter is not None:
+            load_ip_adapter(self.unet, self.image_projection,
+                            self.pretrained_adapter,
+                            self.pretrained_adapter_subfolder,
+                            self.pretrained_adapter_weights_name)
 
     @torch.no_grad()
     def infer(self,
@@ -160,6 +157,9 @@ class IPAdapterXL(StableDiffusionXL):
         """
         assert len(prompt) == len(example_image)
 
+        orig_encoder_hid_proj = self.unet.encoder_hid_proj
+        orig_encoder_hid_dim_type = self.unet.config.encoder_hid_dim_type
+
         pipeline = DiffusionPipeline.from_pretrained(
             self.model,
             vae=self.vae,
@@ -168,9 +168,16 @@ class IPAdapterXL(StableDiffusionXL):
             tokenizer=self.tokenizer_one,
             tokenizer_2=self.tokenizer_two,
             unet=self.unet,
+            image_encoder=self.image_encoder,
+            feature_extractor=CLIPImageProcessor(),
             torch_dtype=(torch.float16 if self.device != torch.device("cpu")
                          else torch.float32),
         )
+        adapter_state_dict = process_ip_adapter_state_dict(
+            self.unet, self.image_projection)
+        pipeline.load_ip_adapter(
+            pretrained_model_name_or_path_or_dict=adapter_state_dict,
+            subfolder="", weight_name="")
         if self.prediction_type is not None:
             # set prediction_type of scheduler if defined
             scheduler_args = {"prediction_type": self.prediction_type}
@@ -183,22 +190,10 @@ class IPAdapterXL(StableDiffusionXL):
             pil_img = load_image(img) if isinstance(img, str) else img
             pil_img = pil_img.convert("RGB")
 
-            image_embeddings, uncond_image_embeddings = self._encode_image(
-                pil_img, num_images_per_prompt=1)
-            (prompt_embeds, negative_prompt_embeds, pooled_prompt_embeds,
-             negative_pooled_prompt_embeds) = pipeline.encode_prompt(
-                 p,
-                 num_images_per_prompt=1,
-                 do_classifier_free_guidance=True,
-                 negative_prompt=negative_prompt)
-            prompt_embeds = torch.cat([prompt_embeds, image_embeddings], dim=1)
-            negative_prompt_embeds = torch.cat(
-                [negative_prompt_embeds, uncond_image_embeddings], dim=1)
             image = pipeline(
-                prompt_embeds=prompt_embeds,
-                negative_prompt_embeds=negative_prompt_embeds,
-                pooled_prompt_embeds=pooled_prompt_embeds,
-                negative_pooled_prompt_embeds=negative_pooled_prompt_embeds,
+                p,
+                ip_adapter_image=pil_img,
+                negative_prompt=negative_prompt,
                 num_inference_steps=num_inference_steps,
                 height=height,
                 width=width,
@@ -209,8 +204,11 @@ class IPAdapterXL(StableDiffusionXL):
             else:
                 images.append(np.array(image))
 
-        del pipeline
+        del pipeline, adapter_state_dict
         torch.cuda.empty_cache()
+
+        self.unet.encoder_hid_proj = orig_encoder_hid_proj
+        self.unet.config.encoder_hid_dim_type = orig_encoder_hid_dim_type
 
         return images
 
@@ -322,49 +320,18 @@ class IPAdapterXLPlus(IPAdapterXL):
         Disable gradient for some models.
         """
         self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
-            self.image_encoder_name, subfolder="image_encoder")
+            self.image_encoder_name, subfolder=self.image_encoder_sub_folder)
         self.image_projection = Resampler(
             embed_dims=self.image_encoder.config.hidden_size,
             output_dims=self.unet.config.cross_attention_dim,
             hidden_dims=1280,
             depth=4,
-            head_dims=64,
-            num_heads=20,
+            dim_head=64,
+            heads=20,
             num_queries=self.num_image_text_embeds,
             ffn_ratio=4)
         self.image_encoder.requires_grad_(requires_grad=False)
         super(IPAdapterXL, self).prepare_model()
-
-    def _encode_image(self, image, num_images_per_prompt):
-        if not isinstance(image, torch.Tensor):
-            from transformers import CLIPImageProcessor
-            image_processor = CLIPImageProcessor.from_pretrained(
-                self.image_encoder_name, subfolder="image_processor")
-            image = image_processor(image, return_tensors="pt").pixel_values
-
-        image = image.to(device=self.device)
-        image_embeddings = self.image_encoder(
-            image, output_hidden_states=True).hidden_states[-2]
-        image_prompt_embeds = self.image_projection(image_embeddings)
-        uncond_image_embeddings = self.image_encoder(
-            torch.zeros_like(image),
-            output_hidden_states=True).hidden_states[-2]
-        uncond_image_prompt_embeds = self.image_projection(
-            uncond_image_embeddings)
-
-        # duplicate image embeddings for each generation per prompt, using mps
-        # friendly method
-        bs_embed, seq_len, _ = image_prompt_embeds.shape
-        image_prompt_embeds = image_prompt_embeds.repeat(
-            1, num_images_per_prompt, 1)
-        image_prompt_embeds = image_prompt_embeds.view(
-            bs_embed * num_images_per_prompt, seq_len, -1)
-        uncond_image_prompt_embeds = uncond_image_prompt_embeds.repeat(
-            1, num_images_per_prompt, 1)
-        uncond_image_prompt_embeds = uncond_image_prompt_embeds.view(
-            bs_embed * num_images_per_prompt, seq_len, -1)
-
-        return image_prompt_embeds, uncond_image_prompt_embeds
 
     def forward(
             self,
