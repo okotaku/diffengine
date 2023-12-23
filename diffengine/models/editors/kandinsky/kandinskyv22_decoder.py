@@ -4,56 +4,31 @@ from typing import Optional, Union
 import numpy as np
 import torch
 from diffusers import (
-    AutoencoderKL,
+    AutoPipelineForText2Image,
     DDPMScheduler,
-    DiffusionPipeline,
     UNet2DConditionModel,
+    VQModel,
 )
 from mmengine import print_log
 from mmengine.model import BaseModel
 from peft import get_peft_model
 from torch import nn
-from transformers import AutoTokenizer, PretrainedConfig
+from transformers import CLIPVisionModelWithProjection
 
 from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
 
 
-def import_model_class_from_model_name_or_path(  # noqa
-        pretrained_model_name_or_path: str,
-        subfolder: str = "text_encoder"):
-    """Import model class from model name or path."""
-    text_encoder_config = PretrainedConfig.from_pretrained(
-        pretrained_model_name_or_path, subfolder=subfolder)
-    model_class = text_encoder_config.architectures[0]
-
-    if model_class == "CLIPTextModel":
-        from transformers import CLIPTextModel
-
-        return CLIPTextModel
-    elif model_class == "CLIPTextModelWithProjection":  # noqa
-        from transformers import CLIPTextModelWithProjection
-
-        return CLIPTextModelWithProjection
-    else:
-        msg = f"{model_class} is not supported."
-        raise ValueError(msg)
-
-
 @MODELS.register_module()
-class StableDiffusionXL(BaseModel):
-    """`Stable Diffusion XL.
-
-    <https://huggingface.co/papers/2307.01952>`_
+class KandinskyV22Decoder(BaseModel):
+    """KandinskyV22 Decoder.
 
     Args:
     ----
-        model (str): pretrained model name of stable diffusion xl.
-            Defaults to 'stabilityai/stable-diffusion-xl-base-1.0'.
-        vae_model (str, optional): Path to pretrained VAE model with better
-            numerical stability. More details:
-            https://github.com/huggingface/diffusers/pull/4038.
-            Defaults to None.
+        decoder_model (str): pretrained model name of decoder.
+            Defaults to "kandinsky-community/kandinsky-2-2-decoder".
+        prior_model (str): pretrained model name of prior.
+            Defaults to "kandinsky-community/kandinsky-2-2-prior".
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
         unet_lora_config (dict, optional): The LoRA config dict for Unet.
@@ -61,20 +36,14 @@ class StableDiffusionXL(BaseModel):
             `LoHa`, `LoKr`. Other config are same as the config of PEFT.
             https://github.com/huggingface/peft
             Defaults to None.
-        text_encoder_lora_config (dict, optional): The LoRA config dict for
-            Text Encoder. example. dict(type="LoRA", r=4). `type` is chosen
-            from `LoRA`, `LoHa`, `LoKr`. Other config are same as the config of
-            PEFT. https://github.com/huggingface/peft
-            Defaults to None.
         prior_loss_weight (float): The weight of prior preservation loss.
             It works when training dreambooth with class images.
         prediction_type (str): The prediction_type that shall be used for
             training. Choose between 'epsilon' or 'v_prediction' or leave
             `None`. If left to `None` the default prediction type of the
-            scheduler: `noise_scheduler.config.prediciton_type` is chosen.
-            Defaults to None.
+            scheduler will be used. Defaults to None.
         data_preprocessor (dict, optional): The pre-process config of
-            :class:`SDXLDataPreprocessor`.
+            :class:`SDDataPreprocessor`.
         noise_generator (dict, optional): The noise generator config.
             Defaults to ``dict(type='WhiteNoise')``.
         timesteps_generator (dict, optional): The timesteps generator config.
@@ -82,24 +51,19 @@ class StableDiffusionXL(BaseModel):
         input_perturbation_gamma (float): The gamma of input perturbation.
             The recommended value is 0.1 for Input Perturbation.
             Defaults to 0.0.
-        finetune_text_encoder (bool, optional): Whether to fine-tune text
-            encoder. Defaults to False.
         gradient_checkpointing (bool): Whether or not to use gradient
             checkpointing to save memory at the expense of slower backward
             pass. Defaults to False.
-        pre_compute_text_embeddings (bool): Whether or not to pre-compute text
-            embeddings to save memory. Defaults to False.
         enable_xformers (bool): Whether or not to enable memory efficient
             attention. Defaults to False.
     """
 
-    def __init__(  # noqa: C901
+    def __init__(
         self,
-        model: str = "stabilityai/stable-diffusion-xl-base-1.0",
-        vae_model: str | None = None,
+        decoder_model: str = "kandinsky-community/kandinsky-2-2-decoder",
+        prior_model: str = "kandinsky-community/kandinsky-2-2-prior",
         loss: dict | None = None,
         unet_lora_config: dict | None = None,
-        text_encoder_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         prediction_type: str | None = None,
         data_preprocessor: dict | nn.Module | None = None,
@@ -107,13 +71,11 @@ class StableDiffusionXL(BaseModel):
         timesteps_generator: dict | None = None,
         input_perturbation_gamma: float = 0.0,
         *,
-        finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
-        pre_compute_text_embeddings: bool = False,
         enable_xformers: bool = False,
     ) -> None:
         if data_preprocessor is None:
-            data_preprocessor = {"type": "SDXLDataPreprocessor"}
+            data_preprocessor = {"type": "KandinskyV22DecoderDataPreprocessor"}
         if noise_generator is None:
             noise_generator = {"type": "WhiteNoise"}
         if timesteps_generator is None:
@@ -122,35 +84,11 @@ class StableDiffusionXL(BaseModel):
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super().__init__(data_preprocessor=data_preprocessor)
 
-        if (
-            unet_lora_config is not None) and (
-                text_encoder_lora_config is not None) and (
-                    not finetune_text_encoder):
-                print_log(
-                    "You are using LoRA for Unet and text encoder. "
-                    "But you are not set `finetune_text_encoder=True`. "
-                    "We will set `finetune_text_encoder=True` for you.")
-                finetune_text_encoder = True
-        if text_encoder_lora_config is not None:
-            assert finetune_text_encoder, (
-                "If you want to use LoRA for text encoder, "
-                "you should set finetune_text_encoder=True."
-            )
-        if finetune_text_encoder and unet_lora_config is not None:
-            assert text_encoder_lora_config is not None, (
-                "If you want to finetune text encoder with LoRA Unet, "
-                "you should set text_encoder_lora_config."
-            )
-        if pre_compute_text_embeddings:
-            assert not finetune_text_encoder
-
-        self.model = model
+        self.decoder_model = decoder_model
+        self.prior_model = prior_model
         self.unet_lora_config = deepcopy(unet_lora_config)
-        self.text_encoder_lora_config = deepcopy(text_encoder_lora_config)
-        self.finetune_text_encoder = finetune_text_encoder
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
-        self.pre_compute_text_embeddings = pre_compute_text_embeddings
         self.input_perturbation_gamma = input_perturbation_gamma
         self.enable_xformers = enable_xformers
 
@@ -161,46 +99,24 @@ class StableDiffusionXL(BaseModel):
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
-        if not self.pre_compute_text_embeddings:
-            self.tokenizer_one = AutoTokenizer.from_pretrained(
-                model, subfolder="tokenizer", use_fast=False)
-            self.tokenizer_two = AutoTokenizer.from_pretrained(
-                model, subfolder="tokenizer_2", use_fast=False)
-
-            text_encoder_cls_one = import_model_class_from_model_name_or_path(
-                model)
-            text_encoder_cls_two = import_model_class_from_model_name_or_path(
-                model, subfolder="text_encoder_2")
-            self.text_encoder_one = text_encoder_cls_one.from_pretrained(
-                model, subfolder="text_encoder")
-            self.text_encoder_two = text_encoder_cls_two.from_pretrained(
-                model, subfolder="text_encoder_2")
-
         self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder="scheduler")
+            decoder_model, subfolder="scheduler")
 
-        vae_path = model if vae_model is None else vae_model
-        self.vae = AutoencoderKL.from_pretrained(
-            vae_path, subfolder="vae" if vae_model is None else None)
+        self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
+            prior_model, subfolder="image_encoder")
+        self.vae = VQModel.from_pretrained(
+            decoder_model, subfolder="movq")
         self.unet = UNet2DConditionModel.from_pretrained(
-            model, subfolder="unet")
+            decoder_model, subfolder="unet")
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
+
         self.prepare_model()
         self.set_lora()
         self.set_xformers()
 
     def set_lora(self) -> None:
         """Set LORA for model."""
-        if self.text_encoder_lora_config is not None:
-            text_encoder_lora_config = create_peft_config(
-                self.text_encoder_lora_config)
-            self.text_encoder_one = get_peft_model(
-                self.text_encoder_one, text_encoder_lora_config)
-            self.text_encoder_one.print_trainable_parameters()
-            self.text_encoder_two = get_peft_model(
-                self.text_encoder_two, text_encoder_lora_config)
-            self.text_encoder_two.print_trainable_parameters()
         if self.unet_lora_config is not None:
             unet_lora_config = create_peft_config(self.unet_lora_config)
             self.unet = get_peft_model(self.unet, unet_lora_config)
@@ -213,24 +129,18 @@ class StableDiffusionXL(BaseModel):
         """
         if self.gradient_checkpointing:
             self.unet.enable_gradient_checkpointing()
-            if self.finetune_text_encoder:
-                self.text_encoder_one.gradient_checkpointing_enable()
-                self.text_encoder_two.gradient_checkpointing_enable()
 
         self.vae.requires_grad_(requires_grad=False)
         print_log("Set VAE untrainable.", "current")
-        if (not self.finetune_text_encoder) and (
-                not self.pre_compute_text_embeddings):
-            self.text_encoder_one.requires_grad_(requires_grad=False)
-            self.text_encoder_two.requires_grad_(requires_grad=False)
-            print_log("Set Text Encoder untrainable.", "current")
+        self.image_encoder.requires_grad_(requires_grad=False)
+        print_log("Set Image Encoder untrainable.", "current")
 
     def set_xformers(self) -> None:
         """Set xformers for model."""
         if self.enable_xformers:
             from diffusers.utils.import_utils import is_xformers_available
             if is_xformers_available():
-                self.unet.enable_xformers_memory_efficient_attention()
+                self.prior.enable_xformers_memory_efficient_attention()
             else:
                 msg = "Please install xformers to enable memory efficient attention."
                 raise ImportError(
@@ -275,36 +185,23 @@ class StableDiffusionXL(BaseModel):
                 Choose between 'pil' and 'latent'. Defaults to 'pil'.
             **kwargs: Other arguments.
         """
-        if self.pre_compute_text_embeddings:
-            pipeline = DiffusionPipeline.from_pretrained(
-                self.model,
-                vae=self.vae,
-                unet=self.unet,
-                safety_checker=None,
-                torch_dtype=(torch.float16
-                             if self.device != torch.device("cpu") else
-                             torch.float32),
-            )
-        else:
-            pipeline = DiffusionPipeline.from_pretrained(
-                self.model,
-                vae=self.vae,
-                text_encoder=self.text_encoder_one,
-                text_encoder_2=self.text_encoder_two,
-                tokenizer=self.tokenizer_one,
-                tokenizer_2=self.tokenizer_two,
-                unet=self.unet,
-                torch_dtype=(torch.float16
-                             if self.device != torch.device("cpu") else
-                             torch.float32),
-            )
+        if height is None:
+            height = 768
+        if width is None:
+            width = 768
+        pipeline = AutoPipelineForText2Image.from_pretrained(
+            self.decoder_model,
+            vae=self.vae,
+            prior_image_encoder=self.image_encoder,
+            unet=self.unet,
+            torch_dtype=(torch.float16 if self.device != torch.device("cpu")
+                         else torch.float32),
+        )
         if self.prediction_type is not None:
             # set prediction_type of scheduler if defined
             scheduler_args = {"prediction_type": self.prediction_type}
             pipeline.scheduler = pipeline.scheduler.from_config(
                 pipeline.scheduler.config, **scheduler_args)
-
-        pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
         images = []
         for p in prompt:
@@ -325,45 +222,6 @@ class StableDiffusionXL(BaseModel):
         torch.cuda.empty_cache()
 
         return images
-
-    def encode_prompt(
-        self,
-        text_one: torch.Tensor,
-        text_two: torch.Tensor,
-    ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Encode prompt.
-
-        Args:
-        ----
-            text_one (torch.Tensor): Token ids from tokenizer one.
-            text_two (torch.Tensor): Token ids from tokenizer two.
-
-        Returns:
-        -------
-            tuple[torch.Tensor, torch.Tensor]: Prompt embeddings
-        """
-        prompt_embeds_list = []
-
-        text_encoders = [self.text_encoder_one, self.text_encoder_two]
-        texts = [text_one, text_two]
-        for text_encoder, text in zip(text_encoders, texts, strict=True):
-
-            prompt_embeds = text_encoder(
-                text,
-                output_hidden_states=True,
-            )
-
-            # We are only ALWAYS interested in the pooled output of the
-            # final text encoder
-            pooled_prompt_embeds = prompt_embeds[0]
-            prompt_embeds = prompt_embeds.hidden_states[-2]
-            bs_embed, seq_len, _ = prompt_embeds.shape
-            prompt_embeds = prompt_embeds.view(bs_embed, seq_len, -1)
-            prompt_embeds_list.append(prompt_embeds)
-
-        prompt_embeds = torch.concat(prompt_embeds_list, dim=-1)
-        pooled_prompt_embeds = pooled_prompt_embeds.view(bs_embed, -1)
-        return prompt_embeds, pooled_prompt_embeds
 
     def val_step(
             self,
@@ -454,47 +312,25 @@ class StableDiffusionXL(BaseModel):
             weight = torch.cat([
                 torch.ones((num_batches // 2, )),
                 torch.ones((num_batches // 2, )) * self.prior_loss_weight,
-            ]).float().reshape(-1, 1, 1, 1)
+            ]).to(self.device).float().reshape(-1, 1, 1, 1)
         else:
             weight = None
 
-        latents = self.vae.encode(inputs["img"]).latent_dist.sample()
-        latents = latents * self.vae.config.scaling_factor
+        latents = self.vae.encode(inputs["img"]).latents
+        image_embeds = self.image_encoder(inputs["clip_img"]).image_embeds
 
         noise = self.noise_generator(latents)
 
         timesteps = self.timesteps_generator(self.scheduler, num_batches,
-                                            self.device)
+                                        self.device)
 
         noisy_latents = self._preprocess_model_input(latents, noise, timesteps)
 
-        if not self.pre_compute_text_embeddings:
-            inputs["text_one"] = self.tokenizer_one(
-                inputs["text"],
-                max_length=self.tokenizer_one.model_max_length,
-                padding="max_length",
-                truncation=True,
-                return_tensors="pt").input_ids.to(self.device)
-            inputs["text_two"] = self.tokenizer_two(
-                inputs["text"],
-                max_length=self.tokenizer_two.model_max_length,
-                padding="max_length",
-                truncation=True,
-                return_tensors="pt").input_ids.to(self.device)
-            prompt_embeds, pooled_prompt_embeds = self.encode_prompt(
-                inputs["text_one"], inputs["text_two"])
-        else:
-            prompt_embeds = inputs["prompt_embeds"]
-            pooled_prompt_embeds = inputs["pooled_prompt_embeds"]
-        unet_added_conditions = {
-            "time_ids": inputs["time_ids"],
-            "text_embeds": pooled_prompt_embeds,
-        }
-
+        added_cond_kwargs = {"image_embeds": image_embeds}
         model_pred = self.unet(
             noisy_latents,
             timesteps,
-            prompt_embeds,
-            added_cond_kwargs=unet_added_conditions).sample
+            None,
+            added_cond_kwargs=added_cond_kwargs).sample[:, :4]
 
-        return self.loss(model_pred, noise, latents, timesteps, weight)
+        return self.loss(model_pred, noise, image_embeds, timesteps, weight)

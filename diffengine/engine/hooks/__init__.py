@@ -5,11 +5,11 @@ from .ip_adapter_save_hook import IPAdapterSaveHook
 from .lcm_ema_update_hook import LCMEMAUpdateHook
 from .peft_save_hook import PeftSaveHook
 from .pixart_checkpoint_hook import PixArtCheckpointHook
+from .prior_save_hook import PriorSaveHook
 from .sd_checkpoint_hook import SDCheckpointHook
 from .t2i_adapter_save_hook import T2IAdapterSaveHook
 from .unet_ema_hook import UnetEMAHook
 from .visualization_hook import VisualizationHook
-from .wuerstchen_save_hook import WuerstchenSaveHook
 
 __all__ = [
     "VisualizationHook",
@@ -21,7 +21,7 @@ __all__ = [
     "T2IAdapterSaveHook",
     "CompileHook",
     "FastNormHook",
-    "WuerstchenSaveHook",
+    "PriorSaveHook",
     "LCMEMAUpdateHook",
     "PixArtCheckpointHook",
 ]

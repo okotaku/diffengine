@@ -7,11 +7,11 @@ from mmengine.registry import HOOKS
 
 
 @HOOKS.register_module()
-class WuerstchenSaveHook(Hook):
-    """Wuerstchen Save Hook.
+class PriorSaveHook(Hook):
+    """Prior Save Hook.
 
-    Save Wuerstchen weights with diffusers format and pick up Wuerstchen
-    weights from checkpoint.
+    Save Prior weights with diffusers format and pick up Prior weights from
+    checkpoint.
     """
 
     priority = "VERY_LOW"
@@ -30,7 +30,8 @@ class WuerstchenSaveHook(Hook):
             model = model.module
         ckpt_path = osp.join(runner.work_dir, f"step{runner.iter}")
         model.prior.save_pretrained(osp.join(ckpt_path, "prior"))
-        if model.finetune_text_encoder:
+        if hasattr(
+            model, "finetune_text_encoder") and model.finetune_text_encoder:
             model.text_encoder.save_pretrained(
                 osp.join(ckpt_path, "text_encoder"))
 

@@ -1,10 +1,6 @@
 train_pipeline = [
-    dict(type="torchvision/Resize", size=768, interpolation="bilinear"),
-    dict(type="RandomCrop", size=768),
-    dict(type="RandomHorizontalFlip", p=0.5),
-    dict(type="torchvision/ToTensor"),
-    dict(type="torchvision/Normalize", mean=[0.485, 0.456, 0.406],
-         std=[0.229, 0.224, 0.225]),
+    dict(type="CLIPImageProcessor", output_key="img",
+         pretrained="kandinsky-community/kandinsky-2-2-prior"),
     dict(type="PackInputs"),
 ]
 train_dataloader = dict(
@@ -23,7 +19,7 @@ test_dataloader = val_dataloader
 test_evaluator = val_evaluator
 
 custom_hooks = [
-    dict(type="VisualizationHook", prompt=["A robot pokemon, 4k photo"] * 4,
-         height=768, width=768),
+    dict(type="VisualizationHook", prompt=["yoda pokemon"] * 4,
+         height=512, width=512),
     dict(type="PriorSaveHook"),
 ]
