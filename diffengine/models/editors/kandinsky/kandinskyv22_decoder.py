@@ -191,17 +191,17 @@ class KandinskyV22Decoder(BaseModel):
             width = 768
         pipeline = AutoPipelineForText2Image.from_pretrained(
             self.decoder_model,
-            vae=self.vae,
+            movq=self.vae,
             prior_image_encoder=self.image_encoder,
             unet=self.unet,
-            torch_dtype=(torch.float16 if self.device != torch.device("cpu")
-                         else torch.float32),
+            torch_dtype=torch.float32,
         )
         if self.prediction_type is not None:
             # set prediction_type of scheduler if defined
             scheduler_args = {"prediction_type": self.prediction_type}
             pipeline.scheduler = pipeline.scheduler.from_config(
                 pipeline.scheduler.config, **scheduler_args)
+        pipeline.to(self.device)
         pipeline.set_progress_bar_config(disable=True)
         images = []
         for p in prompt:
