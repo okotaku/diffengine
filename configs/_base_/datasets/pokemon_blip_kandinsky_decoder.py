@@ -25,6 +25,6 @@ test_evaluator = val_evaluator
 
 custom_hooks = [
     dict(type="VisualizationHook", prompt=["yoda pokemon"] * 4,
-         height=512, width=512),
+         height=768, width=768),
     dict(type="SDCheckpointHook"),
 ]

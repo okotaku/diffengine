@@ -141,6 +141,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 - [Run PixArt-α](https://diffengine.readthedocs.io/en/latest/run_guides/run_pixart_alpha.html)
 - [Run PixArt-α LoRA](https://diffengine.readthedocs.io/en/latest/run_guides/run_pixart_alpha_lora.html)
 - [Run PixArt-α DreamBooth](https://diffengine.readthedocs.io/en/latest/run_guides/run_pixart_alpha_dreambooth.html)
+- - [Run Kandinsky 2.2](https://diffengine.readthedocs.io/en/latest/run_guides/run_kandinsky_v22.html)
 - [Inference](https://diffengine.readthedocs.io/en/latest/run_guides/inference.html)
 
 </details>
@@ -248,6 +249,9 @@ For detailed user guides and advanced guides, please refer to our [Documentation
       <td>
         <b>PixArt-α</b>
       </td>
+      <td>
+        <b>Kandinsky</b>
+      </td>
     </tr>
     <tr valign="top">
       <td>
@@ -267,6 +271,11 @@ For detailed user guides and advanced guides, please refer to our [Documentation
             <li><a href="configs/pixart_alpha/README.md">PixArt-α (2023)</a></li>
             <li><a href="configs/pixart_alpha_lora/README.md">LoRA (ICLR'2022)</a></li>
             <li><a href="configs/pixart_alpha_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
+      </ul>
+      </td>
+      <td>
+        <ul>
+            <li><a href="configs/kandinsky_v22/README.md">Kandinsky 2.2 (2023)</a></li>
       </ul>
       </td>
     </tr>
