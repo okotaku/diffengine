@@ -4,49 +4,43 @@ from typing import Optional, Union
 import numpy as np
 import torch
 from diffusers import (
+    AutoPipelineForText2Image,
     DDPMScheduler,
-    DiffusionPipeline,
-    UNet2DConditionModel,
+    PriorTransformer,
 )
 from mmengine import print_log
 from mmengine.model import BaseModel
 from peft import get_peft_model
 from torch import nn
-from transformers import T5EncoderModel, T5Tokenizer
+from transformers import (
+    CLIPTextModelWithProjection,
+    CLIPTokenizer,
+    CLIPVisionModelWithProjection,
+)
 
 from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
 
 
 @MODELS.register_module()
-class DeepFloydIF(BaseModel):
-    """DeepFloyd/IF.
+class KandinskyV22Prior(BaseModel):
+    """KandinskyV22 Prior.
 
     Args:
     ----
-        model (str): pretrained model name of stable diffusion.
-            Defaults to 'DeepFloyd/IF-I-XL-v1.0'.
+        decoder_model (str): pretrained model name of decoder.
+            Defaults to "kandinsky-community/kandinsky-2-2-decoder".
+        prior_model (str): pretrained model name of prior.
+            Defaults to "kandinsky-community/kandinsky-2-2-prior".
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
-        unet_lora_config (dict, optional): The LoRA config dict for Unet.
+        prior_lora_config (dict, optional): The LoRA config dict for Prior.
             example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
             `LoHa`, `LoKr`. Other config are same as the config of PEFT.
             https://github.com/huggingface/peft
             Defaults to None.
-        text_encoder_lora_config (dict, optional): The LoRA config dict for
-            Text Encoder. example. dict(type="LoRA", r=4). `type` is chosen
-            from `LoRA`, `LoHa`, `LoKr`. Other config are same as the config of
-            PEFT. https://github.com/huggingface/peft
-            Defaults to None.
         prior_loss_weight (float): The weight of prior preservation loss.
             It works when training dreambooth with class images.
-        tokenizer_max_length (int): The max length of tokenizer.
-            Defaults to 77.
-        prediction_type (str): The prediction_type that shall be used for
-            training. Choose between 'epsilon' or 'v_prediction' or leave
-            `None`. If left to `None` the default prediction type of the
-            scheduler: `noise_scheduler.config.prediciton_type` is chosen.
-            Defaults to None.
         data_preprocessor (dict, optional): The pre-process config of
             :class:`SDDataPreprocessor`.
         noise_generator (dict, optional): The noise generator config.
@@ -56,8 +50,6 @@ class DeepFloydIF(BaseModel):
         input_perturbation_gamma (float): The gamma of input perturbation.
             The recommended value is 0.1 for Input Perturbation.
             Defaults to 0.0.
-        finetune_text_encoder (bool, optional): Whether to fine-tune text
-            encoder. Defaults to False.
         gradient_checkpointing (bool): Whether or not to use gradient
             checkpointing to save memory at the expense of slower backward
             pass. Defaults to False.
@@ -67,19 +59,16 @@ class DeepFloydIF(BaseModel):
 
     def __init__(
         self,
-        model: str = "DeepFloyd/IF-I-XL-v1.0",
+        decoder_model: str = "kandinsky-community/kandinsky-2-2-decoder",
+        prior_model: str = "kandinsky-community/kandinsky-2-2-prior",
         loss: dict | None = None,
-        unet_lora_config: dict | None = None,
-        text_encoder_lora_config: dict | None = None,
+        prior_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
-        tokenizer_max_length: int = 77,
-        prediction_type: str | None = None,
         data_preprocessor: dict | nn.Module | None = None,
         noise_generator: dict | None = None,
         timesteps_generator: dict | None = None,
         input_perturbation_gamma: float = 0.0,
         *,
-        finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
         enable_xformers: bool = False,
     ) -> None:
@@ -93,33 +82,14 @@ class DeepFloydIF(BaseModel):
             loss = {"type": "L2Loss", "loss_weight": 1.0}
         super().__init__(data_preprocessor=data_preprocessor)
 
-        if (
-            unet_lora_config is not None) and (
-                text_encoder_lora_config is not None) and (
-                    not finetune_text_encoder):
-                print_log(
-                    "You are using LoRA for Unet and text encoder. "
-                    "But you are not set `finetune_text_encoder=True`. "
-                    "We will set `finetune_text_encoder=True` for you.")
-                finetune_text_encoder = True
-        if text_encoder_lora_config is not None:
-            assert finetune_text_encoder, (
-                "If you want to use LoRA for text encoder, "
-                "you should set finetune_text_encoder=True."
-            )
-        if finetune_text_encoder and unet_lora_config is not None:
-            assert text_encoder_lora_config is not None, (
-                "If you want to finetune text encoder with LoRA Unet, "
-                "you should set text_encoder_lora_config."
-            )
+        assert gradient_checkpointing is False, (
+            "KandinskyV22Prior does not support gradient checkpointing.")
 
-        self.model = model
-        self.unet_lora_config = deepcopy(unet_lora_config)
-        self.text_encoder_lora_config = deepcopy(text_encoder_lora_config)
-        self.finetune_text_encoder = finetune_text_encoder
+        self.decoder_model = decoder_model
+        self.prior_model = prior_model
+        self.prior_lora_config = deepcopy(prior_lora_config)
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
-        self.tokenizer_max_length = tokenizer_max_length
         self.input_perturbation_gamma = input_perturbation_gamma
         self.enable_xformers = enable_xformers
 
@@ -127,57 +97,49 @@ class DeepFloydIF(BaseModel):
             loss = MODELS.build(loss)
         self.loss_module: nn.Module = loss
 
-        assert prediction_type in [None, "epsilon", "v_prediction"]
-        self.prediction_type = prediction_type
+        self.tokenizer = CLIPTokenizer.from_pretrained(
+            prior_model, subfolder="tokenizer")
+        self.scheduler = DDPMScheduler(
+            beta_schedule="squaredcos_cap_v2", prediction_type="sample")
 
-        self.tokenizer = T5Tokenizer.from_pretrained(
-            model, subfolder="tokenizer")
-        self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder="scheduler")
-
-        self.text_encoder = T5EncoderModel.from_pretrained(
-            model, subfolder="text_encoder")
-        self.unet = UNet2DConditionModel.from_pretrained(
-            model, subfolder="unet")
+        self.text_encoder = CLIPTextModelWithProjection.from_pretrained(
+            prior_model, subfolder="text_encoder")
+        self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
+            prior_model, subfolder="image_encoder")
+        self.prior = PriorTransformer.from_pretrained(
+            prior_model, subfolder="prior")
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
+
+        self.register_buffer("clip_mean", self.prior.clip_mean.clone())
+        self.register_buffer("clip_std", self.prior.clip_std.clone())
         self.prepare_model()
         self.set_lora()
         self.set_xformers()
 
     def set_lora(self) -> None:
         """Set LORA for model."""
-        if self.text_encoder_lora_config is not None:
-            text_encoder_lora_config = create_peft_config(
-                self.text_encoder_lora_config)
-            self.text_encoder = get_peft_model(
-                self.text_encoder, text_encoder_lora_config)
-            self.text_encoder.print_trainable_parameters()
-        if self.unet_lora_config is not None:
-            unet_lora_config = create_peft_config(self.unet_lora_config)
-            self.unet = get_peft_model(self.unet, unet_lora_config)
-            self.unet.print_trainable_parameters()
+        if self.prior_lora_config is not None:
+            prior_lora_config = create_peft_config(self.prior_lora_config)
+            self.prior = get_peft_model(self.prior, prior_lora_config)
+            self.prior.print_trainable_parameters()
 
     def prepare_model(self) -> None:
         """Prepare model for training.
 
         Disable gradient for some models.
         """
-        if self.gradient_checkpointing:
-            self.unet.enable_gradient_checkpointing()
-            if self.finetune_text_encoder:
-                self.text_encoder.gradient_checkpointing_enable()
-
-        if not self.finetune_text_encoder:
-            self.text_encoder.requires_grad_(requires_grad=False)
-            print_log("Set Text Encoder untrainable.", "current")
+        self.text_encoder.requires_grad_(requires_grad=False)
+        print_log("Set Text Encoder untrainable.", "current")
+        self.image_encoder.requires_grad_(requires_grad=False)
+        print_log("Set Image Encoder untrainable.", "current")
 
     def set_xformers(self) -> None:
         """Set xformers for model."""
         if self.enable_xformers:
             from diffusers.utils.import_utils import is_xformers_available
             if is_xformers_available():
-                self.unet.enable_xformers_memory_efficient_attention()
+                self.prior.enable_xformers_memory_efficient_attention()
             else:
                 msg = "Please install xformers to enable memory efficient attention."
                 raise ImportError(
@@ -219,23 +181,21 @@ class DeepFloydIF(BaseModel):
             num_inference_steps (int): Number of inference steps.
                 Defaults to 50.
             output_type (str): The output format of the generate image.
-                Choose between 'pil' and 'pt'. Defaults to 'pil'.
+                Choose between 'pil' and 'latent'. Defaults to 'pil'.
             **kwargs: Other arguments.
         """
-        pipeline = DiffusionPipeline.from_pretrained(
-            self.model,
-            text_encoder=self.text_encoder,
-            tokenizer=self.tokenizer,
-            unet=self.unet,
-            safety_checker=None,
-            torch_dtype=(torch.float16 if self.device != torch.device("cpu")
-                         else torch.float32),
+        if height is None:
+            height = 512
+        if width is None:
+            width = 512
+        pipeline = AutoPipelineForText2Image.from_pretrained(
+            self.decoder_model,
+            prior_image_encoder=self.image_encoder,
+            prior_text_encoder=self.text_encoder,
+            prior_tokenizer=self.tokenizer,
+            prior_prior=self.prior,
+            torch_dtype=torch.float32,
         )
-        if self.prediction_type is not None:
-            # set prediction_type of scheduler if defined
-            scheduler_args = {"prediction_type": self.prediction_type}
-            pipeline.scheduler = pipeline.scheduler.from_config(
-                pipeline.scheduler.config, **scheduler_args)
         pipeline.set_progress_bar_config(disable=True)
         images = []
         for p in prompt:
@@ -247,7 +207,7 @@ class DeepFloydIF(BaseModel):
                 width=width,
                 output_type=output_type,
                 **kwargs).images[0]
-            if output_type in ["latent", "pt"]:
+            if output_type == "latent":
                 images.append(image)
             else:
                 images.append(np.array(image))
@@ -275,23 +235,12 @@ class DeepFloydIF(BaseModel):
 
     def loss(self,
              model_pred: torch.Tensor,
-             noise: torch.Tensor,
+             noise: torch.Tensor,  #  noqa
              latents: torch.Tensor,
              timesteps: torch.Tensor,
              weight: torch.Tensor | None = None) -> dict[str, torch.Tensor]:
         """Calculate loss."""
-        if self.prediction_type is not None:
-            # set prediction_type of scheduler if defined
-            self.scheduler.register_to_config(
-                prediction_type=self.prediction_type)
-
-        if self.scheduler.config.prediction_type == "epsilon":
-            gt = noise
-        elif self.scheduler.config.prediction_type == "v_prediction":
-            gt = self.scheduler.get_velocity(latents, noise, timesteps)
-        else:
-            msg = f"Unknown prediction type {self.scheduler.config.prediction_type}"
-            raise ValueError(msg)
+        gt = latents
 
         loss_dict = {}
         # calculate loss in FP32
@@ -340,14 +289,12 @@ class DeepFloydIF(BaseModel):
             dict: The loss dict.
         """
         assert mode == "loss"
-        text_inputs = self.tokenizer(
+        inputs_text = self.tokenizer(
             inputs["text"],
-            max_length=self.tokenizer_max_length,
+            max_length=self.tokenizer.model_max_length,
             padding="max_length",
             truncation=True,
             return_tensors="pt")
-        inputs["text"] = text_inputs.input_ids.to(self.device)
-        inputs["attention_mask"] = text_inputs.attention_mask.to(self.device)
         num_batches = len(inputs["img"])
         if "result_class_image" in inputs:
             # use prior_loss_weight
@@ -358,24 +305,25 @@ class DeepFloydIF(BaseModel):
         else:
             weight = None
 
-        model_input = inputs["img"]
+        with torch.no_grad():
+            text_encoder_output = self.text_encoder(
+                inputs_text.input_ids.to(self.device))
+            prompt_embeds = text_encoder_output.text_embeds
+            text_encoder_hidden_states = text_encoder_output.last_hidden_state
 
-        noise = self.noise_generator(model_input)
-
-        timesteps = self.timesteps_generator(self.scheduler, num_batches,
+            image_embeds = self.image_encoder(inputs["img"]).image_embeds
+            noise = self.noise_generator(image_embeds)
+            timesteps = self.timesteps_generator(self.scheduler, num_batches,
                                             self.device)
 
-        noisy_model_input = self._preprocess_model_input(model_input, noise,
-                                                     timesteps)
+            image_embeds = (image_embeds - self.clip_mean) / self.clip_std
+            noisy_latents = self._preprocess_model_input(image_embeds, noise, timesteps)
 
-        encoder_hidden_states = self.text_encoder(
-            inputs["text"], attention_mask=inputs["attention_mask"])[0]
-
-        model_pred = self.unet(
-            noisy_model_input,
+        model_pred = self.prior(
+            noisy_latents,
             timesteps,
-            encoder_hidden_states=encoder_hidden_states).sample
+            proj_embedding=prompt_embeds,
+            encoder_hidden_states=text_encoder_hidden_states,
+            attention_mask=inputs_text.attention_mask.to(self.device)).predicted_image_embedding
 
-        model_pred, _ = torch.chunk(model_pred, 2, dim=1)
-
-        return self.loss(model_pred, noise, model_input, timesteps, weight)
+        return self.loss(model_pred, noise, image_embeds, timesteps, weight)

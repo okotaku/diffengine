@@ -11,7 +11,7 @@ from mmengine.testing.runner_test_case import ToyModel
 from torch import nn
 from transformers import CLIPTextConfig, CLIPTextModel
 
-from diffengine.engine.hooks import WuerstchenSaveHook
+from diffengine.engine.hooks import PriorSaveHook
 
 
 class DummyWrapper(BaseModel):
@@ -58,7 +58,7 @@ class ToyModel2(ToyModel):
         return super().forward(*args, **kwargs)
 
 
-class TestWuerstchenSaveHook(RunnerTestCase):
+class TestPriorSaveHook(RunnerTestCase):
 
     def setUp(self) -> None:
         MODELS.register_module(name="DummyWrapper", module=DummyWrapper)
@@ -71,14 +71,14 @@ class TestWuerstchenSaveHook(RunnerTestCase):
         return super().tearDown()
 
     def test_init(self):
-        WuerstchenSaveHook()
+        PriorSaveHook()
 
     def test_before_save_checkpoint(self):
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "ToyModel2"
         runner = self.build_runner(cfg)
         checkpoint = dict(state_dict=ToyModel2().state_dict())
-        hook = WuerstchenSaveHook()
+        hook = PriorSaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
         assert Path(

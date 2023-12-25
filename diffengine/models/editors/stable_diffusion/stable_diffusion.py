@@ -44,6 +44,7 @@ class StableDiffusion(BaseModel):
         prediction_type (str): The prediction_type that shall be used for
             training. Choose between 'epsilon' or 'v_prediction' or leave
             `None`. If left to `None` the default prediction type of the
+            scheduler will be used. Defaults to None.
         data_preprocessor (dict, optional): The pre-process config of
             :class:`SDDataPreprocessor`.
         noise_generator (dict, optional): The noise generator config.

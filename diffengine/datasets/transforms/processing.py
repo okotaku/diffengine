@@ -409,10 +409,15 @@ class CLIPImageProcessor(BaseTransform):
             results. Defaults to 'clip_img'.
     """
 
-    def __init__(self, key: str = "img", output_key: str = "clip_img") -> None:
+    def __init__(self, key: str = "img", output_key: str = "clip_img",
+                 pretrained: str | None = None) -> None:
         self.key = key
         self.output_key = output_key
-        self.pipeline = HFCLIPImageProcessor()
+        if pretrained is None:
+            self.pipeline = HFCLIPImageProcessor()
+        else:
+            self.pipeline = HFCLIPImageProcessor.from_pretrained(
+                pretrained, subfolder="image_processor")
 
     def transform(self, results: dict) -> dict | tuple[list, list] | None:
         """Transform.

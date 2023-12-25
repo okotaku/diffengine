@@ -56,6 +56,7 @@ class SSD1B(StableDiffusionXL):
             training. Choose between 'epsilon' or 'v_prediction' or leave
             `None`. If left to `None` the default prediction type of the
             scheduler: `noise_scheduler.config.prediciton_type` is chosen.
+            Defaults to None.
         data_preprocessor (dict, optional): The pre-process config of
             :class:`SDXLDataPreprocessor`.
         noise_generator (dict, optional): The noise generator config.
