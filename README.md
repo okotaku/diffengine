@@ -276,6 +276,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
       <td>
         <ul>
             <li><a href="configs/kandinsky_v22/README.md">Kandinsky 2.2 (2023)</a></li>
+            <li><a href="configs/kandinsky_v3/README.md">Kandinsky 3 (2023)</a></li>
       </ul>
       </td>
     </tr>
