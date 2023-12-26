@@ -157,3 +157,6 @@ diffengine/.mim/
 build/
 .dist_test/
 .netrc
+
+# test
+!tests/testdata/bucket_ids.pkl
