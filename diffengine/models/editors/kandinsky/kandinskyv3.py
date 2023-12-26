@@ -74,6 +74,8 @@ class KandinskyV3(BaseModel):
         gradient_checkpointing: bool = False,
         enable_xformers: bool = False,
     ) -> None:
+        assert gradient_checkpointing is False, (
+            "KandinskyV3 does not support gradient checkpointing.")
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDDataPreprocessor"}
         if noise_generator is None:
@@ -129,13 +131,10 @@ class KandinskyV3(BaseModel):
 
         Disable gradient for some models.
         """
-        if self.gradient_checkpointing:
-            self.unet.enable_gradient_checkpointing()
-
         self.vae.requires_grad_(requires_grad=False)
         print_log("Set VAE untrainable.", "current")
-        self.image_encoder.requires_grad_(requires_grad=False)
-        print_log("Set Image Encoder untrainable.", "current")
+        self.text_encoder.requires_grad_(requires_grad=False)
+        print_log("Set Text Encoder untrainable.", "current")
 
     def set_xformers(self) -> None:
         """Set xformers for model."""
@@ -192,7 +191,7 @@ class KandinskyV3(BaseModel):
         if width is None:
             width = 1024
         pipeline = AutoPipelineForText2Image.from_pretrained(
-            self.decoder_model,
+            self.model,
             movq=self.vae,
             tokenizer=self.tokenizer,
             text_encoder=self.text_encoder,
@@ -340,8 +339,6 @@ class KandinskyV3(BaseModel):
 
         encoder_hidden_states = self.text_encoder(
             inputs["text"], attention_mask=inputs["attention_mask"])[0]
-        # encoder_hidden_states = encoder_hidden_states *
-        # inputs["attention_mask"].unsqueeze(2)
 
         model_pred = self.unet(
             noisy_latents,

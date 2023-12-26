@@ -7,7 +7,7 @@ train_pipeline = [
     dict(type="PackInputs"),
 ]
 train_dataloader = dict(
-    batch_size=1,
+    batch_size=2,
     num_workers=4,
     dataset=dict(
         type="HFDataset",

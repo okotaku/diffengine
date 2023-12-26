@@ -7,7 +7,7 @@
 We present Kandinsky 3.0, a large-scale text-to-image generation model based on latent diffusion, continuing the series of text-to-image Kandinsky models and reflecting our progress to achieve higher quality and realism of image generation. Compared to previous versions of Kandinsky 2.x, Kandinsky 3.0 leverages a two times larger UNet backbone, a ten times larger text encoder and remove diffusion mapping. We describe the architecture of the model, the data collection procedure, the training technique, the production system of user interaction. We focus on the key components that, as we have identified as a result of a large number of experiments, had the most significant impact on improving the quality of our model in comparison with the other ones. By results of our side by side comparisons Kandinsky become better in text understanding and works better on specific domains.
 
 <div align=center>
-<img src=""/>
+<img src="https://github.com/okotaku/diffengine/assets/24734142/2d670f44-9fa1-4095-be96-a82c91c9590b"/>
 </div>
 
 ## Citation
@@ -46,24 +46,23 @@ Before inferencing, we should convert weights for diffusers format,
 ```bash
 $ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/kandinsky_v3/kandinsky_v3_pokemon_blip.py work_dirs/kandinsky_v3_pokemon_blip/epoch_50.pth work_dirs/kandinsky_v3_pokemon_blip --save-keys unet
+# Note that when training colossalai, use `--colossalai` and set `INPUT_FILENAME` to index file.
+$ mim run diffengine publish_model2diffusers configs/kandinsky_v3/kandinsky_v3_pokemon_blip.py work_dirs/kandinsky_v3_pokemon_blip/epoch_50.pth/model/pytorch_model.bin.index.json work_dirs/kandinsky_v3_pokemon_blip --save-keys unet --colossalai
 ```
 
 Then we can run inference.
 
 ```py
-import torch
 from diffusers import AutoPipelineForText2Image, Kandinsky3UNet
 
 prompt = 'yoda pokemon'
 checkpoint = 'work_dirs/kandinsky_v3_pokemon_blip'
 
 unet = Kandinsky3UNet.from_pretrained(
-    checkpoint, subfolder='unet', torch_dtype=torch.float16)
+    checkpoint, subfolder='unet')
 pipe = AutoPipelineForText2Image.from_pretrained(
     "kandinsky-community/kandinsky-3",
     unet=unet,
-    torch_dtype=torch.float16,
     variant="fp16",
 )
 pipe.to('cuda')
@@ -81,4 +80,4 @@ image.save('demo.png')
 
 #### kandinsky_v3_pokemon_blip
 
-![example1](<>)
+![example1](https://github.com/okotaku/diffengine/assets/24734142/8f078fa8-9485-40d9-8174-5996257aed88)

@@ -1,5 +1,6 @@
 import argparse
 import os.path as osp
+from pathlib import Path
 
 import torch
 from mmengine.config import Config
@@ -20,6 +21,10 @@ def parse_args():  # noqa
         type=str,
         default=["unet", "text_encoder", "transformer"],
         help="keys to save in the published checkpoint")
+    parser.add_argument(
+        "--colossalai",
+        action="store_true",
+        help="whether the checkpoint is trained with colossalai")
     return parser.parse_args()
 
 
@@ -44,15 +49,23 @@ def main() -> None:
     cfg.work_dir = osp.join("./work_dirs",
                             osp.splitext(osp.basename(args.config))[0])
 
+    if args.colossalai:
+        cfg.strategy = None
+        cfg.pop("runner_type")
+
     # build the runner from config
     runner = (
         Runner.from_cfg(cfg)
         if "runner_type" not in cfg else RUNNERS.build(cfg))
 
-    state_dict = torch.load(args.in_file)
-    if "state_dict" in state_dict:
-        state_dict = state_dict["state_dict"]
-    runner.model.load_state_dict(state_dict, strict=False)
+    if args.colossalai:
+        from colossalai.checkpoint_io import GeneralCheckpointIO
+        GeneralCheckpointIO().load_sharded_model(runner.model, Path(args.in_file))
+    else:
+        state_dict = torch.load(args.in_file)
+        if "state_dict" in state_dict:
+            state_dict = state_dict["state_dict"]
+        runner.model.load_state_dict(state_dict, strict=False)
 
     process_checkpoint(runner, args.out_dir, args.save_keys)
 
