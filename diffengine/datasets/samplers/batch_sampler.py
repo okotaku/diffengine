@@ -1,6 +1,7 @@
 # based on https://github.com/open-mmlab/mmdetection/blob/f78af7785ada87f1ced75a2313746e4ba3149760/mmdet/datasets/samplers/batch_sampler.py#L12  # noqa
 from collections.abc import Generator
 
+import mmengine
 import numpy as np
 from torch.utils.data import BatchSampler, Sampler
 
@@ -18,6 +19,8 @@ class AspectRatioBatchSampler(BatchSampler):
     ----
         sampler (Sampler): Base sampler.
         batch_size (int): Size of mini-batch.
+        bucket_ids (str | None): The path of bucket ids. If ``None``, the
+            bucket ids will be calculated automatically. Default: ``None``.
         drop_last (bool): If ``True``, the sampler will drop the last batch if
             its size would be less than ``batch_size``.
     """
@@ -25,6 +28,7 @@ class AspectRatioBatchSampler(BatchSampler):
     def __init__(self,
                  sampler: Sampler,
                  batch_size: int,
+                 bucket_ids: str | None = None,
                  *,
                  drop_last: bool = False) -> None:
         if not isinstance(sampler, Sampler):
@@ -41,12 +45,15 @@ class AspectRatioBatchSampler(BatchSampler):
         # two groups for w < h and w >= h
         self._aspect_ratio_buckets: dict = {}
         # calc aspect ratio
-        self.bucket_ids = []
-        for idx in range(len(self.sampler.dataset)):
-            data_info = self.sampler.dataset[idx]
-            bucket_id = data_info["inputs"]["img"].size(
-            )[1] / data_info["inputs"]["img"].size()[2]
-            self.bucket_ids.append(bucket_id)
+        if bucket_ids is not None:
+            self.bucket_ids = mmengine.load(bucket_ids)
+        else:
+            self.bucket_ids = []
+            for idx in range(len(self.sampler.dataset)):
+                data_info = self.sampler.dataset[idx]
+                bucket_id = data_info["inputs"]["img"].size(
+                )[1] / data_info["inputs"]["img"].size()[2]
+                self.bucket_ids.append(bucket_id)
 
     def __iter__(self) -> Generator:
         """Get the iterator of the sampler."""
