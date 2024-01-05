@@ -4,9 +4,9 @@ You can also check [`configs/stable_diffusion/README.md`](https://github.com/oko
 
 ## Configs
 
-All configuration files are placed under the [`configs/stable_diffusion`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/) folder.
+All configuration files are placed under the [`configs/stable_diffusion`](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/stable_diffusion) folder.
 
-Following is the example config fixed from the stable_diffusion_v15_pokemon_blip config file in [`configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py):
+Following is the example config fixed from the stable_diffusion_v15_pokemon_blip config file in [`configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py`](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -32,7 +32,7 @@ _base_ = [
 model = dict(finetune_text_encoder=True)  # fine tune text encoder
 ```
 
-We also provide [`configs/stable_diffusion/stable_diffusion_v15_textencoder_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_textencoder_pokemon_blip.py) as a whole config.
+We also provide [`configs/stable_diffusion/stable_diffusion_v15_textencoder_pokemon_blip.py`](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_textencoder_pokemon_blip.py) as a whole config.
 
 #### Finetuning with Unet EMA
 
@@ -53,7 +53,7 @@ custom_hooks = [  # Hook is list, we should write all custom_hooks again.
 ]
 ```
 
-We also provide [`configs/stable_diffusion/stable_diffusion_v15_ema_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_ema_pokemon_blip.py) as a whole config.
+We also provide [`configs/stable_diffusion/stable_diffusion_v15_ema_pokemon_blip.py`](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_ema_pokemon_blip.py) as a whole config.
 
 #### Finetuning with Min-SNR Weighting Strategy
 

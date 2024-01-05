@@ -4,9 +4,9 @@ You can also check [`configs/stable_diffusion_xl/README.md`](https://github.com/
 
 ## Configs
 
-All configuration files are placed under the [`configs/stable_diffusion_xl`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl/) folder.
+All configuration files are placed under the [`configs/stable_diffusion_xl`](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/stable_diffusion_xl) folder.
 
-Following is the example config fixed from the stable_diffusion_xl_pokemon_blip config file in [`configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py):
+Following is the example config fixed from the stable_diffusion_xl_pokemon_blip config file in [`configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py`](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py):
 
 ```
 _base_ = [
