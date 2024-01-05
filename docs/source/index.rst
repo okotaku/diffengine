@@ -30,6 +30,17 @@ Welcome to diffengine's documentation!
    run_guides/run_lora_xl.md
    run_guides/run_controlnet.md
    run_guides/run_controlnet_xl.md
+   run_guides/run_instruct_pix2pix.md
+   run_guides/run_ip_adapter.md
+   run_guides/run_kandinsky_v22.md
+   run_guides/run_lcm_lora.md
+   run_guides/run_lcm.md
+   run_guides/run_pixart_alpha_dreambooth.md
+   run_guides/run_pixart_alpha_lora.md
+   run_guides/run_pixart_alpha.md
+   run_guides/run_t2i_adapter.md
+   run_guides/run_wuerstchen_lora.md
+   run_guides/run_wuerstchen.md
    run_guides/inference.md
 
 .. toctree::
