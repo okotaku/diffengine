@@ -6,6 +6,8 @@ from mmengine.config import Config, DictAction
 from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
 
+from diffengine.configs import cfgs_name_path
+
 
 def parse_args():  # noqa
     parser = argparse.ArgumentParser(description="Train a model")
@@ -79,6 +81,14 @@ def merge_args(cfg, args):  # noqa
 
 def main() -> None:
     args = parse_args()
+
+    # parse config
+    if not osp.isfile(args.config):
+        try:
+            args.config = cfgs_name_path[args.config]
+        except KeyError as exc:
+            msg = f"Cannot find {args.config}"
+            raise FileNotFoundError(msg) from exc
 
     # load config
     cfg = Config.fromfile(args.config)

@@ -1,5 +1,4 @@
 include diffengine/.mim/model-index.yml
-include add_mim_extension.py
 recursive-include diffengine/.mim/configs *.py *.yml
 recursive-include diffengine/.mim/tools *.sh *.py
 recursive-include diffengine/.mim/demo *.sh *.py

@@ -43,6 +43,8 @@ def main() -> None:
         joblib.delayed(get_bucket_id)(file_name)
         for file_name in tqdm(img_df.file_name.values))
 
+    print(pd.DataFrame(bucket_ids).value_counts())
+
     mmengine.dump(bucket_ids, args.out)
 
 if __name__ == "__main__":
