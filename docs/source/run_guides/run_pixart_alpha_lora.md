@@ -1,12 +1,12 @@
 # PixArt-α LoRA Training
 
-You can also check [`configs/pixart_alpha_lora/README.md`](../../../configs/pixart_alpha_lora/README.md) file.
+You can also check [`configs/pixart_alpha_lora/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha_lora/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/pixart_alpha_lora`](../../../configs/pixart_alpha_lora/) folder.
+All configuration files are placed under the [`configs/pixart_alpha_lora`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha_lora/) folder.
 
-Following is the example config fixed from the pixart_alpha_1024_lora_pokemon_blip config file in [`configs/pixart_alpha_lora/pixart_alpha_1024_lora_pokemon_blip.py`](../../../configs/pixart_alpha_lora/pixart_alpha_1024_lora_pokemon_blip.py):
+Following is the example config fixed from the pixart_alpha_1024_lora_pokemon_blip config file in [`configs/pixart_alpha_lora/pixart_alpha_1024_lora_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha_lora/pixart_alpha_1024_lora_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -35,12 +35,12 @@ Run LoRA training:
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ mim train diffengine configs/pixart_alpha_lora/pixart_alpha_1024_lora_pokemon_blip.py
+$ diffengine train pixart_alpha_1024_lora_pokemon_blip
 ```
 
 ## Inference with diffusers
@@ -82,4 +82,4 @@ img.save("demo.png")
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/33f9c774-7896-4032-a11b-b86f4334de0a)
 
-You can check [`configs/pixart_alpha_lora/README.md`](../../../configs/pixart_alpha_lora/README.md#results-example) for more details.
+You can check [`configs/pixart_alpha_lora/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha_lora/README.md#results-example) for more details.

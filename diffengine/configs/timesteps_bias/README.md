@@ -21,12 +21,12 @@ Run Training
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ mim train diffengine configs/timesteps_bias/stable_diffusion_xl_pokemon_blip_later_bias.py
+$ diffengine train stable_diffusion_xl_pokemon_blip_later_bias
 ```
 
 ## Inference with diffusers

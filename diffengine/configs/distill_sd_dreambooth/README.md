@@ -28,12 +28,12 @@ Run Training
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ mim train diffengine configs/distill_sd_dreambooth/small_sd_dreambooth_lora_dog.py
+$ diffengine train small_sd_dreambooth_lora_dog
 ```
 
 ## Training Speed
@@ -82,12 +82,6 @@ image = pipe(
     num_inference_steps=50,
 ).images[0]
 image.save('demo.png')
-```
-
-We also provide inference demo scripts:
-
-```bash
-$ mim run diffengine demo_lora "A photo of sks dog in a bucket" work_dirs/small_sd_dreambooth_lora_dog/step999 --sdmodel segmind/small-sd
 ```
 
 ## Results Example

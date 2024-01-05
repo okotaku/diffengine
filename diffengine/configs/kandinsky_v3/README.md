@@ -29,12 +29,12 @@ Run Training
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ mim train diffengine configs/kandinsky_v3/kandinsky_v3_pokemon_blip.py
+$ diffengine train kandinsky_v3_pokemon_blip
 ```
 
 ## Inference prior with diffusers
@@ -44,10 +44,10 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
 # Note that when training colossalai, use `--colossalai` and set `INPUT_FILENAME` to index file.
-$ mim run diffengine publish_model2diffusers configs/kandinsky_v3/kandinsky_v3_pokemon_blip.py work_dirs/kandinsky_v3_pokemon_blip/epoch_50.pth/model/pytorch_model.bin.index.json work_dirs/kandinsky_v3_pokemon_blip --save-keys unet --colossalai
+$ diffengine convert kandinsky_v3_pokemon_blip work_dirs/kandinsky_v3_pokemon_blip/epoch_50.pth/model/pytorch_model.bin.index.json work_dirs/kandinsky_v3_pokemon_blip --save-keys unet --colossalai
 ```
 
 Then we can run inference.

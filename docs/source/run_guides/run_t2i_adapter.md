@@ -1,12 +1,12 @@
 # T2I Adapter Training
 
-You can also check [`configs/t2i_adapter/README.md`](../../../configs/t2i_adapter/README.md) file.
+You can also check [`configs/t2i_adapter/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/t2i_adapter/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/t2i_adapter`](../../../configs/t2i_adapter/) folder.
+All configuration files are placed under the [`configs/t2i_adapter`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/t2i_adapter/) folder.
 
-Following is the example config fixed from the stable_diffusion_xl_t2i_adapter_fill50k config file in [`configs/t2i_adapter/stable_diffusion_xl_t2i_adapter_fill50k.py`](../../../configs/t2i_adapter/stable_diffusion_xl_t2i_adapter_fill50k.py):
+Following is the example config fixed from the stable_diffusion_xl_t2i_adapter_fill50k config file in [`configs/t2i_adapter/stable_diffusion_xl_t2i_adapter_fill50k.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/t2i_adapter/stable_diffusion_xl_t2i_adapter_fill50k.py):
 
 ```
 _base_ = [
@@ -28,12 +28,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example
-$ mim train diffengine configs/t2i_adapter/stable_diffusion_xl_t2i_adapter_fill50k.py
+$ diffengine train stable_diffusion_xl_t2i_adapter_fill50k
 ```
 
 ## Inference with diffusers
@@ -70,14 +70,6 @@ image = pipe(
 image.save('demo.png')
 ```
 
-We also provide inference demo scripts:
-
-```
-$ mim run diffengine demo_adapter ${PROMPT} ${CONDITION_IMAGE} ${CHECKPOINT} --vaemodel madebyollin/sdxl-vae-fp16-fix --height 1024 --width 1024
-# Example
-$ mim run diffengine demo_adapter "cyan circle with brown floral background" https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg work_dirs/stable_diffusion_xl_t2i_adapter_fill50k/step75000 --vaemodel madebyollin/sdxl-vae-fp16-fix --height 1024 --width 1024
-```
-
 ## Results Example
 
 #### stable_diffusion_xl_t2i_adapter_fill50k
@@ -86,4 +78,4 @@ $ mim run diffengine demo_adapter "cyan circle with brown floral background" htt
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/7ea65b62-a8c4-4888-8e11-9cdb69855d3c)
 
-You can check [`configs/t2i_adapter/README.md`](../../../configs/t2i_adapter/README.md#results-example) for more details.
+You can check [`configs/t2i_adapter/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/t2i_adapter/README.md#results-example) for more details.

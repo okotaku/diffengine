@@ -7,7 +7,6 @@ Before installing DiffEngine, please ensure that PyTorch has been successfully i
 Below are quick steps for installation:
 
 ```
-pip install openmim
 pip install git+https://github.com/okotaku/diffengine.git
 ```
 
@@ -15,12 +14,12 @@ pip install git+https://github.com/okotaku/diffengine.git
 
 DiffEngine makes training easy through its pre-defined configs. These configs provide a streamlined way to start your training process. Here's how you can get started using one of the pre-defined configs:
 
-1. **Choose a config**: You can find various pre-defined configs in the [`configs`](configs/) directory of the DiffEngine repository. For example, if you're interested in training a model for DreamBooth using the Stable Diffusion algorithm, you can use the [`configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py`](configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py).
+1. **Choose a config**: You can find various pre-defined configs in the [`configs`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs) directory of the DiffEngine repository. For example, if you're interested in training a model for DreamBooth using the Stable Diffusion algorithm, you can use the [`configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py).
 
 2. **Start Training**: Open a terminal and use the following command to start training with the chosen config:
 
 ```bash
-mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
+diffengine train stable_diffusion_v15_dreambooth_lora_dog
 ```
 
 3. **Monitor Progress and get results**: The training process will begin, and you will see output similar to the provided example. You can monitor the progress of your training as it proceeds. The outputs of training is in `work_dirs/${CONFIG_NAME}`, `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` in this case.
@@ -58,5 +57,5 @@ Below are quick steps for installation and run dreambooth training by docker:
 git clone https://github.com/okotaku/diffengine
 cd diffengine
 docker compose up -d
-docker compose exec diffengine mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
+docker compose exec diffengine train stable_diffusion_v15_dreambooth_lora_dog
 ```

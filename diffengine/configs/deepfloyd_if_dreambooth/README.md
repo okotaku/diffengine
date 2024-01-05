@@ -27,12 +27,12 @@ Run Training
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ mim train diffengine configs/deepfloyd_if_dreambooth/deepfloyd_if_xl_dreambooth_lora_dog.py
+$ diffengine train deepfloyd_if_xl_dreambooth_lora_dog
 ```
 
 ## Inference with diffusers
@@ -65,12 +65,6 @@ image = pipe(
     width=1024,
 ).images[0]
 image.save('demo.png')
-```
-
-We also provide inference demo scripts:
-
-```bash
-$ mim run diffengine demo_if_lora "A photo of sks dog in a bucket" work_dirs/deepfloyd_if_xl_dreambooth_lora_dog/step999
 ```
 
 ## Results Example

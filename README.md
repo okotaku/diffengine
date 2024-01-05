@@ -42,7 +42,6 @@ Before installing DiffEngine, please ensure that PyTorch >= v2.0 has been succes
 Install DiffEngine
 
 ```
-pip install openmim
 pip install git+https://github.com/okotaku/diffengine.git
 ```
 
@@ -55,7 +54,7 @@ DiffEngine makes training easy through its pre-defined configs. These configs pr
 2. **Start Training**: Open a terminal and run the following command to start training with the selected config:
 
 ```bash
-mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
+diffengine train stable_diffusion_v15_dreambooth_lora_dog.py
 ```
 
 3. **Monitor Progress and get results**: The training process will begin, and you can track its progress. The outputs of the training will be located in the `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` directory, specifically when using the `stable_diffusion_v15_dreambooth_lora_dog` config.
@@ -319,7 +318,6 @@ Also, please check the following openmmlab and huggingface projects and the corr
 
 - [OpenMMLab](https://openmmlab.com/)
 - [HuggingFace](https://huggingface.co/)
-- [MIM](https://github.com/open-mmlab/mim): MIM Installs OpenMMLab Packages.
 
 ```
 @article{mmengine2022,

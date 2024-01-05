@@ -1,12 +1,12 @@
 # Stable Diffusion Training
 
-You can also check [`configs/stable_diffusion/README.md`](../../../configs/stable_diffusion/README.md) file.
+You can also check [`configs/stable_diffusion/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/stable_diffusion`](../../../configs/stable_diffusion/) folder.
+All configuration files are placed under the [`configs/stable_diffusion`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/) folder.
 
-Following is the example config fixed from the stable_diffusion_v15_pokemon_blip config file in [`configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py`](../../../configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py):
+Following is the example config fixed from the stable_diffusion_v15_pokemon_blip config file in [`configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -32,7 +32,7 @@ _base_ = [
 model = dict(finetune_text_encoder=True)  # fine tune text encoder
 ```
 
-We also provide [`configs/stable_diffusion/stable_diffusion_v15_textencoder_pokemon_blip.py`](../../../configs/stable_diffusion/stable_diffusion_v15_textencoder_pokemon_blip.py) as a whole config.
+We also provide [`configs/stable_diffusion/stable_diffusion_v15_textencoder_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_textencoder_pokemon_blip.py) as a whole config.
 
 #### Finetuning with Unet EMA
 
@@ -53,7 +53,7 @@ custom_hooks = [  # Hook is list, we should write all custom_hooks again.
 ]
 ```
 
-We also provide [`configs/stable_diffusion/stable_diffusion_v15_ema_pokemon_blip.py`](../../../configs/stable_diffusion/stable_diffusion_v15_ema_pokemon_blip.py) as a whole config.
+We also provide [`configs/stable_diffusion/stable_diffusion_v15_ema_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_ema_pokemon_blip.py) as a whole config.
 
 #### Finetuning with Min-SNR Weighting Strategy
 
@@ -70,7 +70,7 @@ _base_ = [
 model = dict(loss=dict(type='SNRL2Loss', snr_gamma=5.0, loss_weight=1.0))  # setup Min-SNR Weighting Strategy
 ```
 
-We also provide [`configs/min_snr_loss/stable_diffusion_v15_snr_pokemon_blip.py`](../../../configs/min_snr_loss/stable_diffusion_v15_snr_pokemon_blip.py) as a whole config.
+We also provide [`configs/min_snr_loss/stable_diffusion_v15_snr_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/min_snr_loss/stable_diffusion_v15_snr_pokemon_blip.py) as a whole config.
 
 ## Run training
 
@@ -78,12 +78,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # Example
-$ mim train diffengine configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py
+$ diffengine train stable_diffusion_v15_pokemon_blip
 
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 ```
 
 ## Inference with diffusers
@@ -93,9 +93,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py work_dirs/stable_diffusion_v15_pokemon_blip/epoch_50.pth work_dirs/stable_diffusion_v15_pokemon_blip --save-keys unet
+$ diffengine convert stable_diffusion_v15_pokemon_blip work_dirs/stable_diffusion_v15_pokemon_blip/epoch_50.pth work_dirs/stable_diffusion_v15_pokemon_blip --save-keys unet
 ```
 
 Then we can run inference.
@@ -120,14 +120,6 @@ image = pipe(
 image.save('demo.png')
 ```
 
-We also provide inference demo scripts:
-
-```
-$ mim run diffengine demo ${PROMPT} ${CHECKPOINT}
-# Example
-$ mim run diffengine demo "yoda pokemon" work_dirs/stable_diffusion_v15_pokemon_blip
-```
-
 ## Inference Text Encoder and Unet finetuned weight with diffusers
 
 Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
@@ -135,9 +127,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/stable_diffusion/stable_diffusion_v15_textencoder_pokemon_blip.py work_dirs/stable_diffusion_v15_textencoder_pokemon_blip/epoch_50.pth work_dirs/stable_diffusion_v15_textencoder_pokemon_blip --save-keys unet text_encoder
+$ diffengine convert stable_diffusion_v15_textencoder_pokemon_blip work_dirs/stable_diffusion_v15_textencoder_pokemon_blip/epoch_50.pth work_dirs/stable_diffusion_v15_textencoder_pokemon_blip --save-keys unet text_encoder
 ```
 
 Then we can run inference.
@@ -167,18 +159,10 @@ image = pipe(
 image.save('demo.png')
 ```
 
-We also provide inference demo scripts with `--text_encoder`:
-
-```
-$ mim run diffengine demo ${PROMPT} ${CHECKPOINT} --text_encoder
-# Example
-$ mim run diffengine demo "yoda pokemon" work_dirs/stable_diffusion_v15_textencoder_pokemon_blip --text_encoder
-```
-
 ## Results Example
 
 #### stable_diffusion_v15_pokemon_blip
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/24d5254d-95be-46eb-8982-b38b6a11f1ba)
 
-You can check [`configs/stable_diffusion/README.md`](../../../configs/stable_diffusion/README.md#results-example) for more details.
+You can check [`configs/stable_diffusion/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/README.md#results-example) for more details.

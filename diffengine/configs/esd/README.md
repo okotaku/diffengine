@@ -27,12 +27,12 @@ Run Training
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ mim train diffengine configs/esd/stable_diffusion_xl_gogh_esd.py
+$ diffengine train stable_diffusion_xl_gogh_esd
 ```
 
 ## Inference with diffusers
@@ -42,9 +42,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/esd/stable_diffusion_xl_gogh_esd.py w
+$ diffengine convert stable_diffusion_xl_gogh_esd w
 ork_dirs/stable_diffusion_xl_gogh_esd/iter_500.pth work_dirs/stable_diffusion_xl_gogh_esd --save-keys unet
 ```
 

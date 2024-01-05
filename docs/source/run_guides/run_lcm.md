@@ -1,12 +1,12 @@
 # Latent Consistency Models Training
 
-You can also check [`configs/lcm/README.md`](../../../configs/lcm/README.md) file.
+You can also check [`configs/lcm/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/lcm/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/lcm`](../../../configs/lcm/) folder.
+All configuration files are placed under the [`configs/lcm`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/lcm/) folder.
 
-Following is the example config fixed from the lcm_xl_pokemon_blip config file in [`configs/lcm/lcm_xl_pokemon_blip.py`](../../../configs/lcm/lcm_xl_pokemon_blip.py):
+Following is the example config fixed from the lcm_xl_pokemon_blip config file in [`configs/lcm/lcm_xl_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/lcm/lcm_xl_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -37,12 +37,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # Example
-$ mim train diffengine configs/lcm/lcm_xl_pokemon_blip.py
+$ diffengine train lcm_xl_pokemon_blip
 
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 ```
 
 ## Inference with diffusers
@@ -52,9 +52,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/lcm/lcm_xl_pokemon_blip.py work_dirs/lcm_xl_pokemon_blip/epoch_50.pth work_dirs/lcm_xl_pokemon_blip --save-keys unet
+$ diffengine convert lcm_xl_pokemon_blip work_dirs/lcm_xl_pokemon_blip/epoch_50.pth work_dirs/lcm_xl_pokemon_blip --save-keys unet
 ```
 
 Then we can run inference.
@@ -96,4 +96,4 @@ image.save('demo.png')
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/8fd9799d-11a3-4cd1-8f08-f91e9e7cef3c)
 
-You can check [`configs/lcm/README.md`](../../../configs/lcm/README.md#results-example) for more details.
+You can check [`configs/lcm/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/lcm/README.md#results-example) for more details.

@@ -8,6 +8,8 @@ from mmengine.logging import print_log
 from mmengine.registry import RUNNERS
 from mmengine.runner import Runner
 
+from diffengine.configs import cfgs_name_path
+
 
 def parse_args():  # noqa
     parser = argparse.ArgumentParser(
@@ -44,6 +46,14 @@ def main() -> None:
         msg = (f"These metrics are supported: {allowed_save_keys}, "
                f"but got {args.save_keys}")
         raise KeyError(msg)
+
+    # parse config
+    if not osp.isfile(args.config):
+        try:
+            args.config = cfgs_name_path[args.config]
+        except KeyError as exc:
+            msg = f"Cannot find {args.config}"
+            raise FileNotFoundError(msg) from exc
 
     cfg = Config.fromfile(args.config)
     cfg.work_dir = osp.join("./work_dirs",

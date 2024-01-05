@@ -36,7 +36,7 @@ CLI_HELP_MSG = \
         3-1. Fine-tune by a single GPU:
             diffengine train $CONFIG
         3-2. Fine-tune by multiple GPUs:
-            NPROC_PER_NODE=$NGPUS NNODES=$NNODES NODE_RANK=$NODE_RANK PORT=$PORT ADDR=$ADDR diffengine dist_train $CONFIG $GPUS
+            NPROC_PER_NODE=$GPU_NUM diffengine train $CONFIG
         4-1. Convert the pth model to HuggingFace's model:
             diffengine convert pth_to_hf $CONFIG $PATH_TO_PTH_MODEL $SAVE_PATH_TO_HF_MODEL
         5-1. Preprocess bucket ids:

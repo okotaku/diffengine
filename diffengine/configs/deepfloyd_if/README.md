@@ -21,12 +21,12 @@ Run Training
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ mim train diffengine configs/deepfloyd_if/deepfloyd_if_pokemon_blip.py
+$ diffengine train deepfloyd_if_pokemon_blip
 ```
 
 ## Inference with diffusers
@@ -36,9 +36,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/deepfloyd_if/deepfloyd_if_l_pokemon_blip.py work_dirs/deepfloyd_if_l_pokemon_blip/epoch_50.pth work_dirs/deepfloyd_if_l_pokemon_blip --save-keys unet
+$ diffengine convert deepfloyd_if_l_pokemon_blip work_dirs/deepfloyd_if_l_pokemon_blip/epoch_50.pth work_dirs/deepfloyd_if_l_pokemon_blip --save-keys unet
 ```
 
 Then we can run inference.
@@ -61,12 +61,6 @@ image = pipe(
     num_inference_steps=50,
 ).images[0]
 image.save('demo.png')
-```
-
-We also provide inference demo scripts:
-
-```bash
-$ mim run diffengine demo_if "yoda pokemon" work_dirs/deepfloyd_if_l_pokemon_blip
 ```
 
 ## Results Example
