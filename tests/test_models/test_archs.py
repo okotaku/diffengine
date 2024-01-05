@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 from diffusers import UNet2DConditionModel
-from diffusers.models.embeddings import ImageProjection, Resampler
+from diffusers.models.embeddings import ImageProjection, IPAdapterPlusImageProjection
 from peft import LoHaConfig, LoKrConfig, LoraConfig, OFTConfig
 
 from diffengine.models.archs import (
@@ -79,7 +79,7 @@ def test_process_ip_adapter_state_dict():
     assert "proj.weight" in proj_state_dict["image_proj"]
     assert len(proj_state_dict["ip_adapter"]) == 24
 
-    resampler = Resampler(
+    resampler = IPAdapterPlusImageProjection(
         embed_dims=32,
         output_dims=32,
         hidden_dims=128,

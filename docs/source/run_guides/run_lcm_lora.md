@@ -1,12 +1,12 @@
 # Latent Consistency Models Training
 
-You can also check [`configs/lcm_lora/README.md`](../../../configs/lcm_lora/README.md) file.
+You can also check [`configs/lcm_lora/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/lcm_lora/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/lcm_lora`](../../../configs/lcm_lora/) folder.
+All configuration files are placed under the [`configs/lcm_lora`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/lcm_lora/) folder.
 
-Following is the example config fixed from the lcm_xl_lora_pokemon_blip config file in [`configs/lcm_lora/lcm_xl_lora_pokemon_blip.py`](../../../configs/lcm_lora/lcm_xl_lora_pokemon_blip.py):
+Following is the example config fixed from the lcm_xl_lora_pokemon_blip config file in [`configs/lcm_lora/lcm_xl_lora_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/lcm_lora/lcm_xl_lora_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -38,12 +38,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # Example
-$ mim train diffengine configs/lcm_lora/lcm_xl_lora_pokemon_blip.py
+$ diffengine train lcm_xl_lora_pokemon_blip
 
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 ```
 
 ## Inference with diffusers
@@ -96,4 +96,4 @@ image.save('demo.png')
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/c321c36e-ba99-42f7-ab0f-4f790253926f)
 
-You can check [`configs/lcm_lora/README.md`](../../../configs/lcm_lora/README.md#results-example) for more details.
+You can check [`configs/lcm_lora/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/lcm_lora/README.md#results-example) for more details.

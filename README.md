@@ -42,7 +42,6 @@ Before installing DiffEngine, please ensure that PyTorch >= v2.0 has been succes
 Install DiffEngine
 
 ```
-pip install openmim
 pip install git+https://github.com/okotaku/diffengine.git
 ```
 
@@ -50,12 +49,12 @@ pip install git+https://github.com/okotaku/diffengine.git
 
 DiffEngine makes training easy through its pre-defined configs. These configs provide a streamlined way to start your training process. Here's how you can get started using one of the pre-defined configs:
 
-1. **Choose a config**: You can find various pre-defined configs in the [`configs`](configs/) directory of the DiffEngine repository. For example, if you wish to train a DreamBooth model using the Stable Diffusion algorithm, you can use the [`configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py`](configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py).
+1. **Choose a config**: You can find various pre-defined configs in the [`configs`](diffengine/configs/) directory of the DiffEngine repository. For example, if you wish to train a DreamBooth model using the Stable Diffusion algorithm, you can use the [`configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py`](diffengine/configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py).
 
 2. **Start Training**: Open a terminal and run the following command to start training with the selected config:
 
 ```bash
-mim train diffengine stable_diffusion_v15_dreambooth_lora_dog.py
+diffengine train stable_diffusion_v15_dreambooth_lora_dog
 ```
 
 3. **Monitor Progress and get results**: The training process will begin, and you can track its progress. The outputs of the training will be located in the `work_dirs/stable_diffusion_v15_dreambooth_lora_dog` directory, specifically when using the `stable_diffusion_v15_dreambooth_lora_dog` config.
@@ -319,7 +318,6 @@ Also, please check the following openmmlab and huggingface projects and the corr
 
 - [OpenMMLab](https://openmmlab.com/)
 - [HuggingFace](https://huggingface.co/)
-- [MIM](https://github.com/open-mmlab/mim): MIM Installs OpenMMLab Packages.
 
 ```
 @article{mmengine2022,

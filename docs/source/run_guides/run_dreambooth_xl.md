@@ -1,12 +1,12 @@
 # Stable Diffusion XL DremBooth Training
 
-You can also check [`configs/stable_diffusion_xl_dreambooth/README.md`](../../../configs/stable_diffusion_xl_dreambooth/README.md) file.
+You can also check [`configs/stable_diffusion_xl_dreambooth/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_dreambooth/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/stable_diffusion_xl_dreambooth`](../../../configs/stable_diffusion_xl_dreambooth/) folder.
+All configuration files are placed under the [`configs/stable_diffusion_xl_dreambooth`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_dreambooth/) folder.
 
-Following is the example config fixed from the stable_diffusion_xl_dreambooth_lora_dog config file in [`configs/stable_diffusion_xl_dreambooth/stable_diffusion_xl_dreambooth_lora_dog.py`](../../../configs/stable_diffusion_xl_dreambooth/stable_diffusion_xl_dreambooth_lora_dog.py):
+Following is the example config fixed from the stable_diffusion_xl_dreambooth_lora_dog config file in [`configs/stable_diffusion_xl_dreambooth/stable_diffusion_xl_dreambooth_lora_dog.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_dreambooth/stable_diffusion_xl_dreambooth_lora_dog.py):
 
 ```
 _base_ = [
@@ -75,12 +75,12 @@ Run DreamBooth train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # Example
-$ mim train diffengine configs/stable_diffusion_xl_dreambooth/stable_diffusion_xl_dreambooth_lora_dog.py
+$ diffengine train stable_diffusion_xl_dreambooth_lora_dog
 
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 ```
 
 ## Inference with diffusers
@@ -123,12 +123,6 @@ image = pipe(
 image.save('demo.png')
 ```
 
-We also provide inference demo scripts:
-
-```bash
-$ mim run diffengine demo_lora "A photo of sks dog in a bucket" work_dirs/stable_diffusion_xl_dreambooth_lora_dog/step499 --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --height 1024 --width 1024
-```
-
 You can check [inference docs](inference.md) for inferencing other settings like Full Parameter Training without LoRA.
 
 ## Results Example
@@ -137,4 +131,4 @@ You can check [inference docs](inference.md) for inferencing other settings like
 
 ![exampledog](https://github.com/okotaku/diffengine/assets/24734142/ae1e4072-d2a3-445a-b11f-23d1f178a029)
 
-You can check [`configs/stable_diffusion_xl_dreambooth/README.md`](../../../configs/stable_diffusion_xl_dreambooth/README.md#results-example) for more details.
+You can check [`configs/stable_diffusion_xl_dreambooth/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_dreambooth/README.md#results-example) for more details.

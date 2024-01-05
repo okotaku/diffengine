@@ -1,12 +1,12 @@
 # Wuerstchen Training
 
-You can also check [`configs/wuerstchen/README.md`](../../../configs/wuerstchen/README.md) file.
+You can also check [`configs/wuerstchen/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/wuerstchen/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/wuerstchen`](../../../configs/wuerstchen/) folder.
+All configuration files are placed under the [`configs/wuerstchen`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/wuerstchen/) folder.
 
-Following is the example config fixed from the wuerstchen_prior_pokemon_blip config file in [`configs/wuerstchen/wuerstchen_prior_pokemon_blip.py`](../../../configs/wuerstchen/wuerstchen_prior_pokemon_blip.py):
+Following is the example config fixed from the wuerstchen_prior_pokemon_blip config file in [`configs/wuerstchen/wuerstchen_prior_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/wuerstchen/wuerstchen_prior_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -27,12 +27,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example
-$ mim train diffengine configs/wuerstchen/wuerstchen_prior_pokemon_blip.py
+$ diffengine train wuerstchen_prior_pokemon_blip
 ```
 
 ## Inference with diffusers
@@ -72,4 +72,4 @@ image.save('demo.png')
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/41707bcb-3c2e-458a-9bd9-ce3bc47d2faf)
 
-You can check [`configs/wuerstchen/README.md`](../../../configs/wuerstchen/README.md#results-example) for more details.
+You can check [`configs/wuerstchen/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/wuerstchen/README.md#results-example) for more details.

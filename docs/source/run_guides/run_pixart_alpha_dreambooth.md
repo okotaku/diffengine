@@ -1,12 +1,12 @@
 # PixArt-α DremBooth Training
 
-You can also check [`configs/pixart_alpha_dreambooth/README.md`](../../../configs/pixart_alpha_dreambooth/README.md) file.
+You can also check [`configs/pixart_alpha_dreambooth/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha_dreambooth/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/pixart_alpha_dreambooth`](../../../configs/pixart_alpha_dreambooth/) folder.
+All configuration files are placed under the [`configs/pixart_alpha_dreambooth`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha_dreambooth/) folder.
 
-Following is the example config fixed from the pixart_alpha_1024_dreambooth_lora_dog config file in [`configs/pixart_alpha_dreambooth/pixart_alpha_1024_dreambooth_lora_dog.py`](../../../configs/pixart_alpha_dreambooth/pixart_alpha_1024_dreambooth_lora_dog.py):
+Following is the example config fixed from the pixart_alpha_1024_dreambooth_lora_dog config file in [`configs/pixart_alpha_dreambooth/pixart_alpha_1024_dreambooth_lora_dog.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha_dreambooth/pixart_alpha_1024_dreambooth_lora_dog.py):
 
 ```
 _base_ = [
@@ -30,12 +30,12 @@ Run DreamBooth train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ mim train diffengine configs/pixart_alpha_dreambooth/pixart_alpha_1024_dreambooth_lora_dog.py
+$ diffengine train pixart_alpha_1024_dreambooth_lora_dog
 ```
 
 ## Inference with diffusers
@@ -83,4 +83,4 @@ You can check [inference docs](inference.md) for inferencing other settings like
 
 ![exampledog2](https://github.com/okotaku/diffengine/assets/24734142/a3fc9fcd-7cd0-4dc2-997d-3a9b303c228a)
 
-You can check [`configs/pixart_alpha_dreambooth/README.md`](../../../configs/pixart_alpha_dreambooth/README.md#results-example) for more details.
+You can check [`configs/pixart_alpha_dreambooth/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha_dreambooth/README.md#results-example) for more details.

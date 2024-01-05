@@ -1,12 +1,12 @@
 # Stable Diffusion XL Training
 
-You can also check [`configs/stable_diffusion_xl/README.md`](../../../configs/stable_diffusion_xl/README.md) file.
+You can also check [`configs/stable_diffusion_xl/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/stable_diffusion_xl`](../../../configs/stable_diffusion_xl/) folder.
+All configuration files are placed under the [`configs/stable_diffusion_xl`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl/) folder.
 
-Following is the example config fixed from the stable_diffusion_xl_pokemon_blip config file in [`configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py`](../../../configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py):
+Following is the example config fixed from the stable_diffusion_xl_pokemon_blip config file in [`configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -88,12 +88,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # Example
-$ mim train diffengine configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py
+$ diffengine train stable_diffusion_xl_pokemon_blip
 
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 ```
 
 ## Inference with diffusers
@@ -103,9 +103,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py work_dirs/stable_diffusion_xl_pokemon_blip/epoch_50.pth work_dirs/stable_diffusion_xl_pokemon_blip --save-keys unet
+$ diffengine convert stable_diffusion_xl_pokemon_blip work_dirs/stable_diffusion_xl_pokemon_blip/epoch_50.pth work_dirs/stable_diffusion_xl_pokemon_blip --save-keys unet
 ```
 
 Then we can run inference.
@@ -136,14 +136,6 @@ image = pipe(
 image.save('demo.png')
 ```
 
-We also provide inference demo scripts:
-
-```
-$ mim run diffengine demo ${PROMPT} ${CHECKPOINT} --height 1024 --width 1024
-# Example
-$ mim run diffengine demo "yoda pokemon" work_dirs/stable_diffusion_xl_pokemon_blip --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --height 1024 --width 1024
-```
-
 ## Inference Text Encoder and Unet finetuned weight with diffusers
 
 Todo
@@ -154,4 +146,4 @@ Todo
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/dd04fb22-64fb-4c4f-8164-b8391d94abab)
 
-You can check [`configs/stable_diffusion_xl/README.md`](../../../configs/stable_diffusion_xl/README.md#results-example) for more details.
+You can check [`configs/stable_diffusion_xl/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl/README.md#results-example) for more details.

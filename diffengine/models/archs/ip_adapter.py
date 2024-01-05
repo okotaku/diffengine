@@ -8,7 +8,7 @@ from diffusers.models.attention_processor import (
     IPAdapterAttnProcessor,
     IPAdapterAttnProcessor2_0,
 )
-from diffusers.models.embeddings import ImageProjection, Resampler
+from diffusers.models.embeddings import ImageProjection, IPAdapterPlusImageProjection
 from diffusers.utils import _get_model_file
 from safetensors import safe_open
 from torch import nn
@@ -181,7 +181,7 @@ def process_ip_adapter_state_dict(  # noqa: PLR0915, C901, PLR0912
         for k, v in image_projection.state_dict().items():
             new_k = k.replace("image_embeds.", "proj.")
             ip_image_projection_state_dict[new_k] = v
-    elif isinstance(image_projection, Resampler):
+    elif isinstance(image_projection, IPAdapterPlusImageProjection):
         for k, v in image_projection.state_dict().items():
             if "2.to" in k:
                 new_k = k.replace("2.to", "0.to")

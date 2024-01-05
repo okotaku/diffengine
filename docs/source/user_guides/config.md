@@ -3,10 +3,10 @@
 The config system has a modular and inheritance design, and more details can be found in
 {external+mmengine:doc}`the tutorial in MMEngine <advanced_tutorials/config>`.
 
-Usually, we use python files as config file. All configuration files are placed under the [`configs`](https://github.com/okotaku/diffengine/tree/main/configs) folder, and the directory structure is as follows:
+Usually, we use python files as config file. All configuration files are placed under the [`configs`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs) folder, and the directory structure is as follows:
 
 ```text
-DiffEngine/
+DiffEngine/diffengine/
     ├── configs/
     │   ├── _base_/                       # primitive configuration folder
     │   │   ├── datasets/                      # primitive datasets
@@ -23,14 +23,14 @@ DiffEngine/
 
 There are four kinds of basic component files in the `configs/_base_` folders, namely：
 
-- [models](https://github.com/okotaku/diffengine/tree/main/configs/_base_/models)
-- [datasets](https://github.com/okotaku/diffengine/tree/main/configs/_base_/datasets)
-- [schedules](https://github.com/okotaku/diffengine/tree/main/configs/_base_/schedules)
-- [runtime](https://github.com/okotaku/diffengine/blob/main/configs/_base_/default_runtime.py)
+- [models](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/_base_/models)
+- [datasets](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/_base_/datasets)
+- [schedules](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/_base_/schedules)
+- [runtime](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/_base_/default_runtime.py)
 
 We call all the config files in the `_base_` folder as _primitive_ config files. You can easily build your training config file by inheriting some primitive config files.
 
-For easy understanding, we use [stable_diffusion_v15_pokemon_blip config file](https://github.com/okotaku/diffengine/blob/main/configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py) as an example and comment on each line.
+For easy understanding, we use [stable_diffusion_v15_pokemon_blip config file](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py) as an example and comment on each line.
 
 ```python
 _base_ = [                                              # This config file will inherit all config files in `_base_`.
@@ -50,7 +50,7 @@ This primitive config file includes a dict variable `model`, which mainly includ
 Usually, we use the **`type` field** to specify the class of the component and use other fields to pass
 the initialization arguments of the class. The {external+mmengine:doc}`registry tutorial <advanced_tutorials/registry>` describes it in detail.
 
-Following is the model primitive config of the stable_diffusion_v15 config file in [`configs/_base_/models/stable_diffusion_v15.py`](https://github.com/okotaku/diffengine/blob/main/configs/_base_/models/stable_diffusion_v15.py):
+Following is the model primitive config of the stable_diffusion_v15 config file in [`configs/_base_/models/stable_diffusion_v15.py`](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/_base_/models/stable_diffusion_v15.py):
 
 ```python
 model = dict(
@@ -64,7 +64,7 @@ model = dict(
 
 This primitive config file includes information to construct the dataloader:
 
-Following is the data primitive config of the stable_diffusion_v15 config in [`configs/_base_/datasets/pokemon_blip.py`]https://github.com/okotaku/diffengine/blob/main/configs/_base_/datasets/pokemon_blip.py)：
+Following is the data primitive config of the stable_diffusion_v15 config in [`configs/_base_/datasets/pokemon_blip.py`]https://github.com/okotaku/diffengine/blob/main/diffengine/configs/_base_/datasets/pokemon_blip.py)：
 
 ```python
 train_pipeline = [      # augmentation settings
@@ -101,7 +101,7 @@ custom_hooks = [
 This primitive config file mainly contains training strategy settings and the settings of training, val and
 test loops:
 
-Following is the schedule primitive config of the stable_diffusion_v15 config in [`configs/_base_/schedules/stable_diffusion_50e.py`](https://github.com/okotaku/diffengine/blob/main/configs/_base_/schedules/stable_diffusion_50e.py)：
+Following is the schedule primitive config of the stable_diffusion_v15 config in [`configs/_base_/schedules/stable_diffusion_50e.py`](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/_base_/schedules/stable_diffusion_50e.py)：
 
 
 ```python
@@ -130,7 +130,7 @@ default_hooks = dict(
 
 This part mainly includes saving the checkpoint strategy, log configuration, training parameters, breakpoint weight path, working directory, etc.
 
-Here is the runtime primitive config file ['configs/_base_/default_runtime.py'](https://github.com/okotaku/diffengine/blob/main/configs/_base_/default_runtime.py) file used by almost all configs:
+Here is the runtime primitive config file ['configs/_base_/default_runtime.py'](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/_base_/default_runtime.py) file used by almost all configs:
 
 ```
 default_scope = 'diffengine'

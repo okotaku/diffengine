@@ -1,12 +1,12 @@
 # Wuerstchen LoRA Training
 
-You can also check [`configs/wuerstchen_lora/README.md`](../../../configs/wuerstchen_lora/README.md) file.
+You can also check [`configs/wuerstchen_lora/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/wuerstchen_lora/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/wuerstchen_lora`](../../../configs/wuerstchen_lora/) folder.
+All configuration files are placed under the [`configs/wuerstchen_lora`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/wuerstchen_lora/) folder.
 
-Following is the example config fixed from the wuerstchen_prior_lora_pokemon_blip config file in [`configs/wuerstchen_lora/wuerstchen_prior_lora_pokemon_blip.py`](../../../configs/wuerstchen_lora/wuerstchen_prior_lora_pokemon_blip.py):
+Following is the example config fixed from the wuerstchen_prior_lora_pokemon_blip config file in [`configs/wuerstchen_lora/wuerstchen_prior_lora_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/wuerstchen_lora/wuerstchen_prior_lora_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -30,12 +30,12 @@ Run LoRA training:
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # Example
-$ mim train diffengine configs/wuerstchen_lora/wuerstchen_prior_lora_pokemon_blip.py
+$ diffengine train wuerstchen_prior_lora_pokemon_blip
 
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 ```
 
 ## Inference with diffusers
@@ -51,4 +51,4 @@ Once you have trained a model, specify the path to the saved model and utilize i
 
 ![example1]()
 
-You can check [`configs/wuerstchen_lora/README.md`](../../../configs/wuerstchen_lora/README.md#results-example) for more details.
+You can check [`configs/wuerstchen_lora/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/wuerstchen_lora/README.md#results-example) for more details.

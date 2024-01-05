@@ -1,12 +1,12 @@
 # PixArt-α Training
 
-You can also check [`configs/pixart_alpha/README.md`](../../../configs/pixart_alpha/README.md) file.
+You can also check [`configs/pixart_alpha/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/pixart_alpha`](../../../configs/pixart_alpha/) folder.
+All configuration files are placed under the [`configs/pixart_alpha`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha/) folder.
 
-Following is the example config fixed from the stable_diffusion_xl_pokemon_blip config file in [`configs/pixart_alpha/pixart_alpha_1024_pokemon_blip.py`](../../../configs/pixart_alpha/pixart_alpha_1024_pokemon_blip.py):
+Following is the example config fixed from the stable_diffusion_xl_pokemon_blip config file in [`configs/pixart_alpha/pixart_alpha_1024_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha/pixart_alpha_1024_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -28,12 +28,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ mim train diffengine configs/pixart_alpha/pixart_alpha_1024_pokemon_blip.py
+$ diffengine train pixart_alpha_1024_pokemon_blip
 ```
 
 ## Inference with diffusers
@@ -43,9 +43,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/pixart_alpha/pixart_alpha_1024_pokemon_blip.py work_dirs/pixart_alpha_1024_pokemon_blip/epoch_50.pth work_dirs/pixart_alpha_1024_pokemon_blip --save-keys transformer
+$ diffengine convert pixart_alpha_1024_pokemon_blip work_dirs/pixart_alpha_1024_pokemon_blip/epoch_50.pth work_dirs/pixart_alpha_1024_pokemon_blip --save-keys transformer
 ```
 
 Then we can run inference.
@@ -86,4 +86,4 @@ img.save("demo.png")
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/6b87369a-4746-4067-9a8a-5d7453fc80ce)
 
-You can check [`configs/pixart_alpha/README.md`](../../../configs/pixart_alpha/README.md#results-example) for more details.
+You can check [`configs/pixart_alpha/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha/README.md#results-example) for more details.

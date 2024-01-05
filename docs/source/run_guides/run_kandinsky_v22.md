@@ -1,12 +1,12 @@
 # Kandinsky 2.2 Training
 
-You can also check [`configs/kandinsky_v22/README.md`](../../../configs/kandinsky_v22/README.md) file.
+You can also check [`configs/kandinsky_v22/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/kandinsky_v22/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/kandinsky_v22`](../../../configs/kandinsky_v22/) folder.
+All configuration files are placed under the [`configs/kandinsky_v22`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/kandinsky_v22/) folder.
 
-Following is the example config fixed from the kandinsky_v22_prior_pokemon_blip config file in [`configs/kandinsky_v22/kandinsky_v22_prior_pokemon_blip.py`](../../../configs/kandinsky_v22/kandinsky_v22_prior_pokemon_blip.py):
+Following is the example config fixed from the kandinsky_v22_prior_pokemon_blip config file in [`configs/kandinsky_v22/kandinsky_v22_prior_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/kandinsky_v22/kandinsky_v22_prior_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -23,12 +23,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example
-$ mim train diffengine configs/kandinsky_v22/kandinsky_v22_prior_pokemon_blip.py
+$ diffengine train kandinsky_v22_prior_pokemon_blip
 ```
 
 ## Inference prior with diffusers
@@ -68,9 +68,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/kandinsky_v22/kandinsky_v22_decoder_pokemon_blip.py work_dirs/kandinsky_v22_decoder_pokemon_blip/epoch_50.pth work_dirs/kandinsky_v22_decoder_pokemon_blip --save-keys unet
+$ diffengine convert kandinsky_v22_decoder_pokemon_blip work_dirs/kandinsky_v22_decoder_pokemon_blip/epoch_50.pth work_dirs/kandinsky_v22_decoder_pokemon_blip --save-keys unet
 ```
 
 Then we can run inference.
@@ -106,4 +106,4 @@ image.save('demo.png')
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/b709f558-5c03-4235-98d7-fe1c663182b8)
 
-You can check [`configs/kandinsky_v22/README.md`](../../../configs/kandinsky_v22/README.md#results-example) for more details.
+You can check [`configs/kandinsky_v22/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/kandinsky_v22/README.md#results-example) for more details.

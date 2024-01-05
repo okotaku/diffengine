@@ -125,7 +125,6 @@ venv.bak/
 *.pkl.json
 *.log.json
 /work_dirs
-/mmcls/.mim
 .DS_Store
 
 # Pytorch
@@ -153,7 +152,6 @@ artifacts/
 wandb/
 data/
 dump/
-diffengine/.mim/
 build/
 .dist_test/
 .netrc

@@ -45,6 +45,6 @@ repos:
         exclude: |-
           (?x)(
               ^docs
-              | ^configs
+              | ^diffengine/configs
               | ^projects
           )

@@ -7,9 +7,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR}
 # Example
-$ mim run diffengine publish_model2diffusers configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py work_dirs/stable_diffusion_v15_pokemon_blip/epoch_4.pth work_dirs/stable_diffusion_v15_pokemon_blip
+$ diffengine convert stable_diffusion_v15_pokemon_blip work_dirs/stable_diffusion_v15_pokemon_blip/epoch_4.pth work_dirs/stable_diffusion_v15_pokemon_blip
 ```
 
 Then we can run inference.
@@ -34,14 +34,6 @@ image = pipe(
 image.save('demo.png')
 ```
 
-We also provide inference demo scripts:
-
-```
-$ mim run diffengine demo ${PROMPT} ${CHECKPOINT}
-# Example
-$ mim run diffengine demo "yoda pokemon" work_dirs/stable_diffusion_v15_snr_pokemon_blip
-```
-
 ## Inference Text Encoder and Unet finetuned weight with diffusers
 
 Once you have trained a model, specify the path to the saved model and utilize it for inference using the `diffusers.pipeline` module.
@@ -49,9 +41,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/stable_diffusion/stable_diffusion_v15_textencoder_pokemon_blip.py work_dirs/stable_diffusion_v15_textencoder_pokemon_blip/epoch_50.pth work_dirs/stable_diffusion_v15_textencoder_pokemon_blip --save-keys unet text_encoder
+$ diffengine convert stable_diffusion_v15_textencoder_pokemon_blip work_dirs/stable_diffusion_v15_textencoder_pokemon_blip/epoch_50.pth work_dirs/stable_diffusion_v15_textencoder_pokemon_blip --save-keys unet text_encoder
 ```
 
 Then we can run inference.
@@ -79,14 +71,6 @@ image = pipe(
     num_inference_steps=50,
 ).images[0]
 image.save('demo.png')
-```
-
-We also provide inference demo scripts with `--text_encoder`:
-
-```
-$ mim run diffengine demo ${PROMPT} ${CHECKPOINT} --text_encoder
-# Example
-$ mim run diffengine demo "yoda pokemon" work_dirs/stable_diffusion_v15_textencoder_pokemon_blip --text_encoder
 ```
 
 ## Inference LoRA weight with diffusers
@@ -117,10 +101,4 @@ image = pipe(
     num_inference_steps=50
 ).images[0]
 image.save('demo.png')
-```
-
-We also provide inference demo scripts:
-
-```bash
-$ mim run diffengine demo_lora "A photo of sks dog in a bucket" work_dirs/stable_diffusion_v15_dreambooth_lora_dog/step999
 ```

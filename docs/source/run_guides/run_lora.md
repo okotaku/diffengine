@@ -1,12 +1,12 @@
 # Stable Diffusion LoRA Training
 
-You can also check [`configs/stable_diffusion_lora/README.md`](../../../configs/stable_diffusion_lora/README.md) file.
+You can also check [`configs/stable_diffusion_lora/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_lora/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/stable_diffusion_lora`](../../../configs/stable_diffusion_lora/) folder.
+All configuration files are placed under the [`configs/stable_diffusion_lora`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_lora/) folder.
 
-Following is the example config fixed from the stable_diffusion_v15_lora_pokemon_blip config file in [`configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py`](../../../configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py):
+Following is the example config fixed from the stable_diffusion_v15_lora_pokemon_blip config file in [`configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py):
 
 ```
 _base_ = [
@@ -45,7 +45,7 @@ custom_hooks = [
 ]
 ```
 
-We also provide [`configs/_base_/models/stable_diffusion_v15_lora_textencoder.py`](../../../configs/_base_/models/stable_diffusion_v15_lora_textencoder.py) as a base config and [`configs/stable_diffusion/stable_diffusion_v15_lora_textencoder_pokemon_blip.py`](../../../configs/stable_diffusion/stable_diffusion_v15_lora_textencoder_pokemon_blip.py) as a whole config.
+We also provide [`configs/_base_/models/stable_diffusion_v15_lora_textencoder.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/_base_/models/stable_diffusion_v15_lora_textencoder.py) as a base config and [`configs/stable_diffusion/stable_diffusion_v15_lora_textencoder_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_lora_textencoder_pokemon_blip.py) as a whole config.
 
 ## Run LoRA training
 
@@ -53,12 +53,12 @@ Run LoRA training:
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # Example
-$ mim train diffengine configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py
+$ diffengine train stable_diffusion_v15_lora_pokemon_blip
 
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 ```
 
 ## Inference with diffusers
@@ -91,16 +91,10 @@ image = pipe(
 image.save('demo.png')
 ```
 
-We also provide inference demo scripts:
-
-```bash
-$ mim run diffengine demo_lora "yoda pokemon" work_dirs/stable_diffusion_v15_lora_pokemon_blip/step10450
-```
-
 ## Results Example
 
 #### stable_diffusion_v15_lora_pokemon_blip
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/24899409-554d-4393-88e5-f8b8d6e6b36d)
 
-You can check [`configs/stable_diffusion_lora/README.md`](../../../configs/stable_diffusion_lora/README.md#results-example) for more details.
+You can check [`configs/stable_diffusion_lora/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_lora/README.md#results-example) for more details.

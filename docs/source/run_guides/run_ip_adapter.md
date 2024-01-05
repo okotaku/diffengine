@@ -1,12 +1,12 @@
 # IP-Adapter Training
 
-You can also check [`configs/ip_adapter/README.md`](../../../configs/ip_adapter/README.md) file.
+You can also check [`configs/ip_adapter/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/ip_adapter/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/ip_adapter`](../../../configs/ip_adapter/) folder.
+All configuration files are placed under the [`configs/ip_adapter`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/ip_adapter/) folder.
 
-Following is the example config fixed from the stable_diffusion_xl_pokemon_blip_ip_adapter config file in [`configs/ip_adapter/stable_diffusion_xl_pokemon_blip_ip_adapter.py`](../../../configs/ip_adapter/stable_diffusion_xl_pokemon_blip_ip_adapter.py):
+Following is the example config fixed from the stable_diffusion_xl_pokemon_blip_ip_adapter config file in [`configs/ip_adapter/stable_diffusion_xl_pokemon_blip_ip_adapter.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/ip_adapter/stable_diffusion_xl_pokemon_blip_ip_adapter.py):
 
 ```
 _base_ = [
@@ -27,12 +27,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ mim train diffengine configs/ip_adapter/stable_diffusion_xl_pokemon_blip_ip_adapter.py
+$ diffengine train stable_diffusion_xl_pokemon_blip_ip_adapter
 ```
 
 ## Inference with diffengine

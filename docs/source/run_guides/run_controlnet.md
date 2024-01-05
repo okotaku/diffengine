@@ -1,12 +1,12 @@
 # Stable Diffusion ControlNet Training
 
-You can also check [`configs/stable_diffusion_controlnet/README.md`](../../../configs/stable_diffusion_controlnet/README.md) file.
+You can also check [`configs/stable_diffusion_controlnet/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_controlnet/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/stable_diffusion_controlnet`](../../../configs/stable_diffusion_controlnet/) folder.
+All configuration files are placed under the [`configs/stable_diffusion_controlnet`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_controlnet/) folder.
 
-Following is the example config fixed from the stable_diffusion_v15_controlnet_fill50k config file in [`configs/stable_diffusion_controlnet/stable_diffusion_v15_controlnet_fill50k.py`](../../../configs/stable_diffusion_controlnet/stable_diffusion_v15_controlnet_fill50k.py):
+Following is the example config fixed from the stable_diffusion_v15_controlnet_fill50k config file in [`configs/stable_diffusion_controlnet/stable_diffusion_v15_controlnet_fill50k.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_controlnet/stable_diffusion_v15_controlnet_fill50k.py):
 
 ```
 _base_ = [
@@ -38,12 +38,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # Example
-$ mim train diffengine configs/stable_diffusion_controlnet/stable_diffusion_v15_controlnet_fill50k.py
+$ diffengine train stable_diffusion_v15_controlnet_fill50k
 
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 ```
 
 ## Inference with diffusers
@@ -75,14 +75,6 @@ image = pipe(
 image.save('demo.png')
 ```
 
-We also provide inference demo scripts:
-
-```
-$ mim run diffengine demo_controlnet ${PROMPT} ${CONDITION_IMAGE} ${CHECKPOINT}
-# Example
-$ mim run diffengine demo_controlnet "cyan circle with brown floral background" https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg work_dirs/stable_diffusion_v15_controlnet_fill50k/step6250
-```
-
 ## Results Example
 
 #### stable_diffusion_v15_controlnet_fill50k
@@ -91,4 +83,4 @@ $ mim run diffengine demo_controlnet "cyan circle with brown floral background" 
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/a14cc9a6-3a40-4577-bd5a-2ddbab60970d)
 
-You can check [`configs/stable_diffusion_controlnet/README.md`](../../../configs/stable_diffusion_controlnet/README.md#results-example) for more details.
+You can check [`configs/stable_diffusion_controlnet/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_controlnet/README.md#results-example) for more details.

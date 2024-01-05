@@ -1,12 +1,12 @@
 # Stable Diffusion XL ControlNet Training
 
-You can also check [`configs/stable_diffusion_xl_controlnet/README.md`](../../../configs/stable_diffusion_xl_controlnet/README.md) file.
+You can also check [`configs/stable_diffusion_xl_controlnet/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_controlnet/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/stable_diffusion_xl_controlnet`](../../../configs/stable_diffusion_xl_controlnet/) folder.
+All configuration files are placed under the [`configs/stable_diffusion_xl_controlnet`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_controlnet/) folder.
 
-Following is the example config fixed from the stable_diffusion_xl_controlnet_fill50k config file in [`configs/stable_diffusion_xl_controlnet/stable_diffusion_xl_controlnet_fill50k.py`](../../../configs/stable_diffusion_xl_controlnet/stable_diffusion_xl_controlnet_fill50k.py):
+Following is the example config fixed from the stable_diffusion_xl_controlnet_fill50k config file in [`configs/stable_diffusion_xl_controlnet/stable_diffusion_xl_controlnet_fill50k.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_controlnet/stable_diffusion_xl_controlnet_fill50k.py):
 
 ```
 _base_ = [
@@ -48,12 +48,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # Example
-$ mim train diffengine configs/stable_diffusion_xl_controlnet/stable_diffusion_xl_controlnet_fill50k.py
+$ diffengine train stable_diffusion_xl_controlnet_fill50k
 
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 ```
 
 ## Inference with diffusers
@@ -90,14 +90,6 @@ image = pipe(
 image.save('demo.png')
 ```
 
-We also provide inference demo scripts, it can run with `--use_sdxl`:
-
-```
-$ mim run diffengine demo_controlnet ${PROMPT} ${CONDITION_IMAGE} ${CHECKPOINT} --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --use_sdxl --height 1024 --width 1024
-# Example
-$ mim run diffengine demo_controlnet "cyan circle with brown floral background" https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg work_dirs/stable_diffusion_xl_controlnet_fill50k/step25000 --sdmodel stabilityai/stable-diffusion-xl-base-1.0 --vaemodel madebyollin/sdxl-vae-fp16-fix --use_sdxl --height 1024 --width 1024
-```
-
 ## Results Example
 
 #### stable_diffusion_xl_controlnet_fill50k
@@ -106,4 +98,4 @@ $ mim run diffengine demo_controlnet "cyan circle with brown floral background" 
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/a331a413-a9e7-4b9a-aa75-72279c4cc77a)
 
-You can check [`configs/stable_diffusion_xl_controlnet/README.md`](../../../configs/stable_diffusion_xl_controlnet/README.md#results-example) for more details.
+You can check [`configs/stable_diffusion_xl_controlnet/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_controlnet/README.md#results-example) for more details.

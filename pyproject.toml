@@ -8,15 +8,15 @@ readme = "README.md"
 dependencies = [
     "torch>=2.0.1",
     "torchvision>=0.15.2",
-    "openmim>=0.3.9",
     "datasets>=2.14.6",
-    "diffusers>=0.24.0",
+    "diffusers>=0.25.0",
     "mmengine>=0.10.1",
     "sentencepiece>=0.1.99",
     "tqdm",
     "transformers>=4.35.2",
     "ujson",
     "peft>=0.7.0",
+    "joblib",
 ]
 license = { file = "LICENSE" }
 keywords = ["computer vision", "diffusion models"]
@@ -40,11 +40,11 @@ docs = [
     "tabulate",
 ]
 
-[tool.setuptools.cmdclass]
-build = "add_mim_extension.MIMBuild"
+[project.scripts]
+diffengine = "diffengine:cli"
 
 [tool.setuptools.packages.find]
-include = ["diffengine*", "add_mim_extension.py"]
+include = ["diffengine*"]
 exclude = [
     "build*",
     "docs*",
@@ -60,7 +60,7 @@ exclude = [
 ]
 
 [tool.wheel]
-include = ["diffengine*", "add_mim_extension.py"]
+include = ["diffengine*"]
 exclude = [
     "build*",
     "docs*",
@@ -103,18 +103,6 @@ ignore = [
 ]
 
 [tool.ruff.per-file-ignores]
-"add_mim_extension.py" = [
-    "C901",
-    "FBT002",
-    "PLW2901",
-    "PLR0912",
-    "PTH",
-    "S102",
-    "D",
-    "ANN201",
-    "INP001",
-    "T201",
-]
 "tests/*" = [
     "PLR2004",
     "N806",
@@ -125,7 +113,7 @@ ignore = [
     "ANN201",
     "INP001",
 ]
-"tools/*" = ["T201", "ISC002", "PTH", "D", "INP001"]
+"diffengine/tools/*" = ["T201", "ISC002", "PTH", "D", "INP001"]
 
 [tool.mypy]
 python_version = "3.11"

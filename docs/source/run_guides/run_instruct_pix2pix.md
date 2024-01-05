@@ -1,12 +1,12 @@
 # InstructPix2Pix Training
 
-You can also check [`configs/instruct_pix2pix/README.md`](../../../configs/instruct_pix2pix/README.md) file.
+You can also check [`configs/instruct_pix2pix/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/instruct_pix2pix/README.md) file.
 
 ## Configs
 
-All configuration files are placed under the [`configs/instruct_pix2pix`](../../../configs/instruct_pix2pix/) folder.
+All configuration files are placed under the [`configs/instruct_pix2pix`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/instruct_pix2pix/) folder.
 
-Following is the example config fixed from the stable_diffusion_xl_instruct_pix2pix config file in [`configs/instruct_pix2pix/stable_diffusion_xl_instruct_pix2pix.py`](../../../configs/instruct_pix2pix/stable_diffusion_xl_instruct_pix2pix.py):
+Following is the example config fixed from the stable_diffusion_xl_instruct_pix2pix config file in [`configs/instruct_pix2pix/stable_diffusion_xl_instruct_pix2pix.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/instruct_pix2pix/stable_diffusion_xl_instruct_pix2pix.py):
 
 ```
 _base_ = [
@@ -33,12 +33,12 @@ Run train
 
 ```
 # single gpu
-$ mim train diffengine ${CONFIG_FILE}
+$ diffengine train ${CONFIG_FILE}
 # multi gpus
-$ mim train diffengine ${CONFIG_FILE} --gpus 2 --launcher pytorch
+$ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example
-$ mim train diffengine configs/instruct_pix2pix/stable_diffusion_xl_instruct_pix2pix.py
+$ diffengine train stable_diffusion_xl_instruct_pix2pix
 ```
 
 ## Inference with diffusers
@@ -48,9 +48,9 @@ Once you have trained a model, specify the path to the saved model and utilize i
 Before inferencing, we should convert weights for diffusers format,
 
 ```bash
-$ mim run diffengine publish_model2diffusers ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
+$ diffengine convert ${CONFIG_FILE} ${INPUT_FILENAME} ${OUTPUT_DIR} --save-keys ${SAVE_KEYS}
 # Example
-$ mim run diffengine publish_model2diffusers configs/instruct_pix2pix/stable_diffusion_xl_instruct_pix2pix.py work_dirs/stable_diffusion_xl_instruct_pix2pix/epoch_3.pth work_dirs/stable_diffusion_xl_instruct_pix2pix --save-keys unet
+$ diffengine convert stable_diffusion_xl_instruct_pix2pix work_dirs/stable_diffusion_xl_instruct_pix2pix/epoch_3.pth work_dirs/stable_diffusion_xl_instruct_pix2pix --save-keys unet
 ```
 
 Then we can run inference.
@@ -93,4 +93,4 @@ image.save('demo.png')
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/f66149fd-e375-4f85-bfbf-d4d046cd469a)
 
-You can check [`configs/instruct_pix2pix/README.md`](../../../configs/instruct_pix2pix/README.md#results-example) for more details.
+You can check [`configs/instruct_pix2pix/README.md`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/instruct_pix2pix/README.md#results-example) for more details.
