@@ -3,7 +3,7 @@ from typing import Optional
 import numpy as np
 import torch
 from diffusers import DiffusionPipeline
-from diffusers.models.embeddings import ImageProjection, Resampler
+from diffusers.models.embeddings import ImageProjection, IPAdapterPlusImageProjection
 from diffusers.utils import load_image
 from PIL import Image
 from torch import nn
@@ -321,7 +321,7 @@ class IPAdapterXLPlus(IPAdapterXL):
         """
         self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
             self.image_encoder_name, subfolder=self.image_encoder_sub_folder)
-        self.image_projection = Resampler(
+        self.image_projection = IPAdapterPlusImageProjection(
             embed_dims=self.image_encoder.config.hidden_size,
             output_dims=self.unet.config.cross_attention_dim,
             hidden_dims=1280,

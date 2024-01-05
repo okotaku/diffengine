@@ -5,9 +5,8 @@ from diffusers.utils import load_image
 from mmengine import print_log
 from PIL import Image
 
+from diffengine.models.editors import StableDiffusionXLControlNet
 from diffengine.registry import MODELS
-
-from .stable_diffusion_xl_controlnet import StableDiffusionXLControlNet
 
 
 @MODELS.register_module()

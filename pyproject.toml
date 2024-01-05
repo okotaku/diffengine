@@ -9,7 +9,7 @@ dependencies = [
     "torch>=2.0.1",
     "torchvision>=0.15.2",
     "datasets>=2.14.6",
-    "diffusers>=0.24.0",
+    "diffusers>=0.25.0",
     "mmengine>=0.10.1",
     "sentencepiece>=0.1.99",
     "tqdm",
