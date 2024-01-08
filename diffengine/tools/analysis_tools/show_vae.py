@@ -5,7 +5,7 @@ from diffusers.models import AutoencoderKL
 from PIL import Image
 
 
-def parse_args():  # noqa
+def parse_args():
     parser = argparse.ArgumentParser(
         description="Process a checkpoint to be published")
     parser.add_argument("image", help="Path to image")

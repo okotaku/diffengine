@@ -10,7 +10,7 @@ from PIL import Image
 from tqdm import tqdm
 
 
-def parse_args():  # noqa
+def parse_args():
     parser = argparse.ArgumentParser(
         description="Process a checkpoint to be published")
     parser.add_argument("config", help="Path to config")

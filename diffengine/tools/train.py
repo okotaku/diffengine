@@ -9,7 +9,7 @@ from mmengine.runner import Runner
 from diffengine.configs import cfgs_name_path
 
 
-def parse_args():  # noqa
+def parse_args():
     parser = argparse.ArgumentParser(description="Train a model")
     parser.add_argument("config", help="train config file path")
     parser.add_argument("--work-dir", help="the dir to save logs and models")
@@ -46,7 +46,7 @@ def parse_args():  # noqa
     return args
 
 
-def merge_args(cfg, args):  # noqa
+def merge_args(cfg, args):
     """Merge CLI arguments to config."""
     cfg.launcher = args.launcher
 
