@@ -17,14 +17,16 @@ class SSD1B(StableDiffusionXL):
 
     Args:
     ----
+        tokenizer_one (dict): Config of tokenizer one.
+        tokenizer_two (dict): Config of tokenizer two.
+        scheduler (dict): Config of scheduler.
+        text_encoder_one (dict): Config of text encoder one.
+        text_encoder_two (dict): Config of text encoder two.
+        vae (dict): Config of vae.
+        teacher_unet (dict): Config of teacher unet.
+        student_unet (dict): Config of student unet.
         model (str): pretrained model name of stable diffusion xl.
             Defaults to 'stabilityai/stable-diffusion-xl-base-1.0'.
-        student_model (str): pretrained model name of student model.
-            Defaults to 'segmind/SSD-1B'.
-        student_model_weight (str): pretrained model weight of student model.
-            Choose between 'orig_unet' or 'unet'. 'orig_unet' load_state_dict
-            from teacher model. 'unet' load_state_dict from student model.
-            Defaults to 'orig_unet'.
         vae_model (str, optional): Path to pretrained VAE model with better
             numerical stability. More details:
             https://github.com/huggingface/diffusers/pull/4038.
@@ -66,6 +68,8 @@ class SSD1B(StableDiffusionXL):
             embeddings to save memory. Defaults to False.
         enable_xformers (bool): Whether or not to enable memory efficient
             attention. Defaults to False.
+        student_weight_from_teacher (bool): Whether or not to initialize
+            student model with teacher model. Defaults to False.
     """
 
     def __init__(
@@ -165,7 +169,7 @@ class SSD1B(StableDiffusionXL):
         self.teacher_feats: dict = {}
         self.student_feats: dict = {}
 
-        def get_activation(activation, name, residuals_present):
+        def get_activation(activation, name, residuals_present):  # noqa
             # the hook signature
             if residuals_present:
 

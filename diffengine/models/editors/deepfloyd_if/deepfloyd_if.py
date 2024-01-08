@@ -19,6 +19,10 @@ class DeepFloydIF(BaseModel):
 
     Args:
     ----
+        tokenizer (dict): Config of tokenizer.
+        scheduler (dict): Config of scheduler.
+        text_encoder (dict): Config of text encoder.
+        unet (dict): Config of unet.
         model (str): pretrained model name of stable diffusion.
             Defaults to 'DeepFloyd/IF-I-XL-v1.0'.
         loss (dict): Config of loss. Defaults to

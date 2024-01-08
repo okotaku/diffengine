@@ -19,6 +19,11 @@ class StableDiffusion(BaseModel):
 
     Args:
     ----
+        tokenizer (dict): Config of tokenizer.
+        scheduler (dict): Config of scheduler.
+        text_encoder (dict): Config of text encoder.
+        vae (dict): Config of vae.
+        unet (dict): Config of unet.
         model (str): pretrained model name of stable diffusion.
             Defaults to 'runwayml/stable-diffusion-v1-5'.
         loss (dict): Config of loss. Defaults to

@@ -23,6 +23,8 @@ class IPAdapterXL(StableDiffusionXL):
 
     Args:
     ----
+        image_encoder (dict): The image encoder config.
+        image_projection (dict): The image projection config.
         pretrained_adapter (str, optional): Path to pretrained IP-Adapter.
             Defaults to None.
         pretrained_adapter_subfolder (str, optional): Sub folder of pretrained

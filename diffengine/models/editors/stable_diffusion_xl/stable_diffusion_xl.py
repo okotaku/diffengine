@@ -21,12 +21,15 @@ class StableDiffusionXL(BaseModel):
 
     Args:
     ----
+        tokenizer_one (dict): Config of tokenizer one.
+        tokenizer_two (dict): Config of tokenizer two.
+        scheduler (dict): Config of scheduler.
+        text_encoder_one (dict): Config of text encoder one.
+        text_encoder_two (dict): Config of text encoder two.
+        vae (dict): Config of vae.
+        unet (dict): Config of unet.
         model (str): pretrained model name of stable diffusion xl.
             Defaults to 'stabilityai/stable-diffusion-xl-base-1.0'.
-        vae_model (str, optional): Path to pretrained VAE model with better
-            numerical stability. More details:
-            https://github.com/huggingface/diffusers/pull/4038.
-            Defaults to None.
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
         unet_lora_config (dict, optional): The LoRA config dict for Unet.

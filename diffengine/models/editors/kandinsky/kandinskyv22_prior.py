@@ -19,6 +19,11 @@ class KandinskyV22Prior(BaseModel):
 
     Args:
     ----
+        tokenizer (dict): Config of tokenizer.
+        scheduler (dict): Config of scheduler.
+        text_encoder (dict): Config of text encoder.
+        image_encoder (dict): Config of image encoder.
+        prior (dict): Config of prior.
         decoder_model (str): pretrained model name of decoder.
             Defaults to "kandinsky-community/kandinsky-2-2-decoder".
         loss (dict): Config of loss. Defaults to

@@ -23,10 +23,13 @@ class WuerstchenPriorModel(BaseModel):
 
     Args:
     ----
+        tokenizer (dict): Config of tokenizer.
+        scheduler (dict): Config of scheduler.
+        text_encoder (dict): Config of text encoder.
+        image_encoder (dict): Config of image encoder.
+        prior (dict): Config of prior.
         decoder_model (str): pretrained decoder model name of Wuerstchen.
             Defaults to 'warp-ai/wuerstchen'.
-        prior_model (str): pretrained prior model name of WuerstchenPrior.
-            Defaults to 'warp-ai/wuerstchen-prior'.
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
         prior_lora_config (dict, optional): The LoRA config dict for Prior.
@@ -179,7 +182,7 @@ class WuerstchenPriorModel(BaseModel):
         """
         return next(self.parameters()).device
 
-    def train(self, *, mode=True) -> None:
+    def train(self, *, mode: bool = True) -> None:
         """Convert the model into training mode."""
         super().train(mode)
         self.image_encoder.eval()

@@ -19,12 +19,13 @@ class PixArtAlpha(BaseModel):
 
     Args:
     ----
+        tokenizer (dict): Config of tokenizer.
+        scheduler (dict): Config of scheduler.
+        text_encoder (dict): Config of text encoder.
+        vae (dict): Config of vae.
+        transformer (dict): Config of transformer.
         model (str): pretrained model name of stable diffusion.
             Defaults to 'PixArt-alpha/PixArt-XL-2-1024-MS'.
-        vae_model (str, optional): Path to pretrained VAE model with better
-            numerical stability. More details:
-            https://github.com/huggingface/diffusers/pull/4038.
-            Defaults to None.
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
         transformer_lora_config (dict, optional): The LoRA config dict for

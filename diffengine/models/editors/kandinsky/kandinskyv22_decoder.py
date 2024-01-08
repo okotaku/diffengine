@@ -19,6 +19,10 @@ class KandinskyV22Decoder(BaseModel):
 
     Args:
     ----
+        scheduler (dict): Config of scheduler.
+        image_encoder (dict): Config of image encoder.
+        vae (dict): Config of vae.
+        unet (dict): Config of unet.
         decoder_model (str): pretrained model name of decoder.
             Defaults to "kandinsky-community/kandinsky-2-2-decoder".
         loss (dict): Config of loss. Defaults to

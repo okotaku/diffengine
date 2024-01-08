@@ -18,6 +18,7 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
 
     Args:
     ----
+        adapter (dict): The adapter config.
         unet_lora_config (dict, optional): The LoRA config dict for Unet.
             example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
             `LoHa`, `LoKr`. Other config are same as the config of PEFT.
