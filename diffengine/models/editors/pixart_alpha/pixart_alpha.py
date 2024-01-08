@@ -227,7 +227,6 @@ class PixArtAlpha(BaseModel):
         pipeline = PixArtAlphaPipeline.from_pretrained(
             self.model,
             vae=self.vae,
-            # text_encoder=self.text_encoder,
             tokenizer=self.tokenizer,
             transformer=self.transformer,
             torch_dtype=torch.float32,

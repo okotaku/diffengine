@@ -95,7 +95,6 @@ class TestStableDiffusionXL(TestCase):
         assert len(result) == 1
         assert result[0].shape == (64, 64, 3)
 
-        # output_type = 'latent'
         result = StableDiffuser.infer(
             ["an insect robot preparing a delicious meal"],
             output_type="latent",

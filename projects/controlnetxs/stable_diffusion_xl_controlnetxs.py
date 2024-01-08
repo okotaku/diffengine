@@ -24,7 +24,6 @@ class StableDiffusionXLControlNetXS(StableDiffusionXLControlNet):
         if self.gradient_checkpointing:
             # TODO(takuoko): Support ControlNetXSModel for gradient  # noqa
             # checkpointing
-            # self.controlnet.enable_gradient_checkpointing()
             self.unet.enable_gradient_checkpointing()
 
         self.vae.requires_grad_(requires_grad=False)

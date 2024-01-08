@@ -1,4 +1,3 @@
-# yapf: disable
 import gc
 from collections.abc import Sequence
 
@@ -14,8 +13,6 @@ from transformers import (
 
 from diffengine.datasets.utils import encode_prompt_sdxl
 from diffengine.registry import DATASETS
-
-# yapf: enable
 
 Image.MAX_IMAGE_PIXELS = 1000000000
 

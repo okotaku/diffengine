@@ -1,5 +1,4 @@
 # flake8: noqa: TRY004,S311
-# yapf: disable
 import functools
 import gc
 import os
@@ -22,8 +21,6 @@ from transformers import (
 
 from diffengine.datasets.utils import encode_prompt_sdxl
 from diffengine.registry import DATASETS
-
-# yapf: enable
 
 Image.MAX_IMAGE_PIXELS = 1000000000
 

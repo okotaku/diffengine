@@ -77,7 +77,6 @@ class TestDeepFloydIF(TestCase):
         assert len(result) == 1
         assert result[0].shape == (16, 16, 3)
 
-        # output_type = 'pt'
         result = StableDiffuser.infer(
             ["an insect robot preparing a delicious meal"],
             output_type="pt",

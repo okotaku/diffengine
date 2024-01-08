@@ -84,7 +84,6 @@ class TestStableDiffusionXLInstructPix2Pix(TestCase):
         # test device
         assert StableDiffuser.device.type == "cpu"
 
-        # output_type = 'latent'
         result = StableDiffuser.infer(
             ["an insect robot preparing a delicious meal"],
             ["tests/testdata/color.jpg"],
