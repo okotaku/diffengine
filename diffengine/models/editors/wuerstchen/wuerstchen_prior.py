@@ -125,9 +125,6 @@ class WuerstchenPriorModel(BaseModel):
             "WuerstchenPriorModel does not support SNR loss."
 
         self.tokenizer = MODELS.build(tokenizer)
-        if "config" in text_encoder:
-            text_encoder.config = MODELS.build(  # type: ignore[attr-defined]
-                text_encoder.config)  # type: ignore[attr-defined]
         self.text_encoder = MODELS.build(text_encoder)
 
         pretrained_image_encoder = image_encoder.pop("pretrained_image_encoder", False)
