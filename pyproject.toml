@@ -110,6 +110,8 @@ ignore = [
     "D",
     "ANN201",
     "INP001",
+    "ANN202",
+    "ANN001",
 ]
 "diffengine/tools/*" = ["T201", "ISC002", "PTH", "D", "INP001"]
 "projects/*" = ["F403", "F405", "TID252"]
