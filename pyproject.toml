@@ -114,6 +114,8 @@ ignore = [
     "INP001",
 ]
 "diffengine/tools/*" = ["T201", "ISC002", "PTH", "D", "INP001"]
+"projects/*" = ["F403", "F405", "TID252"]
+"diffengine/configs/*" = ["F403", "F405", "TID252"]
 
 [tool.mypy]
 python_version = "3.11"

@@ -1,15 +1,17 @@
-_base_ = [
-    "../_base_/models/stable_diffusion_xl_controlnet.py",
-    "../_base_/datasets/fill50k_controlnet_xl.py",
-    "../_base_/schedules/stable_diffusion_3e.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-model = dict(transformer_layers_per_block=[0, 0, 1])
+with read_base():
+    from .._base_.datasets.fill50k_controlnet_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_controlnet import *
+    from .._base_.schedules.stable_diffusion_3e import *
 
-train_dataloader = dict(batch_size=4)
 
-optim_wrapper = dict(
+model.update(transformer_layers_per_block=[0, 0, 1])
+
+train_dataloader.update(batch_size=4)
+
+optim_wrapper.update(
     optimizer=dict(lr=3e-5),
     accumulative_counts=2,
 )

@@ -3,22 +3,16 @@ from typing import Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (
-    AutoPipelineForText2Image,
-    DDPMWuerstchenScheduler,
-)
-from diffusers.pipelines.wuerstchen import DEFAULT_STAGE_C_TIMESTEPS, WuerstchenPrior
+from diffusers import AutoPipelineForText2Image
+from diffusers.pipelines.wuerstchen import DEFAULT_STAGE_C_TIMESTEPS
 from huggingface_hub import hf_hub_download
 from mmengine import print_log
 from mmengine.model import BaseModel
 from peft import get_peft_model
 from torch import nn
-from transformers import CLIPTextModel, PreTrainedTokenizerFast
 
 from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
-
-from .efficient_net_encoder import EfficientNetEncoder
 
 
 @MODELS.register_module()
@@ -65,8 +59,12 @@ class WuerstchenPriorModel(BaseModel):
 
     def __init__(
         self,
+        tokenizer: dict,
+        scheduler: dict,
+        text_encoder: dict,
+        image_encoder: dict,
+        prior: dict,
         decoder_model: str = "warp-ai/wuerstchen",
-        prior_model: str = "warp-ai/wuerstchen-prior",
         loss: dict | None = None,
         prior_lora_config: dict | None = None,
         text_encoder_lora_config: dict | None = None,
@@ -109,7 +107,6 @@ class WuerstchenPriorModel(BaseModel):
             )
 
         self.decoder_model = decoder_model
-        self.prior_model = prior_model
         self.prior_lora_config = deepcopy(prior_lora_config)
         self.text_encoder_lora_config = deepcopy(text_encoder_lora_config)
         self.finetune_text_encoder = finetune_text_encoder
@@ -123,22 +120,20 @@ class WuerstchenPriorModel(BaseModel):
         assert not self.loss_module.use_snr, \
             "WuerstchenPriorModel does not support SNR loss."
 
-        self.tokenizer = PreTrainedTokenizerFast.from_pretrained(
-            prior_model, subfolder="tokenizer",
-        )
-        self.text_encoder = CLIPTextModel.from_pretrained(
-            prior_model, subfolder="text_encoder")
+        self.tokenizer = MODELS.build(tokenizer)
+        self.text_encoder = MODELS.build(text_encoder)
 
-        pretrained_checkpoint_file = hf_hub_download(
-            "dome272/wuerstchen", filename="model_v2_stage_b.pt")
-        state_dict = torch.load(pretrained_checkpoint_file, map_location="cpu")
-        self.image_encoder = EfficientNetEncoder()
-        self.image_encoder.load_state_dict(state_dict["effnet_state_dict"])
+        pretrained_image_encoder = image_encoder.pop("pretrained_image_encoder", False)
+        self.image_encoder = MODELS.build(image_encoder)
+        if pretrained_image_encoder:
+            pretrained_checkpoint_file = hf_hub_download(
+                "dome272/wuerstchen", filename="model_v2_stage_b.pt")
+            state_dict = torch.load(pretrained_checkpoint_file, map_location="cpu")
+            self.image_encoder.load_state_dict(state_dict["effnet_state_dict"])
 
-        self.scheduler = DDPMWuerstchenScheduler()
+        self.scheduler = MODELS.build(scheduler)
 
-        self.prior = WuerstchenPrior.from_pretrained(
-            prior_model, subfolder="prior")
+        self.prior = MODELS.build(prior)
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
         self.prepare_model()

@@ -2,38 +2,71 @@ from unittest import TestCase
 
 import pytest
 import torch
+from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel
 from mmengine.optim import OptimWrapper
 from torch.optim import SGD
+from transformers import AutoTokenizer, CLIPTextModel, CLIPTextModelWithProjection
 
 from diffengine.models.editors import (
     SDXLInpaintDataPreprocessor,
     StableDiffusionXLInpaint,
 )
 from diffengine.models.losses import L2Loss
+from diffengine.registry import MODELS
 
 
 class TestStableDiffusionXL(TestCase):
 
+    def _get_config(self) -> dict:
+        base_model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
+        return dict(type=StableDiffusionXLInpaint,
+             model=base_model,
+             tokenizer_one=dict(type=AutoTokenizer.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="tokenizer",
+                            use_fast=False),
+             tokenizer_two=dict(type=AutoTokenizer.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="tokenizer_2",
+                            use_fast=False),
+             scheduler=dict(type=DDPMScheduler.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="scheduler"),
+             text_encoder_one=dict(type=CLIPTextModel.from_pretrained,
+                               pretrained_model_name_or_path=base_model,
+                               subfolder="text_encoder"),
+             text_encoder_two=dict(type=CLIPTextModelWithProjection.from_pretrained,
+                               pretrained_model_name_or_path=base_model,
+                               subfolder="text_encoder_2"),
+             vae=dict(
+                type=AutoencoderKL.from_pretrained,
+                pretrained_model_name_or_path=base_model,
+                subfolder="vae"),
+             unet=dict(type=UNet2DConditionModel.from_pretrained,
+                             pretrained_model_name_or_path=base_model,
+                             subfolder="unet"),
+            data_preprocessor=dict(type=SDXLInpaintDataPreprocessor),
+            loss=dict(type=L2Loss))
+
     def test_init(self):
+        cfg = self._get_config()
+        cfg.update(text_encoder_lora_config=dict(type="dummy"))
         with pytest.raises(
                 AssertionError, match="If you want to use LoRA"):
-            _ = StableDiffusionXLInpaint(
-                model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-                text_encoder_lora_config=dict(type="dummy"),
-                data_preprocessor=SDXLInpaintDataPreprocessor())
+            _ = MODELS.build(cfg)
 
+        cfg = self._get_config()
+        cfg.update(
+            unet_lora_config=dict(type="dummy"),
+            finetune_text_encoder=True,
+        )
         with pytest.raises(
                 AssertionError, match="If you want to finetune text"):
-            _ = StableDiffusionXLInpaint(
-                model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-                unet_lora_config=dict(type="dummy"),
-                finetune_text_encoder=True,
-                data_preprocessor=SDXLInpaintDataPreprocessor())
+            _ = MODELS.build(cfg)
 
     def test_infer(self):
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            data_preprocessor=SDXLInpaintDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test infer
         result = StableDiffuser.infer(
@@ -72,10 +105,9 @@ class TestStableDiffusionXL(TestCase):
         assert result[0].shape == (4, 32, 32)
 
     def test_infer_v_prediction(self):
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            data_preprocessor=SDXLInpaintDataPreprocessor(),
-            prediction_type="v_prediction")
+        cfg = self._get_config()
+        cfg.update(prediction_type="v_prediction")
+        StableDiffuser = MODELS.build(cfg)
         assert StableDiffuser.prediction_type == "v_prediction"
 
         # test infer
@@ -89,15 +121,16 @@ class TestStableDiffusionXL(TestCase):
         assert result[0].shape == (64, 64, 3)
 
     def test_infer_with_lora(self):
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
+        cfg = self._get_config()
+        cfg.update(
             unet_lora_config=dict(
                 type="LoRA", r=4,
                 target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
             text_encoder_lora_config = dict(
                 type="LoRA", r=4,
                 target_modules=["q_proj", "k_proj", "v_proj", "out_proj"]),
-            data_preprocessor=SDXLInpaintDataPreprocessor())
+        )
+        StableDiffuser = MODELS.build(cfg)
 
         # test infer
         result = StableDiffuser.infer(
@@ -110,10 +143,9 @@ class TestStableDiffusionXL(TestCase):
         assert result[0].shape == (64, 64, 3)
 
     def test_infer_with_pre_compute_embs(self):
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            pre_compute_text_embeddings=True,
-            data_preprocessor=SDXLInpaintDataPreprocessor())
+        cfg = self._get_config()
+        cfg.update(pre_compute_text_embeddings=True)
+        StableDiffuser = MODELS.build(cfg)
 
         assert not hasattr(StableDiffuser, "tokenizer_one")
         assert not hasattr(StableDiffuser, "text_encoder_one")
@@ -135,10 +167,8 @@ class TestStableDiffusionXL(TestCase):
 
     def test_train_step(self):
         # test load with loss module
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            loss=L2Loss(),
-            data_preprocessor=SDXLInpaintDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -156,16 +186,16 @@ class TestStableDiffusionXL(TestCase):
 
     def test_train_step_with_lora(self):
         # test load with loss module
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            loss=L2Loss(),
+        cfg = self._get_config()
+        cfg.update(
             unet_lora_config=dict(
                 type="LoRA", r=4,
                 target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
             text_encoder_lora_config = dict(
                 type="LoRA", r=4,
                 target_modules=["q_proj", "k_proj", "v_proj", "out_proj"]),
-            data_preprocessor=SDXLInpaintDataPreprocessor())
+        )
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -183,11 +213,9 @@ class TestStableDiffusionXL(TestCase):
 
     def test_train_step_input_perturbation(self):
         # test load with loss module
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            input_perturbation_gamma=0.1,
-            loss=L2Loss(),
-            data_preprocessor=SDXLInpaintDataPreprocessor())
+        cfg = self._get_config()
+        cfg.update(input_perturbation_gamma=0.1)
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -205,11 +233,9 @@ class TestStableDiffusionXL(TestCase):
 
     def test_train_step_with_gradient_checkpointing(self):
         # test load with loss module
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            loss=L2Loss(),
-            data_preprocessor=SDXLInpaintDataPreprocessor(),
-            gradient_checkpointing=True)
+        cfg = self._get_config()
+        cfg.update(gradient_checkpointing=True)
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -227,11 +253,9 @@ class TestStableDiffusionXL(TestCase):
 
     def test_train_step_with_pre_compute_embs(self):
         # test load with loss module
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            pre_compute_text_embeddings=True,
-            loss=L2Loss(),
-            data_preprocessor=SDXLInpaintDataPreprocessor())
+        cfg = self._get_config()
+        cfg.update(pre_compute_text_embeddings=True)
+        StableDiffuser = MODELS.build(cfg)
 
         assert not hasattr(StableDiffuser, "tokenizer_one")
         assert not hasattr(StableDiffuser, "text_encoder_one")
@@ -255,10 +279,8 @@ class TestStableDiffusionXL(TestCase):
 
     def test_train_step_dreambooth(self):
         # test load with loss module
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            loss=L2Loss(),
-            data_preprocessor=SDXLInpaintDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -282,11 +304,9 @@ class TestStableDiffusionXL(TestCase):
 
     def test_train_step_v_prediction(self):
         # test load with loss module
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            loss=L2Loss(),
-            prediction_type="v_prediction",
-            data_preprocessor=SDXLInpaintDataPreprocessor())
+        cfg = self._get_config()
+        cfg.update(prediction_type="v_prediction")
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -303,10 +323,8 @@ class TestStableDiffusionXL(TestCase):
         assert isinstance(log_vars["loss"], torch.Tensor)
 
     def test_val_and_test_step(self):
-        StableDiffuser = StableDiffusionXLInpaint(
-            model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            loss=L2Loss(),
-            data_preprocessor=SDXLInpaintDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test val_step
         with pytest.raises(NotImplementedError, match="val_step is not"):

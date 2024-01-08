@@ -1,9 +1,11 @@
-_base_ = [
-    "../_base_/models/tiny_sd_lora.py",
-    "../_base_/datasets/dog_dreambooth.py",
-    "../_base_/schedules/stable_diffusion_1k.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(
-    dataset=dict(class_image_config=dict(model={{_base_.model.model}})))
+with read_base():
+    from .._base_.datasets.dog_dreambooth import *
+    from .._base_.default_runtime import *
+    from .._base_.models.tiny_sd_lora import *
+    from .._base_.schedules.stable_diffusion_1k import *
+
+
+train_dataloader.update(
+    dataset=dict(class_image_config=dict(model=model.model)))

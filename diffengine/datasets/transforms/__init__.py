@@ -17,6 +17,7 @@ from .processing import (
     RandomTextDrop,
     SaveImageShape,
     T5TextPreprocess,
+    TorchVisonTransformWrapper,
 )
 from .wrappers import RandomChoice
 
@@ -41,4 +42,5 @@ __all__ = [
     "RandomChoice",
     "AddConstantCaption",
     "DumpMaskedImage",
+    "TorchVisonTransformWrapper",
 ]

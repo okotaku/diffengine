@@ -3,20 +3,11 @@ from typing import Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (
-    AutoPipelineForText2Image,
-    DDPMScheduler,
-    PriorTransformer,
-)
+from diffusers import AutoPipelineForText2Image
 from mmengine import print_log
 from mmengine.model import BaseModel
 from peft import get_peft_model
 from torch import nn
-from transformers import (
-    CLIPTextModelWithProjection,
-    CLIPTokenizer,
-    CLIPVisionModelWithProjection,
-)
 
 from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
@@ -30,8 +21,6 @@ class KandinskyV22Prior(BaseModel):
     ----
         decoder_model (str): pretrained model name of decoder.
             Defaults to "kandinsky-community/kandinsky-2-2-decoder".
-        prior_model (str): pretrained model name of prior.
-            Defaults to "kandinsky-community/kandinsky-2-2-prior".
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
         prior_lora_config (dict, optional): The LoRA config dict for Prior.
@@ -59,8 +48,12 @@ class KandinskyV22Prior(BaseModel):
 
     def __init__(
         self,
+        tokenizer: dict,
+        scheduler: dict,
+        text_encoder: dict,
+        image_encoder: dict,
+        prior: dict,
         decoder_model: str = "kandinsky-community/kandinsky-2-2-decoder",
-        prior_model: str = "kandinsky-community/kandinsky-2-2-prior",
         loss: dict | None = None,
         prior_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
@@ -86,7 +79,6 @@ class KandinskyV22Prior(BaseModel):
             "KandinskyV22Prior does not support gradient checkpointing.")
 
         self.decoder_model = decoder_model
-        self.prior_model = prior_model
         self.prior_lora_config = deepcopy(prior_lora_config)
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
@@ -97,17 +89,12 @@ class KandinskyV22Prior(BaseModel):
             loss = MODELS.build(loss)
         self.loss_module: nn.Module = loss
 
-        self.tokenizer = CLIPTokenizer.from_pretrained(
-            prior_model, subfolder="tokenizer")
-        self.scheduler = DDPMScheduler(
-            beta_schedule="squaredcos_cap_v2", prediction_type="sample")
+        self.tokenizer = MODELS.build(tokenizer)
+        self.scheduler = MODELS.build(scheduler)
 
-        self.text_encoder = CLIPTextModelWithProjection.from_pretrained(
-            prior_model, subfolder="text_encoder")
-        self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
-            prior_model, subfolder="image_encoder")
-        self.prior = PriorTransformer.from_pretrained(
-            prior_model, subfolder="prior")
+        self.text_encoder = MODELS.build(text_encoder)
+        self.image_encoder = MODELS.build(image_encoder)
+        self.prior = MODELS.build(prior)
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
 

@@ -3,41 +3,14 @@ from typing import Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (
-    AutoencoderKL,
-    DDPMScheduler,
-    DiffusionPipeline,
-    UNet2DConditionModel,
-)
+from diffusers import DiffusionPipeline
 from mmengine import print_log
 from mmengine.model import BaseModel
 from peft import get_peft_model
 from torch import nn
-from transformers import AutoTokenizer, PretrainedConfig
 
 from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
-
-
-def import_model_class_from_model_name_or_path(  # noqa
-        pretrained_model_name_or_path: str,
-        subfolder: str = "text_encoder"):
-    """Import model class from model name or path."""
-    text_encoder_config = PretrainedConfig.from_pretrained(
-        pretrained_model_name_or_path, subfolder=subfolder)
-    model_class = text_encoder_config.architectures[0]
-
-    if model_class == "CLIPTextModel":
-        from transformers import CLIPTextModel
-
-        return CLIPTextModel
-    elif model_class == "CLIPTextModelWithProjection":  # noqa
-        from transformers import CLIPTextModelWithProjection
-
-        return CLIPTextModelWithProjection
-    else:
-        msg = f"{model_class} is not supported."
-        raise ValueError(msg)
 
 
 @MODELS.register_module()
@@ -95,8 +68,14 @@ class StableDiffusionXL(BaseModel):
 
     def __init__(  # noqa: C901
         self,
+        tokenizer_one: dict,
+        tokenizer_two: dict,
+        scheduler: dict,
+        text_encoder_one: dict,
+        text_encoder_two: dict,
+        vae: dict,
+        unet: dict,
         model: str = "stabilityai/stable-diffusion-xl-base-1.0",
-        vae_model: str | None = None,
         loss: dict | None = None,
         unet_lora_config: dict | None = None,
         text_encoder_lora_config: dict | None = None,
@@ -162,28 +141,16 @@ class StableDiffusionXL(BaseModel):
         self.prediction_type = prediction_type
 
         if not self.pre_compute_text_embeddings:
-            self.tokenizer_one = AutoTokenizer.from_pretrained(
-                model, subfolder="tokenizer", use_fast=False)
-            self.tokenizer_two = AutoTokenizer.from_pretrained(
-                model, subfolder="tokenizer_2", use_fast=False)
+            self.tokenizer_one = MODELS.build(tokenizer_one)
+            self.tokenizer_two = MODELS.build(tokenizer_two)
 
-            text_encoder_cls_one = import_model_class_from_model_name_or_path(
-                model)
-            text_encoder_cls_two = import_model_class_from_model_name_or_path(
-                model, subfolder="text_encoder_2")
-            self.text_encoder_one = text_encoder_cls_one.from_pretrained(
-                model, subfolder="text_encoder")
-            self.text_encoder_two = text_encoder_cls_two.from_pretrained(
-                model, subfolder="text_encoder_2")
+            self.text_encoder_one = MODELS.build(text_encoder_one)
+            self.text_encoder_two = MODELS.build(text_encoder_two)
 
-        self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder="scheduler")
+        self.scheduler = MODELS.build(scheduler)
 
-        vae_path = model if vae_model is None else vae_model
-        self.vae = AutoencoderKL.from_pretrained(
-            vae_path, subfolder="vae" if vae_model is None else None)
-        self.unet = UNet2DConditionModel.from_pretrained(
-            model, subfolder="unet")
+        self.vae = MODELS.build(vae)
+        self.unet = MODELS.build(unet)
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
         self.prepare_model()

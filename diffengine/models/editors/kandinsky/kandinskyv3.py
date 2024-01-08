@@ -3,17 +3,11 @@ from typing import Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (
-    AutoPipelineForText2Image,
-    DDPMScheduler,
-    Kandinsky3UNet,
-    VQModel,
-)
+from diffusers import AutoPipelineForText2Image
 from mmengine import print_log
 from mmengine.model import BaseModel
 from peft import get_peft_model
 from torch import nn
-from transformers import T5EncoderModel, T5Tokenizer
 
 from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
@@ -60,6 +54,11 @@ class KandinskyV3(BaseModel):
 
     def __init__(
         self,
+        tokenizer: dict,
+        scheduler: dict,
+        text_encoder: dict,
+        vae: dict,
+        unet: dict,
         model: str = "kandinsky-community/kandinsky-3",
         loss: dict | None = None,
         unet_lora_config: dict | None = None,
@@ -101,17 +100,12 @@ class KandinskyV3(BaseModel):
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
-        self.tokenizer = T5Tokenizer.from_pretrained(
-            model, subfolder="tokenizer")
-        self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder="scheduler")
+        self.tokenizer = MODELS.build(tokenizer)
+        self.scheduler = MODELS.build(scheduler)
 
-        self.text_encoder = T5EncoderModel.from_pretrained(
-            model, subfolder="text_encoder", variant="fp16")
-        self.vae = VQModel.from_pretrained(
-            model, subfolder="movq", variant="fp16")
-        self.unet = Kandinsky3UNet.from_pretrained(
-            model, subfolder="unet", variant="fp16")
+        self.text_encoder = MODELS.build(text_encoder)
+        self.vae = MODELS.build(vae)
+        self.unet = MODELS.build(unet)
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
 
@@ -328,7 +322,7 @@ class KandinskyV3(BaseModel):
         else:
             weight = None
 
-        latents = self.vae.encode(inputs["img"]).latents
+        latents = self.vae.encode(inputs["img"]).latents.contiguous()
 
         noise = self.noise_generator(latents)
 

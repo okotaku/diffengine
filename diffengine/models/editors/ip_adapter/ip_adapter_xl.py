@@ -3,11 +3,10 @@ from typing import Optional
 import numpy as np
 import torch
 from diffusers import DiffusionPipeline
-from diffusers.models.embeddings import ImageProjection, IPAdapterPlusImageProjection
 from diffusers.utils import load_image
 from PIL import Image
 from torch import nn
-from transformers import CLIPImageProcessor, CLIPVisionModelWithProjection
+from transformers import CLIPImageProcessor
 
 from diffengine.models.archs import (
     load_ip_adapter,
@@ -24,18 +23,12 @@ class IPAdapterXL(StableDiffusionXL):
 
     Args:
     ----
-        image_encoder (str, optional): Path to pretrained Image Encoder model.
-            Defaults to 'h94/IP-Adapter'.
-        image_encoder_sub_folder (str, optional): Sub folder of pretrained
-            Image Encoder model. Defaults to 'sdxl_models/image_encoder'.
         pretrained_adapter (str, optional): Path to pretrained IP-Adapter.
             Defaults to None.
         pretrained_adapter_subfolder (str, optional): Sub folder of pretrained
             IP-Adapter. Defaults to ''.
         pretrained_adapter_weights_name (str, optional): Weights name of
             pretrained IP-Adapter. Defaults to ''.
-        num_image_text_embeds (int): The number of expansion ratio of proj
-            network hidden layer channels Defaults to 4.
         unet_lora_config (dict, optional): The LoRA config dict for Unet.
             example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
             `LoHa`, `LoKr`. Other config are same as the config of PEFT.
@@ -57,12 +50,11 @@ class IPAdapterXL(StableDiffusionXL):
 
     def __init__(self,
                  *args,
-                 image_encoder: str = "h94/IP-Adapter",
-                 image_encoder_sub_folder: str = "sdxl_models/image_encoder",
+                 image_encoder: dict,
+                 image_projection: dict,
                  pretrained_adapter: str | None = None,
                  pretrained_adapter_subfolder: str = "",
                  pretrained_adapter_weights_name: str = "",
-                 num_image_text_embeds: int = 4,
                  unet_lora_config: dict | None = None,
                  text_encoder_lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
@@ -78,12 +70,11 @@ class IPAdapterXL(StableDiffusionXL):
         assert not finetune_text_encoder, \
             "`finetune_text_encoder` should be False when training IPAdapter"
 
-        self.image_encoder_name = image_encoder
-        self.image_encoder_sub_folder = image_encoder_sub_folder
+        self.image_encoder_config = image_encoder
+        self.image_projection_config = image_projection
         self.pretrained_adapter = pretrained_adapter
         self.pretrained_adapter_subfolder = pretrained_adapter_subfolder
         self.pretrained_adapter_weights_name = pretrained_adapter_weights_name
-        self.num_image_text_embeds = num_image_text_embeds
         self.zeros_image_embeddings_prob = zeros_image_embeddings_prob
 
         super().__init__(
@@ -104,13 +95,12 @@ class IPAdapterXL(StableDiffusionXL):
 
         Disable gradient for some models.
         """
-        self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
-            self.image_encoder_name, subfolder=self.image_encoder_sub_folder)
-        self.image_projection = ImageProjection(
+        self.image_encoder = MODELS.build(self.image_encoder_config)
+        self.image_projection_config.update(
             cross_attention_dim=self.unet.config.cross_attention_dim,
             image_embed_dim=self.image_encoder.config.projection_dim,
-            num_image_text_embeds=self.num_image_text_embeds,
         )
+        self.image_projection = MODELS.build(self.image_projection_config)
         self.image_encoder.requires_grad_(requires_grad=False)
         super().prepare_model()
 
@@ -297,39 +287,19 @@ class IPAdapterXL(StableDiffusionXL):
 
 @MODELS.register_module()
 class IPAdapterXLPlus(IPAdapterXL):
-    """Stable Diffusion XL IP-Adapter Plus.
-
-    Args:
-    ----
-        num_image_text_embeds (int): The number of expansion ratio of proj
-            network hidden layer channels Defaults to 16.
-    """
-
-    def __init__(self,
-                 *args,
-                 num_image_text_embeds: int = 16,
-                 **kwargs) -> None:
-        super().__init__(
-            *args,
-            num_image_text_embeds=num_image_text_embeds,
-            **kwargs)
+    """Stable Diffusion XL IP-Adapter Plus."""
 
     def prepare_model(self) -> None:
         """Prepare model for training.
 
         Disable gradient for some models.
         """
-        self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
-            self.image_encoder_name, subfolder=self.image_encoder_sub_folder)
-        self.image_projection = IPAdapterPlusImageProjection(
+        self.image_encoder = MODELS.build(self.image_encoder_config)
+        self.image_projection_config.update(
             embed_dims=self.image_encoder.config.hidden_size,
             output_dims=self.unet.config.cross_attention_dim,
-            hidden_dims=1280,
-            depth=4,
-            dim_head=64,
-            heads=20,
-            num_queries=self.num_image_text_embeds,
-            ffn_ratio=4)
+        )
+        self.image_projection = MODELS.build(self.image_projection_config)
         self.image_encoder.requires_grad_(requires_grad=False)
         super(IPAdapterXL, self).prepare_model()
 

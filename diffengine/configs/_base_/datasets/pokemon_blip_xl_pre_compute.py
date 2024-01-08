@@ -1,13 +1,30 @@
+import torchvision
+from mmengine.dataset import DefaultSampler
+
+from diffengine.datasets.transforms import (
+    ComputeTimeIds,
+    PackInputs,
+    RandomCrop,
+    RandomHorizontalFlip,
+    SaveImageShape,
+    TorchVisonTransformWrapper,
+)
+from diffengine.engine.hooks import SDCheckpointHook, VisualizationHook
+
 train_pipeline = [
-    dict(type="SaveImageShape"),
-    dict(type="torchvision/Resize", size=1024, interpolation="bilinear"),
-    dict(type="RandomCrop", size=1024),
-    dict(type="RandomHorizontalFlip", p=0.5),
-    dict(type="ComputeTimeIds"),
-    dict(type="torchvision/ToTensor"),
-    dict(type="torchvision/Normalize", mean=[0.5], std=[0.5]),
+    dict(type=SaveImageShape),
+    dict(type=TorchVisonTransformWrapper,
+         transform=torchvision.transforms.Resize,
+         size=1024, interpolation="bilinear"),
+    dict(type=RandomCrop, size=1024),
+    dict(type=RandomHorizontalFlip, p=0.5),
+    dict(type=ComputeTimeIds),
+    dict(type=TorchVisonTransformWrapper,
+         transform=torchvision.transforms.ToTensor),
+    dict(type=TorchVisonTransformWrapper,
+         transform=torchvision.transforms.Normalize, mean=[0.5], std=[0.5]),
     dict(
-        type="PackInputs",
+        type=PackInputs,
         input_keys=[
             "img",
             "time_ids",
@@ -24,7 +41,7 @@ train_dataloader = dict(
         text_hasher="text_pokemon_blip",
         model="stabilityai/stable-diffusion-xl-base-1.0",
         pipeline=train_pipeline),
-    sampler=dict(type="DefaultSampler", shuffle=True),
+    sampler=dict(type=DefaultSampler, shuffle=True),
 )
 
 val_dataloader = None
@@ -34,9 +51,9 @@ test_evaluator = val_evaluator
 
 custom_hooks = [
     dict(
-        type="VisualizationHook",
+        type=VisualizationHook,
         prompt=["yoda pokemon"] * 4,
         height=1024,
         width=1024),
-    dict(type="SDCheckpointHook"),
+    dict(type=SDCheckpointHook),
 ]

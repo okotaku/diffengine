@@ -1,11 +1,9 @@
-_base_ = [
-    "../_base_/models/stable_diffusion_xl_lora.py",
-    "../_base_/datasets/cat_waterpainting_dreambooth_xl.py",
-    "../_base_/schedules/stable_diffusion_500.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(
-    dataset=dict(class_image_config=dict(model={{_base_.model.model}})))
+with read_base():
+    from .._base_.datasets.cat_waterpainting_dreambooth_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_lora import *
+    from .._base_.schedules.stable_diffusion_500 import *
 
-train_cfg = dict(max_iters=1000)
+train_cfg.update(max_iters=1000)

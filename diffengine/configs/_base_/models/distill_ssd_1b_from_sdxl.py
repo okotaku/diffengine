@@ -1,7 +1,36 @@
-model = dict(
-    type="SSD1B",
-    model="stabilityai/stable-diffusion-xl-base-1.0",
-    student_model="segmind/SSD-1B",
-    student_model_weight="orig_unet",
-    vae_model="madebyollin/sdxl-vae-fp16-fix",
-    gradient_checkpointing=True)
+from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel
+from transformers import AutoTokenizer, CLIPTextModel, CLIPTextModelWithProjection
+
+from diffengine.models.editors import SSD1B
+
+base_model = "stabilityai/stable-diffusion-xl-base-1.0"
+model = dict(type=SSD1B,
+             model=base_model,
+             tokenizer_one=dict(type=AutoTokenizer.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="tokenizer",
+                            use_fast=False),
+             tokenizer_two=dict(type=AutoTokenizer.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="tokenizer_2",
+                            use_fast=False),
+             scheduler=dict(type=DDPMScheduler.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="scheduler"),
+             text_encoder_one=dict(type=CLIPTextModel.from_pretrained,
+                               pretrained_model_name_or_path=base_model,
+                               subfolder="text_encoder"),
+             text_encoder_two=dict(type=CLIPTextModelWithProjection.from_pretrained,
+                               pretrained_model_name_or_path=base_model,
+                               subfolder="text_encoder_2"),
+             vae=dict(
+                type=AutoencoderKL.from_pretrained,
+                pretrained_model_name_or_path="madebyollin/sdxl-vae-fp16-fix"),
+             teacher_unet=dict(type=UNet2DConditionModel.from_pretrained,
+                             pretrained_model_name_or_path=base_model,
+                             subfolder="unet"),
+             student_unet=dict(type=UNet2DConditionModel.from_config,
+                             pretrained_model_name_or_path="segmind/SSD-1B",
+                             subfolder="unet"),
+             gradient_checkpointing=True,
+             student_weight_from_teacher=True)

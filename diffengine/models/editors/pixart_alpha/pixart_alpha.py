@@ -3,17 +3,11 @@ from typing import Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (
-    AutoencoderKL,
-    DDPMScheduler,
-    PixArtAlphaPipeline,
-    Transformer2DModel,
-)
+from diffusers import PixArtAlphaPipeline
 from mmengine import print_log
 from mmengine.model import BaseModel
 from peft import get_peft_model
 from torch import nn
-from transformers import T5EncoderModel, T5Tokenizer
 
 from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
@@ -71,8 +65,12 @@ class PixArtAlpha(BaseModel):
 
     def __init__(
         self,
+        tokenizer: dict,
+        scheduler: dict,
+        text_encoder: dict,
+        vae: dict,
+        transformer: dict,
         model: str = "PixArt-alpha/PixArt-XL-2-1024-MS",
-        vae_model: str | None = None,
         loss: dict | None = None,
         transformer_lora_config: dict | None = None,
         text_encoder_lora_config: dict | None = None,
@@ -134,18 +132,12 @@ class PixArtAlpha(BaseModel):
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
-        self.tokenizer = T5Tokenizer.from_pretrained(
-            model, subfolder="tokenizer")
-        self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder="scheduler")
+        self.tokenizer = MODELS.build(tokenizer)
+        self.scheduler = MODELS.build(scheduler)
 
-        self.text_encoder = T5EncoderModel.from_pretrained(
-            model, subfolder="text_encoder")
-        vae_path = model if vae_model is None else vae_model
-        self.vae = AutoencoderKL.from_pretrained(
-            vae_path, subfolder="vae" if vae_model is None else None)
-        self.transformer = Transformer2DModel.from_pretrained(
-            model, subfolder="transformer")
+        self.text_encoder = MODELS.build(text_encoder)
+        self.vae = MODELS.build(vae)
+        self.transformer = MODELS.build(transformer)
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
         self.prepare_model()

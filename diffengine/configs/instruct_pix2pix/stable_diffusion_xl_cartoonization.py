@@ -1,15 +1,14 @@
-_base_ = [
-    "../_base_/models/stable_diffusion_xl_instruct_pix2pix.py",
-    "../_base_/datasets/cartoonization_xl.py",
-    "../_base_/schedules/stable_diffusion_3e.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-model = dict(model="diffusers/sdxl-instructpix2pix-768")
+with read_base():
+    from .._base_.datasets.cartoonization_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_instruct_pix2pix_pretrained import *
+    from .._base_.schedules.stable_diffusion_3e import *
 
-optim_wrapper = dict(
+
+optim_wrapper.update(
     optimizer=dict(
-        _delete_=True,
         type="Adafactor",
         lr=3e-5,
         weight_decay=1e-2,
@@ -17,4 +16,4 @@ optim_wrapper = dict(
         relative_step=False),
     accumulative_counts=4)
 
-train_cfg = dict(max_epochs=10)
+train_cfg.update(max_epochs=10)

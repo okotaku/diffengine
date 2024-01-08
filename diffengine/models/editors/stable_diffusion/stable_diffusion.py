@@ -3,17 +3,11 @@ from typing import Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (
-    AutoencoderKL,
-    DDPMScheduler,
-    StableDiffusionPipeline,
-    UNet2DConditionModel,
-)
+from diffusers import StableDiffusionPipeline
 from mmengine import print_log
 from mmengine.model import BaseModel
 from peft import get_peft_model
 from torch import nn
-from transformers import CLIPTextModel, CLIPTokenizer
 
 from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
@@ -65,6 +59,11 @@ class StableDiffusion(BaseModel):
 
     def __init__(
         self,
+        tokenizer: dict,
+        scheduler: dict,
+        text_encoder: dict,
+        vae: dict,
+        unet: dict,
         model: str = "runwayml/stable-diffusion-v1-5",
         loss: dict | None = None,
         unet_lora_config: dict | None = None,
@@ -125,16 +124,12 @@ class StableDiffusion(BaseModel):
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
-        self.tokenizer = CLIPTokenizer.from_pretrained(
-            model, subfolder="tokenizer")
-        self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder="scheduler")
+        self.tokenizer = MODELS.build(tokenizer)
+        self.scheduler = MODELS.build(scheduler)
 
-        self.text_encoder = CLIPTextModel.from_pretrained(
-            model, subfolder="text_encoder")
-        self.vae = AutoencoderKL.from_pretrained(model, subfolder="vae")
-        self.unet = UNet2DConditionModel.from_pretrained(
-            model, subfolder="unet")
+        self.text_encoder = MODELS.build(text_encoder)
+        self.vae = MODELS.build(vae)
+        self.unet = MODELS.build(unet)
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
         self.prepare_model()

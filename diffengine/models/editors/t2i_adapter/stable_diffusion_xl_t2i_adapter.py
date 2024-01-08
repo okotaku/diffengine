@@ -2,7 +2,7 @@ from typing import Optional
 
 import numpy as np
 import torch
-from diffusers import StableDiffusionXLAdapterPipeline, T2IAdapter
+from diffusers import StableDiffusionXLAdapterPipeline
 from diffusers.utils import load_image
 from mmengine import print_log
 from PIL import Image
@@ -18,12 +18,6 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
 
     Args:
     ----
-        adapter_model (str, optional): Path to pretrained adapter model. If
-            None, use the default adapter model. Defaults to None.
-        adapter_model_channels (List[int]): The channels of adapter.
-            Defaults to [320, 640, 1280, 1280].
-        adapter_downscale_factor (int): The downscale factor of adapter.
-            Defaults to 16.
         unet_lora_config (dict, optional): The LoRA config dict for Unet.
             example. dict(type="LoRA", r=4). `type` is chosen from `LoRA`,
             `LoHa`, `LoKr`. Other config are same as the config of PEFT.
@@ -45,9 +39,7 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
 
     def __init__(self,
                  *args,
-                 adapter_model: str | None = None,
-                 adapter_model_channels: list[int] | None = None,
-                 adapter_downscale_factor: int = 16,
+                 adapter: dict,
                  unet_lora_config: dict | None = None,
                  text_encoder_lora_config: dict | None = None,
                  finetune_text_encoder: bool = False,
@@ -58,8 +50,6 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
             data_preprocessor = {"type": "SDXLControlNetDataPreprocessor"}
         if timesteps_generator is None:
             timesteps_generator = {"type": "CubicSamplingTimeSteps"}
-        if adapter_model_channels is None:
-            adapter_model_channels = [320, 640, 1280, 1280]
         assert unet_lora_config is None, \
             "`unet_lora_config` should be None when training T2IAdapter"
         assert text_encoder_lora_config is None, \
@@ -67,9 +57,7 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
         assert not finetune_text_encoder, \
             "`finetune_text_encoder` should be False when training T2IAdapter"
 
-        self.adapter_model = adapter_model
-        self.adapter_model_channels = adapter_model_channels
-        self.adapter_downscale_factor = adapter_downscale_factor
+        self.adapter_config = adapter
 
         super().__init__(
             *args,
@@ -88,16 +76,7 @@ class StableDiffusionXLT2IAdapter(StableDiffusionXL):
 
         Disable gradient for some models.
         """
-        if self.adapter_model is not None:
-            self.adapter = T2IAdapter.from_pretrained(self.adapter_model)
-        else:
-            self.adapter = T2IAdapter(
-                in_channels=3,
-                channels=self.adapter_model_channels,
-                num_res_blocks=2,
-                downscale_factor=self.adapter_downscale_factor,
-                adapter_type="full_adapter_xl",
-            )
+        self.adapter = MODELS.build(self.adapter_config)
 
         if self.gradient_checkpointing:
             self.unet.enable_gradient_checkpointing()
