@@ -2,18 +2,9 @@
 from typing import Optional
 
 import torch
-from diffusers import (
-    AutoencoderKL,
-    DDPMScheduler,
-    UNet2DConditionModel,
-)
 from torch import nn
-from transformers import AutoTokenizer
 
 from diffengine.models.editors.stable_diffusion_xl import StableDiffusionXL
-from diffengine.models.editors.stable_diffusion_xl.stable_diffusion_xl import (
-    import_model_class_from_model_name_or_path,
-)
 from diffengine.registry import MODELS
 
 
@@ -26,14 +17,16 @@ class SSD1B(StableDiffusionXL):
 
     Args:
     ----
+        tokenizer_one (dict): Config of tokenizer one.
+        tokenizer_two (dict): Config of tokenizer two.
+        scheduler (dict): Config of scheduler.
+        text_encoder_one (dict): Config of text encoder one.
+        text_encoder_two (dict): Config of text encoder two.
+        vae (dict): Config of vae.
+        teacher_unet (dict): Config of teacher unet.
+        student_unet (dict): Config of student unet.
         model (str): pretrained model name of stable diffusion xl.
             Defaults to 'stabilityai/stable-diffusion-xl-base-1.0'.
-        student_model (str): pretrained model name of student model.
-            Defaults to 'segmind/SSD-1B'.
-        student_model_weight (str): pretrained model weight of student model.
-            Choose between 'orig_unet' or 'unet'. 'orig_unet' load_state_dict
-            from teacher model. 'unet' load_state_dict from student model.
-            Defaults to 'orig_unet'.
         vae_model (str, optional): Path to pretrained VAE model with better
             numerical stability. More details:
             https://github.com/huggingface/diffusers/pull/4038.
@@ -75,14 +68,21 @@ class SSD1B(StableDiffusionXL):
             embeddings to save memory. Defaults to False.
         enable_xformers (bool): Whether or not to enable memory efficient
             attention. Defaults to False.
+        student_weight_from_teacher (bool): Whether or not to initialize
+            student model with teacher model. Defaults to False.
     """
 
     def __init__(
         self,
+        tokenizer_one: dict,
+        tokenizer_two: dict,
+        scheduler: dict,
+        text_encoder_one: dict,
+        text_encoder_two: dict,
+        vae: dict,
+        teacher_unet: dict,
+        student_unet: dict,
         model: str = "stabilityai/stable-diffusion-xl-base-1.0",
-        student_model: str = "segmind/SSD-1B",
-        student_model_weight: str = "orig_unet",
-        vae_model: str | None = None,
         loss: dict | None = None,
         unet_lora_config: dict | None = None,
         text_encoder_lora_config: dict | None = None,
@@ -97,6 +97,7 @@ class SSD1B(StableDiffusionXL):
         gradient_checkpointing: bool = False,
         pre_compute_text_embeddings: bool = False,
         enable_xformers: bool = False,
+        student_weight_from_teacher: bool = False,
     ) -> None:
         assert unet_lora_config is None, \
             "`unet_lora_config` should be None when training SSD1B"
@@ -104,8 +105,6 @@ class SSD1B(StableDiffusionXL):
             "`text_encoder_lora_config` should be None when training SSD1B"
         assert not finetune_text_encoder, \
             "`finetune_text_encoder` should be False when training SSD1B"
-        assert student_model_weight in ["orig_unet", "unet"], \
-            "`student_model_weight` should be 'orig_unet' or 'unet'"
 
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDXLDataPreprocessor"}
@@ -132,38 +131,22 @@ class SSD1B(StableDiffusionXL):
         self.prediction_type = prediction_type
 
         if not self.pre_compute_text_embeddings:
-            self.tokenizer_one = AutoTokenizer.from_pretrained(
-                model, subfolder="tokenizer", use_fast=False)
-            self.tokenizer_two = AutoTokenizer.from_pretrained(
-                model, subfolder="tokenizer_2", use_fast=False)
+            self.tokenizer_one = MODELS.build(tokenizer_one)
+            self.tokenizer_two = MODELS.build(tokenizer_two)
 
-            text_encoder_cls_one = import_model_class_from_model_name_or_path(
-                model)
-            text_encoder_cls_two = import_model_class_from_model_name_or_path(
-                model, subfolder="text_encoder_2")
-            self.text_encoder_one = text_encoder_cls_one.from_pretrained(
-                model, subfolder="text_encoder")
-            self.text_encoder_two = text_encoder_cls_two.from_pretrained(
-                model, subfolder="text_encoder_2")
+            self.text_encoder_one = MODELS.build(text_encoder_one)
+            self.text_encoder_two = MODELS.build(text_encoder_two)
 
-        self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder="scheduler")
+        self.scheduler = MODELS.build(scheduler)
 
-        vae_path = model if vae_model is None else vae_model
-        self.vae = AutoencoderKL.from_pretrained(
-            vae_path, subfolder="vae" if vae_model is None else None)
-        self.orig_unet = UNet2DConditionModel.from_pretrained(
-            model, subfolder="unet")
+        self.vae = MODELS.build(vae)
+        self.orig_unet = MODELS.build(teacher_unet)
+        self.unet = MODELS.build(student_unet)
 
         # prepare student model
-        if student_model_weight == "orig_unet":
-            self.unet = UNet2DConditionModel.from_config(
-                student_model, subfolder="unet")
+        if student_weight_from_teacher:
             self.unet.load_state_dict(self.orig_unet.state_dict(),
                                       strict=False)
-        elif student_model_weight == "unet":
-            self.unet = UNet2DConditionModel.from_pretrained(
-                student_model, subfolder="unet")
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
         self.prepare_model()
@@ -186,7 +169,7 @@ class SSD1B(StableDiffusionXL):
         self.teacher_feats: dict = {}
         self.student_feats: dict = {}
 
-        def get_activation(activation, name, residuals_present):
+        def get_activation(activation, name, residuals_present):  # noqa
             # the hook signature
             if residuals_present:
 

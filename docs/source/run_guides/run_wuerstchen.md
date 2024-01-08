@@ -9,14 +9,15 @@ All configuration files are placed under the [`configs/wuerstchen`](https://gith
 Following is the example config fixed from the wuerstchen_prior_pokemon_blip config file in [`configs/wuerstchen/wuerstchen_prior_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/wuerstchen/wuerstchen_prior_pokemon_blip.py):
 
 ```
-_base_ = [
-    "../_base_/models/wuerstchen_prior.py",
-    "../_base_/datasets/pokemon_blip_wuerstchen.py",
-    "../_base_/schedules/stable_diffusion_50e.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-optim_wrapper = dict(
+with read_base():
+    from .._base_.datasets.pokemon_blip_wuerstchen import *
+    from .._base_.default_runtime import *
+    from .._base_.models.wuerstchen_prior import *
+    from .._base_.schedules.stable_diffusion_50e import *
+
+optim_wrapper.update(
     optimizer=dict(lr=1e-5),
     accumulative_counts=4)  # update every four times
 ```

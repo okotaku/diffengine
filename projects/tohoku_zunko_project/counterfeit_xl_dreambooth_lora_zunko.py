@@ -1,22 +1,20 @@
-_base_ = [
-    "../../configs/_base_/models/stable_diffusion_xl_lora.py",
-    "_base_/zunko_dreambooth_xl.py",
-    "../../configs/_base_/schedules/stable_diffusion_500.py",
-    "../../configs/_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-model = dict(model="gsdf/CounterfeitXL")
+from diffengine.engine.hooks import PeftSaveHook, VisualizationHook
 
-train_dataloader = dict(
-    dataset=dict(
-        class_image_config=dict(model={{_base_.model.model}}),
-        instance_prompt="1girl, sks"))
+with read_base():
+    from diffengine.configs._base_.default_runtime import *
+    from diffengine.configs._base_.schedules.stable_diffusion_500 import *
+
+    from ._base_.counterfeit_xl_lora import *
+    from ._base_.zunko_dreambooth_xl import *
+
 
 custom_hooks = [
     dict(
-        type="VisualizationHook",
+        type=VisualizationHook,
         prompt=["1girl, sks, in a bucket"] * 4,
         by_epoch=False,
         interval=100),
-    dict(type="PeftSaveHook"),
+    dict(type=PeftSaveHook),
 ]

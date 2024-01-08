@@ -9,7 +9,7 @@ from mmengine.utils import mkdir_or_exist
 from diffengine.configs import cfgs_name_path
 
 
-def parse_args():  # noqa
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("config_name", help="config name")
     parser.add_argument("save_dir", help="save directory for copied config")

@@ -1,22 +1,24 @@
-_base_ = [
-    "../../configs/_base_/models/stable_diffusion_v15_lora.py",
-    "_base_/zunko_dreambooth.py",
-    "../../configs/_base_/schedules/stable_diffusion_1k.py",
-    "../../configs/_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-model = dict(model="stablediffusionapi/anything-v5")
+from diffengine.engine.hooks import PeftSaveHook, VisualizationHook
 
-train_dataloader = dict(
+with read_base():
+    from diffengine.configs._base_.default_runtime import *
+    from diffengine.configs._base_.schedules.stable_diffusion_1k import *
+
+    from ._base_.anythingv5_lora import *
+    from ._base_.zunko_dreambooth import *
+
+train_dataloader.update(
     dataset=dict(
-        class_image_config=dict(model={{_base_.model.model}}),
+        class_image_config=dict(model=model.model),
         instance_prompt="1girl, sks"))
 
 custom_hooks = [
     dict(
-        type="VisualizationHook",
+        type=VisualizationHook,
         prompt=["1girl, sks, in a bucket"] * 4,
         by_epoch=False,
         interval=100),
-    dict(type="PeftSaveHook"),
+    dict(type=PeftSaveHook),
 ]

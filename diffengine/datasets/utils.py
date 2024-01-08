@@ -1,4 +1,4 @@
-# flake8: noqa: S311
+# flake8: noqa: S311,ANN001
 import random
 
 import numpy as np

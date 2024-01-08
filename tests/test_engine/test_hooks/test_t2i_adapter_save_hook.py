@@ -3,17 +3,13 @@ import os.path as osp
 import shutil
 from pathlib import Path
 
+from mmengine.config import Config
 from mmengine.model import BaseModel
 from mmengine.registry import MODELS
 from mmengine.testing import RunnerTestCase
 from torch import nn
 
 from diffengine.engine.hooks import T2IAdapterSaveHook
-from diffengine.models.editors import (
-    SDXLControlNetDataPreprocessor,
-    StableDiffusionXLT2IAdapter,
-)
-from diffengine.models.losses import L2Loss
 from diffengine.models.utils import CubicSamplingTimeSteps, WhiteNoise
 
 
@@ -33,13 +29,6 @@ class TestT2IAdapterSaveHook(RunnerTestCase):
 
     def setUp(self) -> None:
         MODELS.register_module(name="DummyWrapper", module=DummyWrapper)
-        MODELS.register_module(
-            name="StableDiffusionXLT2IAdapter",
-            module=StableDiffusionXLT2IAdapter)
-        MODELS.register_module(
-            name="SDXLControlNetDataPreprocessor",
-            module=SDXLControlNetDataPreprocessor)
-        MODELS.register_module(name="L2Loss", module=L2Loss)
         MODELS.register_module(name="WhiteNoise", module=WhiteNoise)
         MODELS.register_module(name="CubicSamplingTimeSteps",
                                module=CubicSamplingTimeSteps)
@@ -47,9 +36,6 @@ class TestT2IAdapterSaveHook(RunnerTestCase):
 
     def tearDown(self):
         MODELS.module_dict.pop("DummyWrapper")
-        MODELS.module_dict.pop("StableDiffusionXLT2IAdapter")
-        MODELS.module_dict.pop("SDXLControlNetDataPreprocessor")
-        MODELS.module_dict.pop("L2Loss")
         MODELS.module_dict.pop("WhiteNoise")
         MODELS.module_dict.pop("CubicSamplingTimeSteps")
         return super().tearDown()
@@ -59,14 +45,10 @@ class TestT2IAdapterSaveHook(RunnerTestCase):
 
     def test_before_save_checkpoint(self):
         cfg = copy.deepcopy(self.epoch_based_cfg)
-        cfg.model.type = "StableDiffusionXLT2IAdapter"
-        cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
-        cfg.model.adapter_model = "hf-internal-testing/tiny-adapter"
+        cfg.model = Config.fromfile("tests/configs/sdxl_t2iadapter.py").model
         runner = self.build_runner(cfg)
         checkpoint = dict(
-            state_dict=StableDiffusionXLT2IAdapter(
-                model="hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-                adapter_model="hf-internal-testing/tiny-adapter").state_dict())
+            state_dict=MODELS.build(cfg.model).state_dict())
         hook = T2IAdapterSaveHook()
         hook.before_save_checkpoint(runner, checkpoint)
 

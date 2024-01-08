@@ -9,14 +9,15 @@ All configuration files are placed under the [`configs/pixart_alpha`](https://gi
 Following is the example config fixed from the stable_diffusion_xl_pokemon_blip config file in [`configs/pixart_alpha/pixart_alpha_1024_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/pixart_alpha/pixart_alpha_1024_pokemon_blip.py):
 
 ```
-_base_ = [
-    "../_base_/models/pixart_alpha_1024.py",
-    "../_base_/datasets/pokemon_blip_pixart.py",
-    "../_base_/schedules/stable_diffusion_50e.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-optim_wrapper = dict(
+with read_base():
+    from .._base_.datasets.pokemon_blip_pixart import *
+    from .._base_.default_runtime import *
+    from .._base_.models.pixart_alpha_1024 import *
+    from .._base_.schedules.stable_diffusion_50e import *
+
+optim_wrapper.update(
     dtype="bfloat16",
     optimizer=dict(lr=2e-6, weight_decay=3e-2),
     clip_grad=dict(max_norm=0.01))

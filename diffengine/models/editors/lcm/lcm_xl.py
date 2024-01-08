@@ -29,6 +29,7 @@ class LatentConsistencyModelsXL(StableDiffusionXL):
         w_max (float): Maximum guidance scale. Defaults to 15.0.
         ema_type (str): The type of EMA.
             Defaults to 'ExponentialMovingAverage'.
+        ema_momentum (float): The EMA momentum. Defaults to 0.05.
     """
 
     def __init__(self,

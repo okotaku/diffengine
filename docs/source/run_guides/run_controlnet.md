@@ -9,12 +9,13 @@ All configuration files are placed under the [`configs/stable_diffusion_controln
 Following is the example config fixed from the stable_diffusion_v15_controlnet_fill50k config file in [`configs/stable_diffusion_controlnet/stable_diffusion_v15_controlnet_fill50k.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_controlnet/stable_diffusion_v15_controlnet_fill50k.py):
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_v15_controlnet.py',
-    '../_base_/datasets/fill50k_controlnet.py',
-    '../_base_/schedules/stable_diffusion_1e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
+
+with read_base():
+    from .._base_.datasets.fill50k_controlnet import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_v15_controlnet import *
+    from .._base_.schedules.stable_diffusion_1e import *
 ```
 
 #### Finetuning with Min-SNR Weighting Strategy
@@ -22,14 +23,16 @@ _base_ = [
 The script also allows you to finetune with [Min-SNR Weighting Strategy](https://arxiv.org/abs/2303.09556).
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_v15_controlnet.py',
-    '../_base_/datasets/fill50k_controlnet.py',
-    '../_base_/schedules/stable_diffusion_1e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-model = dict(loss=dict(type='SNRL2Loss', snr_gamma=5.0, loss_weight=1.0))  # setup Min-SNR Weighting Strategy
+with read_base():
+    from .._base_.datasets.fill50k_controlnet import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_v15_controlnet import *
+    from .._base_.schedules.stable_diffusion_1e import *
+
+
+model.update(loss=dict(type='SNRL2Loss', snr_gamma=5.0, loss_weight=1.0))  # setup Min-SNR Weighting Strategy
 ```
 
 ## Run training

@@ -1,13 +1,14 @@
-_base_ = [
-    "../_base_/models/pixart_alpha_1024_lora.py",
-    "../_base_/datasets/dog_dreambooth_pixart_1024.py",
-    "../_base_/schedules/stable_diffusion_500.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(
-    dataset=dict(class_image_config=dict(model={{_base_.model.model}})))
+with read_base():
+    from .._base_.datasets.dog_dreambooth_pixart_1024 import *
+    from .._base_.default_runtime import *
+    from .._base_.models.pixart_alpha_1024_lora import *
+    from .._base_.schedules.stable_diffusion_500 import *
 
-optim_wrapper = dict(
+train_dataloader.update(
+    dataset=dict(class_image_config=dict(model=model.model)))
+
+optim_wrapper.update(
     dtype="bfloat16",
     optimizer=dict(lr=1e-4))

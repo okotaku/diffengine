@@ -1,7 +1,7 @@
 import torch
 
 
-def compute_snr(timesteps, alphas_cumprod) -> torch.Tensor:
+def compute_snr(timesteps, alphas_cumprod) -> torch.Tensor:  # noqa
     """Compute SNR.
 
     Refer to https://github.com/TiankaiHang/Min-SNR-Diffusion-Tra

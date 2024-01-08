@@ -1,11 +1,9 @@
-from copy import deepcopy
 from unittest import TestCase
 
 import pytest
 import torch
 from diffusers import DDPMScheduler, Kandinsky3UNet, VQModel
 from mmengine.optim import OptimWrapper
-from torch import nn
 from torch.optim import SGD
 from transformers import AutoTokenizer, T5EncoderModel
 
@@ -17,55 +15,10 @@ from diffengine.models.losses import DeBiasEstimationLoss, L2Loss, SNRL2Loss
 from diffengine.registry import MODELS
 
 
-class DummyKandinskyV3(KandinskyV3):
-    def __init__(
-        self,
-        model: str = "kandinsky-community/kandinsky-3",
-        loss: dict | None = None,
-        unet_lora_config: dict | None = None,
-        prior_loss_weight: float = 1.,
-        tokenizer_max_length: int = 128,
-        prediction_type: str | None = None,
-        data_preprocessor: dict | nn.Module | None = None,
-        noise_generator: dict | None = None,
-        timesteps_generator: dict | None = None,
-        input_perturbation_gamma: float = 0.0,
-        *,
-        gradient_checkpointing: bool = False,
-    ) -> None:
-        assert gradient_checkpointing is False, (
-            "KandinskyV3 does not support gradient checkpointing.")
-        if data_preprocessor is None:
-            data_preprocessor = {"type": "SDDataPreprocessor"}
-        if noise_generator is None:
-            noise_generator = {"type": "WhiteNoise"}
-        if timesteps_generator is None:
-            timesteps_generator = {"type": "TimeSteps"}
-        if loss is None:
-            loss = {"type": "L2Loss", "loss_weight": 1.0}
-        super(KandinskyV3, self).__init__(data_preprocessor=data_preprocessor)
+class TestKandinskyV3(TestCase):
 
-        self.model = model
-        self.unet_lora_config = deepcopy(unet_lora_config)
-        self.prior_loss_weight = prior_loss_weight
-        self.gradient_checkpointing = gradient_checkpointing
-        self.tokenizer_max_length = tokenizer_max_length
-        self.input_perturbation_gamma = input_perturbation_gamma
-
-        if not isinstance(loss, nn.Module):
-            loss = MODELS.build(loss)
-        self.loss_module: nn.Module = loss
-
-        self.prediction_type = prediction_type
-
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            "hf-internal-testing/tiny-random-t5")
-
-        self.text_encoder = T5EncoderModel.from_pretrained(
-            "hf-internal-testing/tiny-random-t5")
-
-        self.scheduler = DDPMScheduler()
-
+    def _get_config(self) -> dict:
+        base_model = "kandinsky-community/kandinsky-3"
         vae_kwargs = {
             "block_out_channels": [32, 64],
             "down_block_types": ["DownEncoderBlock2D",
@@ -83,40 +36,41 @@ class DummyKandinskyV3(KandinskyV3):
             ],
             "vq_embed_dim": 4,
         }
-        self.vae = VQModel(**vae_kwargs)
-
-        self.unet = Kandinsky3UNet(
-            in_channels=4,
+        return dict(
+            type=KandinskyV3,
+             model=base_model,
+             tokenizer=dict(
+                 type=AutoTokenizer.from_pretrained,
+                pretrained_model_name_or_path="hf-internal-testing/tiny-random-t5"),
+             scheduler=dict(type=DDPMScheduler),
+             text_encoder=dict(type=T5EncoderModel.from_pretrained,
+                               pretrained_model_name_or_path="hf-internal-testing/tiny-random-t5"),
+             vae=dict(
+                type=VQModel,
+                **vae_kwargs),
+             unet=dict(type=Kandinsky3UNet,
+                               in_channels=4,
             time_embedding_dim=4,
             groups=2,
             attention_head_dim=4,
             layers_per_block=3,
             block_out_channels=(32, 64),
             cross_attention_dim=4,
-            encoder_hid_dim=32,
-        )
-        self.noise_generator = MODELS.build(noise_generator)
-        self.timesteps_generator = MODELS.build(timesteps_generator)
-
-        self.prepare_model()
-        self.set_lora()
-
-
-class TestKandinskyV3(TestCase):
+            encoder_hid_dim=32),
+            data_preprocessor=dict(type=SDDataPreprocessor),
+            loss=dict(type=L2Loss))
 
     def test_init(self):
+        cfg = self._get_config()
+        cfg.update(gradient_checkpointing=True)
         with pytest.raises(
                 AssertionError, match="KandinskyV3 does not support gradient"):
-            _ = DummyKandinskyV3(
-                    loss=L2Loss(),
-                    data_preprocessor=SDDataPreprocessor(),
-                    gradient_checkpointing=True)
+            _ = MODELS.build(cfg)
 
     def test_train_step(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV3(
-            loss=L2Loss(),
-            data_preprocessor=SDDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -130,12 +84,11 @@ class TestKandinskyV3(TestCase):
 
     def test_train_step_with_lora(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV3(
-            loss=L2Loss(),
-            unet_lora_config=dict(
+        cfg = self._get_config()
+        cfg.update(unet_lora_config=dict(
                 type="LoRA", r=4,
-                target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
-            data_preprocessor=SDDataPreprocessor())
+                target_modules=["to_q", "to_v", "to_k", "to_out.0"]))
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -149,10 +102,9 @@ class TestKandinskyV3(TestCase):
 
     def test_train_step_input_perturbation(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV3(
-            input_perturbation_gamma=0.1,
-            loss=L2Loss(),
-            data_preprocessor=SDDataPreprocessor())
+        cfg = self._get_config()
+        cfg.update(input_perturbation_gamma=0.1)
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -166,9 +118,8 @@ class TestKandinskyV3(TestCase):
 
     def test_train_step_dreambooth(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV3(
-            loss=L2Loss(),
-            data_preprocessor=SDDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -186,9 +137,9 @@ class TestKandinskyV3(TestCase):
 
     def test_train_step_snr_loss(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV3(
-            loss=SNRL2Loss(),
-            data_preprocessor=SDDataPreprocessor())
+        cfg = self._get_config()
+        cfg.update(loss=dict(type=SNRL2Loss))
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -202,9 +153,9 @@ class TestKandinskyV3(TestCase):
 
     def test_train_step_debias_estimation_loss(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV3(
-            loss=DeBiasEstimationLoss(),
-            data_preprocessor=SDDataPreprocessor())
+        cfg = self._get_config()
+        cfg.update(loss=dict(type=DeBiasEstimationLoss))
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -217,9 +168,8 @@ class TestKandinskyV3(TestCase):
         assert isinstance(log_vars["loss"], torch.Tensor)
 
     def test_val_and_test_step(self):
-        StableDiffuser = DummyKandinskyV3(
-            loss=L2Loss(),
-            data_preprocessor=SDDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test val_step
         with pytest.raises(NotImplementedError, match="val_step is not"):

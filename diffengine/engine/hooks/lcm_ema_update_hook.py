@@ -1,13 +1,14 @@
 from mmengine.hooks.hook import DATA_BATCH, Hook
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
+from mmengine.runner import Runner
 
 
 @HOOKS.register_module()
 class LCMEMAUpdateHook(Hook):
     """LCM EMA Update Hook."""
 
-    def before_run(self, runner) -> None:
+    def before_run(self, runner: Runner) -> None:
         """Create an ema copy of the model.
 
         Args:
@@ -21,7 +22,7 @@ class LCMEMAUpdateHook(Hook):
         self.ema_model = model.target_unet
 
     def after_train_iter(self,
-                         runner,  # noqa
+                         runner: Runner,  # noqa
                          batch_idx: int,  # noqa
                          data_batch: DATA_BATCH = None,  # noqa
                          outputs: dict | None = None) -> None:  # noqa

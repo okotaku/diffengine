@@ -9,16 +9,18 @@ All configuration files are placed under the [`configs/ip_adapter`](https://gith
 Following is the example config fixed from the stable_diffusion_xl_pokemon_blip_ip_adapter config file in [`configs/ip_adapter/stable_diffusion_xl_pokemon_blip_ip_adapter.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/ip_adapter/stable_diffusion_xl_pokemon_blip_ip_adapter.py):
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl_ip_adapter.py',
-    '../_base_/datasets/pokemon_blip_xl_ip_adapter.py',
-    '../_base_/schedules/stable_diffusion_xl_50e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(batch_size=1)
+with read_base():
+    from .._base_.datasets.pokemon_blip_xl_ip_adapter import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_ip_adapter import *
+    from .._base_.schedules.stable_diffusion_xl_50e import *
 
-optim_wrapper = dict(accumulative_counts=4)  # update every four times
+
+train_dataloader.update(batch_size=1)
+
+optim_wrapper.update(accumulative_counts=4)  # update every four times
 ```
 
 ## Run training

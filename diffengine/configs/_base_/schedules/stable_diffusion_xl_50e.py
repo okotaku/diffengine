@@ -1,8 +1,12 @@
+from mmengine.hooks import CheckpointHook
+from mmengine.optim import AmpOptimWrapper
+from transformers.optimization import Adafactor
+
 optim_wrapper = dict(
-    type="AmpOptimWrapper",
+    type=AmpOptimWrapper,
     dtype="bfloat16",
     optimizer=dict(
-        type="Adafactor",
+        type=Adafactor,
         lr=1e-5,
         weight_decay=1e-2,
         scale_parameter=False,
@@ -16,7 +20,7 @@ test_cfg = None
 
 default_hooks = dict(
     checkpoint=dict(
-        type="CheckpointHook",
+        type=CheckpointHook,
         interval=1,
         max_keep_ckpts=3,
     ))

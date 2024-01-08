@@ -1,31 +1,40 @@
-_base_ = [
-    "../_base_/models/stable_diffusion_xl.py",
-    "../_base_/datasets/pokemon_blip_xl.py",
-    "../_base_/schedules/stable_diffusion_xl_50e.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-model = dict(
+from diffengine.engine.hooks import (
+    CompileHook,
+    FastNormHook,
+    SDCheckpointHook,
+    VisualizationHook,
+)
+
+with read_base():
+    from .._base_.datasets.pokemon_blip_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl import *
+    from .._base_.schedules.stable_diffusion_xl_50e import *
+
+
+model.update(
     enable_xformers=True,
     gradient_checkpointing=False)
 
-train_dataloader = dict(batch_size=1)
+train_dataloader.update(batch_size=1)
 
-optim_wrapper = dict(
+optim_wrapper.update(
     dtype="float16",
     accumulative_counts=4)
 
-env_cfg = dict(
+env_cfg.update(
     cudnn_benchmark=True,
 )
 
 custom_hooks = [
     dict(
-        type="VisualizationHook",
+        type=VisualizationHook,
         prompt=["yoda pokemon"] * 4,
         height=1024,
         width=1024),
-    dict(type="SDCheckpointHook"),
-    dict(type="FastNormHook", fuse_main_ln=True, fuse_gn=True),
-    dict(type="CompileHook", compile_main=False),
+    dict(type=SDCheckpointHook),
+    dict(type=FastNormHook, fuse_main_ln=True, fuse_gn=True),
+    dict(type=CompileHook, compile_main=False),
 ]

@@ -11,7 +11,7 @@ from mmengine.runner import Runner
 from diffengine.configs import cfgs_name_path
 
 
-def parse_args():  # noqa
+def parse_args():
     parser = argparse.ArgumentParser(
         description="Process a checkpoint to be published")
     parser.add_argument("config", help="train config file path")

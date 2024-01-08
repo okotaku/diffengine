@@ -1,4 +1,3 @@
-# yapf: disable
 import gc
 from collections.abc import Sequence
 
@@ -6,15 +5,14 @@ import torch
 from mmengine.dataset.base_dataset import Compose
 from PIL import Image
 from torch.utils.data import Dataset
-from transformers import AutoTokenizer
+from transformers import (
+    AutoTokenizer,
+    CLIPTextModel,
+    CLIPTextModelWithProjection,
+)
 
 from diffengine.datasets.utils import encode_prompt_sdxl
-from diffengine.models.editors.stable_diffusion_xl.stable_diffusion_xl import (
-    import_model_class_from_model_name_or_path,
-)
 from diffengine.registry import DATASETS
-
-# yapf: enable
 
 Image.MAX_IMAGE_PIXELS = 1000000000
 
@@ -48,13 +46,9 @@ class HFESDDatasetPreComputeEmbs(Dataset):
         tokenizer_two = AutoTokenizer.from_pretrained(
             model, subfolder="tokenizer_2", use_fast=False)
 
-        text_encoder_cls_one = import_model_class_from_model_name_or_path(
-            model)
-        text_encoder_cls_two = import_model_class_from_model_name_or_path(
-            model, subfolder="text_encoder_2")
-        text_encoder_one = text_encoder_cls_one.from_pretrained(
+        text_encoder_one = CLIPTextModel.from_pretrained(
             model, subfolder="text_encoder").to(device)
-        text_encoder_two = text_encoder_cls_two.from_pretrained(
+        text_encoder_two = CLIPTextModelWithProjection.from_pretrained(
             model, subfolder="text_encoder_2").to(device)
 
         # null prompt

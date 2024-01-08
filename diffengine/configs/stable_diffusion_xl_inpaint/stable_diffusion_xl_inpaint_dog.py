@@ -1,16 +1,20 @@
-_base_ = [
-    "../_base_/models/stable_diffusion_xl_inpaint.py",
-    "../_base_/datasets/dog_inpaint_xl.py",
-    "../_base_/schedules/stable_diffusion_1k.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
+from mmengine.optim import AmpOptimWrapper
+from transformers import Adafactor
+
+with read_base():
+    from .._base_.datasets.dog_inpaint_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_inpaint import *
+    from .._base_.schedules.stable_diffusion_1k import *
+
+
 
 optim_wrapper = dict(
-    _delete_=True,
-    type="AmpOptimWrapper",
+    type=AmpOptimWrapper,
     dtype="bfloat16",
     optimizer=dict(
-        type="Adafactor",
+        type=Adafactor,
         lr=1e-5,
         weight_decay=1e-2,
         scale_parameter=False,

@@ -1,20 +1,24 @@
-_base_ = [
-    "../_base_/models/stable_diffusion_xl_lora.py",
-    "../_base_/datasets/pokemon_blip_xl.py",
-    "../_base_/schedules/stable_diffusion_50e.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-model = dict(
+from diffengine.engine.hooks import PeftSaveHook, VisualizationHook
+
+with read_base():
+    from .._base_.datasets.pokemon_blip_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_lora import *
+    from .._base_.schedules.stable_diffusion_50e import *
+
+
+model.update(
     unet_lora_config=dict(
         target_modules=["to_q", "to_v", "to_k", "to_out.0",
                         "conv_shortcut", "conv1", "conv2", "conv_out", "conv"]))
 
 custom_hooks = [
     dict(
-        type="VisualizationHook",
+        type=VisualizationHook,
         prompt=["yoda pokemon"] * 4,
         height=1024,
         width=1024),
-    dict(type="PeftSaveHook"),
+    dict(type=PeftSaveHook),
 ]

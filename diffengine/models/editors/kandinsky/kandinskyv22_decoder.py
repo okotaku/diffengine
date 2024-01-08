@@ -3,17 +3,11 @@ from typing import Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (
-    AutoPipelineForText2Image,
-    DDPMScheduler,
-    UNet2DConditionModel,
-    VQModel,
-)
+from diffusers import AutoPipelineForText2Image
 from mmengine import print_log
 from mmengine.model import BaseModel
 from peft import get_peft_model
 from torch import nn
-from transformers import CLIPVisionModelWithProjection
 
 from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
@@ -25,10 +19,12 @@ class KandinskyV22Decoder(BaseModel):
 
     Args:
     ----
+        scheduler (dict): Config of scheduler.
+        image_encoder (dict): Config of image encoder.
+        vae (dict): Config of vae.
+        unet (dict): Config of unet.
         decoder_model (str): pretrained model name of decoder.
             Defaults to "kandinsky-community/kandinsky-2-2-decoder".
-        prior_model (str): pretrained model name of prior.
-            Defaults to "kandinsky-community/kandinsky-2-2-prior".
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
         unet_lora_config (dict, optional): The LoRA config dict for Unet.
@@ -60,8 +56,11 @@ class KandinskyV22Decoder(BaseModel):
 
     def __init__(
         self,
+        scheduler: dict,
+        image_encoder: dict,
+        vae: dict,
+        unet: dict,
         decoder_model: str = "kandinsky-community/kandinsky-2-2-decoder",
-        prior_model: str = "kandinsky-community/kandinsky-2-2-prior",
         loss: dict | None = None,
         unet_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
@@ -85,7 +84,6 @@ class KandinskyV22Decoder(BaseModel):
         super().__init__(data_preprocessor=data_preprocessor)
 
         self.decoder_model = decoder_model
-        self.prior_model = prior_model
         self.unet_lora_config = deepcopy(unet_lora_config)
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
@@ -99,15 +97,11 @@ class KandinskyV22Decoder(BaseModel):
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
-        self.scheduler = DDPMScheduler.from_pretrained(
-            decoder_model, subfolder="scheduler")
+        self.scheduler = MODELS.build(scheduler)
 
-        self.image_encoder = CLIPVisionModelWithProjection.from_pretrained(
-            prior_model, subfolder="image_encoder")
-        self.vae = VQModel.from_pretrained(
-            decoder_model, subfolder="movq")
-        self.unet = UNet2DConditionModel.from_pretrained(
-            decoder_model, subfolder="unet")
+        self.image_encoder = MODELS.build(image_encoder)
+        self.vae = MODELS.build(vae)
+        self.unet = MODELS.build(unet)
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
 

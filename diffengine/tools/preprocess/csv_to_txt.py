@@ -3,7 +3,7 @@ import argparse
 import pandas as pd
 
 
-def parse_args():  # noqa
+def parse_args():
     parser = argparse.ArgumentParser(
         description="Process a checkpoint to be published")
     parser.add_argument("input", help="Path to csv")

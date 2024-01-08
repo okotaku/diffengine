@@ -12,12 +12,17 @@ The script also allows you to finetune the text_encoder along with the unet.
 Following is the example config fixed from the stable_diffusion_v15_dreambooth_lora_dog config file in [`configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py):
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_v15_lora_textencoder.py',  # fix base config to `stable_diffusion_v15_lora_textencoder.py'
-    '../_base_/datasets/dog_dreambooth.py',
-    '../_base_/schedules/stable_diffusion_v15_1k.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
+
+with read_base():
+    from .._base_.datasets.dog_dreambooth import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_v15_lora import *
+    from .._base_.schedules.stable_diffusion_1k import *
+
+
+train_dataloader.update(
+    dataset=dict(class_image_config=dict(model=model.model)))
 ```
 
 #### Finetuning with Full Parameters (without LoRA)
@@ -26,12 +31,17 @@ The script also allows you to finetune full parameters.
 Following is the example config fixed from the stable_diffusion_v15_dreambooth_lora_dog config file in [`configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py):
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_v15.py',  # fix base config to `stable_diffusion_v15.py'
-    '../_base_/datasets/dog_dreambooth.py',
-    '../_base_/schedules/stable_diffusion_v15_1k.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
+
+with read_base():
+    from .._base_.datasets.dog_dreambooth import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_v15 import *
+    from .._base_.schedules.stable_diffusion_1k import *
+
+
+train_dataloader.update(
+    dataset=dict(class_image_config=dict(model=model.model)))
 ```
 
 #### Finetuning without prior-preserving loss
@@ -40,16 +50,18 @@ The script also allows you to finetune without prior-preserving loss.
 Following is the example config fixed from the stable_diffusion_v15_dreambooth_lora_dog config file in [`configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_dreambooth/stable_diffusion_v15_dreambooth_lora_dog.py):
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_v15_lora.py',
-    '../_base_/datasets/dog_dreambooth.py',
-    '../_base_/schedules/stable_diffusion_v15_1k.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(
-    dataset=dict(class_prompt=None),  # class_prompt=None means training without prior-preserving loss
-)
+with read_base():
+    from .._base_.datasets.dog_dreambooth import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_v15_lora import *
+    from .._base_.schedules.stable_diffusion_1k import *
+
+
+train_dataloader.update(
+    dataset=dict(class_image_config=dict(model=model.model)),
+        class_prompt=None)  # class_prompt=None means training without prior-preserving loss
 ```
 
 ## Run DreamBooth training

@@ -1,13 +1,13 @@
-_base_ = [
-    "../../configs/_base_/models/stable_diffusion_v15_lora_textencoder.py",
-    "_base_/face_expression_dataset.py",
-    "../../configs/_base_/schedules/stable_diffusion_50e.py",
-    "../../configs/_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-model = dict(
-    model="stablediffusionapi/anything-v5", lora_config=dict(rank=128))
+with read_base():
+    from diffengine.configs._base_.default_runtime import *
+    from diffengine.configs._base_.schedules.stable_diffusion_50e import *
 
-optim_wrapper = dict(optimizer=dict(lr=1e-4))
+    from ._base_.anythingv5_lora_textencoder import *
+    from ._base_.face_expression_dataset import *
 
-train_cfg = dict(by_epoch=True, max_epochs=100)
+
+optim_wrapper.update(optimizer=dict(lr=1e-4))
+
+train_cfg.update(by_epoch=True, max_epochs=100)

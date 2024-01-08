@@ -84,16 +84,13 @@ select = ["ALL"]
 ignore = [
     "ANN003",
     "ANN101",
-    "ANN202",
     "S101",
     "BLE001",
     "PLR0913",
     "PGH004",
     "B028",
-    "ANN001",
     "ANN002",
     "PTH118",
-    "ERA001",
     "C408",
     "INP001",
     "D100",
@@ -112,8 +109,14 @@ ignore = [
     "D",
     "ANN201",
     "INP001",
+    "ANN202",
+    "ANN001",
 ]
-"diffengine/tools/*" = ["T201", "ISC002", "PTH", "D", "INP001"]
+"diffengine/tools/*" = [
+    "T201", "ISC002", "PTH", "D", "INP001",
+    "ANN201", "ANN202", "ANN001"]
+"projects/*" = ["F403", "F405", "TID252"]
+"diffengine/configs/*" = ["F403", "F405", "TID252"]
 
 [tool.mypy]
 python_version = "3.11"

@@ -5,13 +5,14 @@ from mmengine.hooks.ema_hook import EMAHook
 from mmengine.logging import print_log
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS, MODELS
+from mmengine.runner import Runner
 
 
 @HOOKS.register_module()
 class UnetEMAHook(EMAHook):
     """Unet EMA Hook."""
 
-    def before_run(self, runner) -> None:
+    def before_run(self, runner: Runner) -> None:
         """Create an ema copy of the model.
 
         Args:
@@ -25,7 +26,7 @@ class UnetEMAHook(EMAHook):
         self.ema_model = MODELS.build(
             self.ema_cfg, default_args={"model": self.src_model})
 
-    def _swap_ema_state_dict(self, checkpoint):
+    def _swap_ema_state_dict(self, checkpoint: dict) -> None:
         """Swap the state dict values of model with ema_model."""
         model_state = checkpoint["state_dict"]
         ema_state = checkpoint["ema_state_dict"]
@@ -36,7 +37,7 @@ class UnetEMAHook(EMAHook):
                 ema_state[k] = model_state["unet." + k[7:]]
                 model_state["unet." + k[7:]] = tmp
 
-    def after_load_checkpoint(self, runner, checkpoint: dict) -> None:
+    def after_load_checkpoint(self, runner: Runner, checkpoint: dict) -> None:
         """Resume ema parameters from checkpoint.
 
         Args:

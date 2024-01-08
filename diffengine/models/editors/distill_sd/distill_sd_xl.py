@@ -107,7 +107,7 @@ class DistillSDXL(StableDiffusionXL):
         self.teacher_feats: dict = {}
         self.student_feats: dict = {}
 
-        def get_activation(activation, name, residuals_present):
+        def get_activation(activation, name, residuals_present):  # noqa
             # the hook signature
             if residuals_present:
 

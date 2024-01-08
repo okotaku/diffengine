@@ -3,16 +3,11 @@ from typing import Optional, Union
 
 import numpy as np
 import torch
-from diffusers import (
-    DDPMScheduler,
-    DiffusionPipeline,
-    UNet2DConditionModel,
-)
+from diffusers import DiffusionPipeline
 from mmengine import print_log
 from mmengine.model import BaseModel
 from peft import get_peft_model
 from torch import nn
-from transformers import T5EncoderModel, T5Tokenizer
 
 from diffengine.models.archs import create_peft_config
 from diffengine.registry import MODELS
@@ -24,6 +19,10 @@ class DeepFloydIF(BaseModel):
 
     Args:
     ----
+        tokenizer (dict): Config of tokenizer.
+        scheduler (dict): Config of scheduler.
+        text_encoder (dict): Config of text encoder.
+        unet (dict): Config of unet.
         model (str): pretrained model name of stable diffusion.
             Defaults to 'DeepFloyd/IF-I-XL-v1.0'.
         loss (dict): Config of loss. Defaults to
@@ -67,6 +66,10 @@ class DeepFloydIF(BaseModel):
 
     def __init__(
         self,
+        tokenizer: dict,
+        scheduler: dict,
+        text_encoder: dict,
+        unet: dict,
         model: str = "DeepFloyd/IF-I-XL-v1.0",
         loss: dict | None = None,
         unet_lora_config: dict | None = None,
@@ -130,15 +133,11 @@ class DeepFloydIF(BaseModel):
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
-        self.tokenizer = T5Tokenizer.from_pretrained(
-            model, subfolder="tokenizer")
-        self.scheduler = DDPMScheduler.from_pretrained(
-            model, subfolder="scheduler")
+        self.tokenizer = MODELS.build(tokenizer)
+        self.scheduler = MODELS.build(scheduler)
 
-        self.text_encoder = T5EncoderModel.from_pretrained(
-            model, subfolder="text_encoder")
-        self.unet = UNet2DConditionModel.from_pretrained(
-            model, subfolder="unet")
+        self.text_encoder = MODELS.build(text_encoder)
+        self.unet = MODELS.build(unet)
         self.noise_generator = MODELS.build(noise_generator)
         self.timesteps_generator = MODELS.build(timesteps_generator)
         self.prepare_model()

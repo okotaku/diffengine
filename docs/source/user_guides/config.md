@@ -1,7 +1,7 @@
 # Learn about Configs
 
 The config system has a modular and inheritance design, and more details can be found in
-{external+mmengine:doc}`the tutorial in MMEngine <advanced_tutorials/config>`.
+[mmengine docs: CONFIG](https://mmengine.readthedocs.io/en/latest/advanced_tutorials/config.html#a-pure-python-style-configuration-file-beta).
 
 Usually, we use python files as config file. All configuration files are placed under the [`configs`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs) folder, and the directory structure is as follows:
 
@@ -33,12 +33,13 @@ We call all the config files in the `_base_` folder as _primitive_ config files.
 For easy understanding, we use [stable_diffusion_v15_pokemon_blip config file](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/stable_diffusion/stable_diffusion_v15_pokemon_blip.py) as an example and comment on each line.
 
 ```python
-_base_ = [                                              # This config file will inherit all config files in `_base_`.
-    '../_base_/models/stable_diffusion_v15.py',         # model settings
-    '../_base_/datasets/pokemon_blip.py',               # data settings
-    '../_base_/schedules/stable_diffusion_50e.py',  # schedule settings
-    '../_base_/default_runtime.py'                      # runtime settings
-]
+from mmengine.config import read_base
+
+with read_base():  # This config file will inherit all config files in `_base_`.
+    from .._base_.datasets.pokemon_blip import *           # model settings
+    from .._base_.default_runtime import *                 # data settings
+    from .._base_.models.stable_diffusion_v15 import *     # schedule settings
+    from .._base_.schedules.stable_diffusion_50e import *  # runtime settings
 ```
 
 We will explain the four primitive config files separately below.
@@ -48,16 +49,40 @@ We will explain the four primitive config files separately below.
 This primitive config file includes a dict variable `model`, which mainly includes information such as network structure and loss function:
 
 Usually, we use the **`type` field** to specify the class of the component and use other fields to pass
-the initialization arguments of the class. The {external+mmengine:doc}`registry tutorial <advanced_tutorials/registry>` describes it in detail.
+the initialization arguments of the class.
 
 Following is the model primitive config of the stable_diffusion_v15 config file in [`configs/_base_/models/stable_diffusion_v15.py`](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/_base_/models/stable_diffusion_v15.py):
 
 ```python
-model = dict(
-    type='StableDiffusion',     # The type of the main model.
-    model='runwayml/stable-diffusion-v1-5',  # pretrained model name of stable diffusion
-    loss=dict(type='L2Loss', loss_weight=1.0),  # The loss function to optimize.
-    )
+from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel
+from transformers import CLIPTextModel, CLIPTokenizer
+
+from diffengine.models.editors import StableDiffusion
+
+base_model = "runwayml/stable-diffusion-v1-5"  # pretrained model name of stable diffusion
+model = dict(type=StableDiffusion,  # The type of the main model.
+             model=base_model,
+             tokenizer=dict(  # tokenizer settings
+                type=CLIPTokenizer.from_pretrained,
+                pretrained_model_name_or_path=base_model,
+                subfolder="tokenizer"),
+             scheduler=dict(  # scheduler settings
+                type=DDPMScheduler.from_pretrained,
+                pretrained_model_name_or_path=base_model,
+                subfolder="scheduler"),
+             text_encoder=dict(  # text encoder settings
+                type=CLIPTextModel.from_pretrained,
+                pretrained_model_name_or_path=base_model,
+                subfolder="text_encoder"),
+             vae=dict(  # vae settings
+                type=AutoencoderKL.from_pretrained,
+                pretrained_model_name_or_path=base_model,
+                subfolder="vae"),
+             unet=dict(  # unet settings
+                type=UNet2DConditionModel.from_pretrained,
+                pretrained_model_name_or_path=base_model,
+                subfolder="unet"))
+
 ```
 
 ### Data settings
@@ -67,22 +92,38 @@ This primitive config file includes information to construct the dataloader:
 Following is the data primitive config of the stable_diffusion_v15 config in [`configs/_base_/datasets/pokemon_blip.py`]https://github.com/okotaku/diffengine/blob/main/diffengine/configs/_base_/datasets/pokemon_blip.py)：
 
 ```python
-train_pipeline = [      # augmentation settings
-    dict(type='torchvision/Resize', size=512, interpolation='bilinear'),
-    dict(type='RandomCrop', size=512),
-    dict(type='RandomHorizontalFlip', p=0.5),
-    dict(type='torchvision/ToTensor'),
-    dict(type='torchvision/Normalize', mean=[0.5], std=[0.5]),
-    dict(type='PackInputs'),
+import torchvision
+from mmengine.dataset import DefaultSampler
+
+from diffengine.datasets import HFDataset
+from diffengine.datasets.transforms import (
+    PackInputs,
+    RandomCrop,
+    RandomHorizontalFlip,
+    TorchVisonTransformWrapper,
+)
+from diffengine.engine.hooks import SDCheckpointHook, VisualizationHook
+
+train_pipeline = [  # augmentation settings
+    dict(type=TorchVisonTransformWrapper,
+         transform=torchvision.transforms.Resize,
+         size=512, interpolation="bilinear"),
+    dict(type=RandomCrop, size=512),
+    dict(type=RandomHorizontalFlip, p=0.5),
+    dict(type=TorchVisonTransformWrapper,
+         transform=torchvision.transforms.ToTensor),
+    dict(type=TorchVisonTransformWrapper,
+         transform=torchvision.transforms.Normalize, mean=[0.5], std=[0.5]),
+    dict(type=PackInputs),
 ]
 train_dataloader = dict(
     batch_size=4,  # batch size
     num_workers=4,
     dataset=dict(
-        type='HFDataset',  # The type of dataset
-        dataset='lambdalabs/pokemon-blip-captions',  #  Dataset name or path.
+        type=HFDataset,  # The type of dataset
+        dataset="lambdalabs/pokemon-blip-captions",  #  Dataset name or path.
         pipeline=train_pipeline),
-    sampler=dict(type='DefaultSampler', shuffle=True),
+    sampler=dict(type=DefaultSampler, shuffle=True),
 )
 
 val_dataloader = None
@@ -91,8 +132,8 @@ test_dataloader = val_dataloader
 test_evaluator = val_evaluator
 
 custom_hooks = [
-    dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),  # validation visualize prompt
-    dict(type='SDCheckpointHook')
+    dict(type=VisualizationHook, prompt=['yoda pokemon'] * 4),  # validation visualize prompt
+    dict(type=SDCheckpointHook)
 ]
 ```
 
@@ -105,10 +146,13 @@ Following is the schedule primitive config of the stable_diffusion_v15 config in
 
 
 ```python
+from mmengine.hooks import CheckpointHook
+from mmengine.optim import AmpOptimWrapper
+from torch.optim import AdamW
+
 optim_wrapper = dict(
-    type='AmpOptimWrapper', dtype='float16',  # fp16 optimization
-    # Use AdamW optimizer to optimize parameters.
-    optimizer=dict(type='AdamW', lr=1e-5, weight_decay=1e-2),
+    type=AmpOptimWrapper, dtype="float16",  # fp16 optimization
+    optimizer=dict(type=AdamW, lr=1e-5, weight_decay=1e-2),  # Use AdamW optimizer to optimize parameters.
     clip_grad=dict(max_norm=1.0))
 
 # Training configuration, iterate 50 epochs.
@@ -120,10 +164,10 @@ test_cfg = None
 default_hooks = dict(
     # save checkpoint per epoch and keep 3 checkpoints.
     checkpoint=dict(
-        type='CheckpointHook',
+        type=CheckpointHook,
         interval=1,
         max_keep_ckpts=3,
-    ), )
+    ))
 ```
 
 ### Runtime settings
@@ -165,16 +209,13 @@ the learning rate schedule, and modify the dataset path, you can create a new co
 `configs/stable_diffusion/stable_diffusion_v15_pokemon_blip-300e.py` with content as below:
 
 ```python
-# create this file under 'configs/stable_diffusion/' folder
-_base_ = './stable_diffusion_v15_pokemon_blip.py'
+from mmengine.config import read_base
 
-# using CutMix batch augment
-model = dict(
-    model='xyn-ai/anything-v4.0'
-)
+with read_base():  # This config file will inherit all config files in `_base_`.
+    from diffengine.configs.stable_diffusion.stable_diffusion_v15_pokemon_blip import * 
 
 # trains more epochs
-train_cfg = dict(max_epochs=300)  # Train for 300 epochs
+train_cfg.update(max_epochs=300)  # Train for 300 epochs
 param_scheduler = [
     dict(
         type='LinearLR',
@@ -193,11 +234,11 @@ param_scheduler = [
 ]
 
 # Use your own dataset directory
-train_dataloader = dict(
+train_dataloader.update(
     dataset=dict(dataset='mydata/pokemon-blip-captions'),
 )
 ```
 
 ## Acknowledgement
 
-This content refers to [mmpretrain docs: LEARN ABOUT CONFIGS](https://mmpretrain.readthedocs.io/en/latest/user_guides/config.html). Thank you for the great docs.
+This content refers to [mmengine docs: CONFIG](https://mmengine.readthedocs.io/en/latest/advanced_tutorials/config.html#a-pure-python-style-configuration-file-beta). Thank you for the great docs.

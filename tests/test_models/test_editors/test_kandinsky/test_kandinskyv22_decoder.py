@@ -1,11 +1,9 @@
-from copy import deepcopy
 from unittest import TestCase
 
 import pytest
 import torch
 from diffusers import DDPMScheduler, UNet2DConditionModel, VQModel
 from mmengine.optim import OptimWrapper
-from torch import nn
 from torch.optim import SGD
 from transformers import CLIPVisionConfig, CLIPVisionModelWithProjection
 
@@ -17,59 +15,9 @@ from diffengine.models.losses import DeBiasEstimationLoss, L2Loss, SNRL2Loss
 from diffengine.registry import MODELS
 
 
-class DummyKandinskyV22Decoder(KandinskyV22Decoder):
-    def __init__(
-        self,
-        decoder_model: str = "kandinsky-community/kandinsky-2-2-decoder",
-        prior_model: str = "kandinsky-community/kandinsky-2-2-prior",
-        loss: dict | None = None,
-        unet_lora_config: dict | None = None,
-        prior_loss_weight: float = 1.,
-        prediction_type: str | None = None,
-        data_preprocessor: dict | nn.Module | None = None,
-        noise_generator: dict | None = None,
-        timesteps_generator: dict | None = None,
-        input_perturbation_gamma: float = 0.0,
-        *,
-        gradient_checkpointing: bool = False,
-    ) -> None:
-        if data_preprocessor is None:
-            data_preprocessor = {"type": "KandinskyV22DecoderDataPreprocessor"}
-        if noise_generator is None:
-            noise_generator = {"type": "WhiteNoise"}
-        if timesteps_generator is None:
-            timesteps_generator = {"type": "TimeSteps"}
-        if loss is None:
-            loss = {"type": "L2Loss", "loss_weight": 1.0}
-        super(KandinskyV22Decoder, self).__init__(data_preprocessor=data_preprocessor)
+class TestKandinskyV22Decoder(TestCase):
 
-        self.decoder_model = decoder_model
-        self.prior_model = prior_model
-        self.unet_lora_config = deepcopy(unet_lora_config)
-        self.prior_loss_weight = prior_loss_weight
-        self.gradient_checkpointing = gradient_checkpointing
-        self.input_perturbation_gamma = input_perturbation_gamma
-
-        if not isinstance(loss, nn.Module):
-            loss = MODELS.build(loss)
-        self.loss_module: nn.Module = loss
-
-        self.prediction_type = prediction_type
-
-        config = CLIPVisionConfig(
-            hidden_size=32,
-            image_size=224,
-            projection_dim=32,
-            intermediate_size=37,
-            num_attention_heads=4,
-            num_channels=3,
-            num_hidden_layers=5,
-            patch_size=14,
-        )
-        self.image_encoder = CLIPVisionModelWithProjection(config)
-
-        self.scheduler = DDPMScheduler()
-
+    def _get_config(self) -> dict:
         vae_kwargs = {
             "block_out_channels": [32, 64],
             "down_block_types": ["DownEncoderBlock2D",
@@ -87,8 +35,6 @@ class DummyKandinskyV22Decoder(KandinskyV22Decoder):
             ],
             "vq_embed_dim": 4,
         }
-        self.vae = VQModel(**vae_kwargs)
-
         model_kwargs = {
             "in_channels": 4,
             "out_channels": 8,
@@ -107,21 +53,31 @@ class DummyKandinskyV22Decoder(KandinskyV22Decoder):
             "resnet_time_scale_shift": "scale_shift",
             "class_embed_type": None,
         }
-        self.unet = UNet2DConditionModel(**model_kwargs)
-        self.noise_generator = MODELS.build(noise_generator)
-        self.timesteps_generator = MODELS.build(timesteps_generator)
-
-        self.prepare_model()
-        self.set_lora()
-
-
-class TestKandinskyV22Decoder(TestCase):
+        config = CLIPVisionConfig(
+            hidden_size=32,
+            image_size=224,
+            projection_dim=32,
+            intermediate_size=37,
+            num_attention_heads=4,
+            num_channels=3,
+            num_hidden_layers=5,
+            patch_size=14,
+        )
+        return dict(
+            type=KandinskyV22Decoder,
+             scheduler=dict(type=DDPMScheduler),
+             image_encoder=dict(
+                 type=CLIPVisionModelWithProjection,
+                 config=config),
+             vae=dict(type=VQModel, **vae_kwargs),
+             unet=dict(type=UNet2DConditionModel, **model_kwargs),
+            data_preprocessor=dict(type=KandinskyV22DecoderDataPreprocessor),
+            loss=dict(type=L2Loss))
 
     def test_train_step(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV22Decoder(
-            loss=L2Loss(),
-            data_preprocessor=KandinskyV22DecoderDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -135,12 +91,11 @@ class TestKandinskyV22Decoder(TestCase):
 
     def test_train_step_with_lora(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV22Decoder(
-            loss=L2Loss(),
-            unet_lora_config=dict(
+        cfg = self._get_config()
+        cfg.update(unet_lora_config=dict(
                 type="LoRA", r=4,
-                target_modules=["to_q", "to_v", "to_k", "to_out.0"]),
-            data_preprocessor=KandinskyV22DecoderDataPreprocessor())
+                target_modules=["to_q", "to_v", "to_k", "to_out.0"]))
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -154,10 +109,9 @@ class TestKandinskyV22Decoder(TestCase):
 
     def test_train_step_input_perturbation(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV22Decoder(
-            input_perturbation_gamma=0.1,
-            loss=L2Loss(),
-            data_preprocessor=KandinskyV22DecoderDataPreprocessor())
+        cfg = self._get_config()
+        cfg.update(input_perturbation_gamma=0.1)
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -171,10 +125,9 @@ class TestKandinskyV22Decoder(TestCase):
 
     def test_train_step_with_gradient_checkpointing(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV22Decoder(
-            loss=L2Loss(),
-            data_preprocessor=KandinskyV22DecoderDataPreprocessor(),
-            gradient_checkpointing=True)
+        cfg = self._get_config()
+        cfg.update(gradient_checkpointing=True)
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -188,9 +141,8 @@ class TestKandinskyV22Decoder(TestCase):
 
     def test_train_step_dreambooth(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV22Decoder(
-            loss=L2Loss(),
-            data_preprocessor=KandinskyV22DecoderDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -208,9 +160,9 @@ class TestKandinskyV22Decoder(TestCase):
 
     def test_train_step_snr_loss(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV22Decoder(
-            loss=SNRL2Loss(),
-            data_preprocessor=KandinskyV22DecoderDataPreprocessor())
+        cfg = self._get_config()
+        cfg.update(loss=dict(type=SNRL2Loss))
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -224,9 +176,9 @@ class TestKandinskyV22Decoder(TestCase):
 
     def test_train_step_debias_estimation_loss(self):
         # test load with loss module
-        StableDiffuser = DummyKandinskyV22Decoder(
-            loss=DeBiasEstimationLoss(),
-            data_preprocessor=KandinskyV22DecoderDataPreprocessor())
+        cfg = self._get_config()
+        cfg.update(loss=dict(type=DeBiasEstimationLoss))
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -239,9 +191,8 @@ class TestKandinskyV22Decoder(TestCase):
         assert isinstance(log_vars["loss"], torch.Tensor)
 
     def test_val_and_test_step(self):
-        StableDiffuser = DummyKandinskyV22Decoder(
-            loss=L2Loss(),
-            data_preprocessor=KandinskyV22DecoderDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test val_step
         with pytest.raises(NotImplementedError, match="val_step is not"):

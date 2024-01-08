@@ -1,25 +1,44 @@
+import torchvision
+from mmengine.dataset import InfiniteSampler
+
+from diffengine.datasets import HFDreamBoothDataset
+from diffengine.datasets.transforms import (
+    ComputePixArtImgInfo,
+    PackInputs,
+    RandomCrop,
+    RandomHorizontalFlip,
+    SaveImageShape,
+    T5TextPreprocess,
+    TorchVisonTransformWrapper,
+)
+from diffengine.engine.hooks import PeftSaveHook, VisualizationHook
+
 train_pipeline = [
-    dict(type="SaveImageShape"),
-    dict(type="torchvision/Resize", size=512, interpolation="bilinear"),
-    dict(type="RandomCrop", size=512),
-    dict(type="RandomHorizontalFlip", p=0.5),
-    dict(type="ComputePixArtImgInfo"),
-    dict(type="torchvision/ToTensor"),
-    dict(type="torchvision/Normalize", mean=[0.5], std=[0.5]),
-    dict(type="T5TextPreprocess"),
-    dict(type="PackInputs",
+    dict(type=SaveImageShape),
+    dict(type=TorchVisonTransformWrapper,
+         transform=torchvision.transforms.Resize,
+         size=512, interpolation="bilinear"),
+    dict(type=RandomCrop, size=512),
+    dict(type=RandomHorizontalFlip, p=0.5),
+    dict(type=ComputePixArtImgInfo),
+    dict(type=TorchVisonTransformWrapper,
+         transform=torchvision.transforms.ToTensor),
+    dict(type=TorchVisonTransformWrapper,
+         transform=torchvision.transforms.Normalize, mean=[0.5], std=[0.5]),
+    dict(type=T5TextPreprocess),
+    dict(type=PackInputs,
          input_keys=["img", "text", "resolution", "aspect_ratio"]),
 ]
 train_dataloader = dict(
     batch_size=4,
     num_workers=4,
     dataset=dict(
-        type="HFDreamBoothDataset",
+        type=HFDreamBoothDataset,
         dataset="diffusers/dog-example",
         instance_prompt="a photo of sks dog",
         pipeline=train_pipeline,
         class_prompt=None),
-    sampler=dict(type="InfiniteSampler", shuffle=True),
+    sampler=dict(type=InfiniteSampler, shuffle=True),
 )
 
 val_dataloader = None
@@ -29,11 +48,11 @@ test_evaluator = val_evaluator
 
 custom_hooks = [
     dict(
-        type="VisualizationHook",
+        type=VisualizationHook,
         prompt=["A photo of sks dog in a bucket"] * 4,
         by_epoch=False,
         interval=100,
         height=512,
         width=512),
-    dict(type="PeftSaveHook"),
+    dict(type=PeftSaveHook),
 ]

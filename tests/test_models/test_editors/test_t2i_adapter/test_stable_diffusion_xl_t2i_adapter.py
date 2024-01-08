@@ -2,9 +2,10 @@ from unittest import TestCase
 
 import pytest
 import torch
-from diffusers import T2IAdapter
+from diffusers import AutoencoderKL, DDPMScheduler, T2IAdapter, UNet2DConditionModel
 from mmengine.optim import OptimWrapper
 from torch.optim import SGD
+from transformers import AutoTokenizer, CLIPTextModel, CLIPTextModelWithProjection
 
 from diffengine.models.editors import (
     SDXLControlNetDataPreprocessor,
@@ -12,38 +13,104 @@ from diffengine.models.editors import (
 )
 from diffengine.models.losses import L2Loss
 from diffengine.models.utils import CubicSamplingTimeSteps
+from diffengine.registry import MODELS
 
 
 class TestStableDiffusionXLT2IAdapter(TestCase):
 
+    def _get_config(self) -> dict:
+        base_model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
+        return dict(type=StableDiffusionXLT2IAdapter,
+             model=base_model,
+             tokenizer_one=dict(type=AutoTokenizer.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="tokenizer",
+                            use_fast=False),
+             tokenizer_two=dict(type=AutoTokenizer.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="tokenizer_2",
+                            use_fast=False),
+             scheduler=dict(type=DDPMScheduler.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="scheduler"),
+             text_encoder_one=dict(type=CLIPTextModel.from_pretrained,
+                               pretrained_model_name_or_path=base_model,
+                               subfolder="text_encoder"),
+             text_encoder_two=dict(type=CLIPTextModelWithProjection.from_pretrained,
+                               pretrained_model_name_or_path=base_model,
+                               subfolder="text_encoder_2"),
+             vae=dict(
+                type=AutoencoderKL.from_pretrained,
+                pretrained_model_name_or_path=base_model,
+                subfolder="vae"),
+             unet=dict(type=UNet2DConditionModel.from_pretrained,
+                             pretrained_model_name_or_path=base_model,
+                             subfolder="unet"),
+             adapter=dict(type=T2IAdapter.from_pretrained,
+                        pretrained_model_name_or_path="hf-internal-testing/tiny-adapter"),
+            data_preprocessor=dict(type=SDXLControlNetDataPreprocessor),
+            loss=dict(type=L2Loss))
+
+    def _get_config_custom_adapter(self) -> dict:
+        base_model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
+        return dict(type=StableDiffusionXLT2IAdapter,
+             model=base_model,
+             tokenizer_one=dict(type=AutoTokenizer.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="tokenizer",
+                            use_fast=False),
+             tokenizer_two=dict(type=AutoTokenizer.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="tokenizer_2",
+                            use_fast=False),
+             scheduler=dict(type=DDPMScheduler.from_pretrained,
+                            pretrained_model_name_or_path=base_model,
+                            subfolder="scheduler"),
+             text_encoder_one=dict(type=CLIPTextModel.from_pretrained,
+                               pretrained_model_name_or_path=base_model,
+                               subfolder="text_encoder"),
+             text_encoder_two=dict(type=CLIPTextModelWithProjection.from_pretrained,
+                               pretrained_model_name_or_path=base_model,
+                               subfolder="text_encoder_2"),
+             vae=dict(
+                type=AutoencoderKL.from_pretrained,
+                pretrained_model_name_or_path=base_model,
+                subfolder="vae"),
+             unet=dict(type=UNet2DConditionModel.from_pretrained,
+                             pretrained_model_name_or_path=base_model,
+                             subfolder="unet"),
+             adapter=dict(type=T2IAdapter,
+                          in_channels=3,
+                        channels=[32, 64],
+                        num_res_blocks=1,
+                        downscale_factor=4,
+                        adapter_type="full_adapter_xl"),
+            data_preprocessor=dict(type=SDXLControlNetDataPreprocessor),
+            loss=dict(type=L2Loss))
+
     def test_init(self):
+        cfg = self._get_config()
+        cfg.update(unet_lora_config=dict(type="dummy"))
         with pytest.raises(
                 AssertionError, match="`unet_lora_config` should be None"):
-            _ = StableDiffusionXLT2IAdapter(
-                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-                data_preprocessor=SDXLControlNetDataPreprocessor(),
-                unet_lora_config=dict(type="dummy"))
+            _ = MODELS.build(cfg)
 
+        cfg = self._get_config()
+        cfg.update(text_encoder_lora_config=dict(type="dummy"))
         with pytest.raises(
                 AssertionError, match="`text_encoder_lora_config` should be None"):
-            _ = StableDiffusionXLT2IAdapter(
-                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-                data_preprocessor=SDXLControlNetDataPreprocessor(),
-                text_encoder_lora_config=dict(type="dummy"))
+            _ = MODELS.build(cfg)
 
+        cfg = self._get_config()
+        cfg.update(finetune_text_encoder=True)
         with pytest.raises(
                 AssertionError,
                 match="`finetune_text_encoder` should be False"):
-            _ = StableDiffusionXLT2IAdapter(
-                "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-                data_preprocessor=SDXLControlNetDataPreprocessor(),
-                finetune_text_encoder=True)
+            _ = MODELS.build(cfg)
 
     def test_infer(self):
-        StableDiffuser = StableDiffusionXLT2IAdapter(
-            "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            adapter_model="hf-internal-testing/tiny-adapter",
-            data_preprocessor=SDXLControlNetDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
         assert isinstance(StableDiffuser.adapter, T2IAdapter)
         assert isinstance(StableDiffuser.timesteps_generator, CubicSamplingTimeSteps)
 
@@ -59,7 +126,6 @@ class TestStableDiffusionXLT2IAdapter(TestCase):
         # test device
         assert StableDiffuser.device.type == "cpu"
 
-        # output_type = 'latent'
         result = StableDiffuser.infer(
             ["an insect robot preparing a delicious meal"],
             ["tests/testdata/color.jpg"],
@@ -71,11 +137,8 @@ class TestStableDiffusionXLT2IAdapter(TestCase):
         assert result[0].shape == (4, 32, 32)
 
         # test adapter model is None
-        StableDiffuser = StableDiffusionXLT2IAdapter(
-            "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            adapter_model_channels=[32, 64],
-            adapter_downscale_factor=4,
-            data_preprocessor=SDXLControlNetDataPreprocessor())
+        cfg = self._get_config_custom_adapter()
+        StableDiffuser = MODELS.build(cfg)
         assert isinstance(StableDiffuser.adapter, T2IAdapter)
 
         result = StableDiffuser.infer(
@@ -91,11 +154,8 @@ class TestStableDiffusionXLT2IAdapter(TestCase):
 
     def test_train_step(self):
         # test load with loss module
-        StableDiffuser = StableDiffusionXLT2IAdapter(
-            "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            adapter_model="hf-internal-testing/tiny-adapter",
-            loss=L2Loss(),
-            data_preprocessor=SDXLControlNetDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -112,12 +172,9 @@ class TestStableDiffusionXLT2IAdapter(TestCase):
 
     def test_train_step_with_gradient_checkpointing(self):
         # test load with loss module
-        StableDiffuser = StableDiffusionXLT2IAdapter(
-            "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            adapter_model="hf-internal-testing/tiny-adapter",
-            loss=L2Loss(),
-            data_preprocessor=SDXLControlNetDataPreprocessor(),
-            gradient_checkpointing=True)
+        cfg = self._get_config()
+        cfg.update(gradient_checkpointing=True)
+        StableDiffuser = MODELS.build(cfg)
 
         # test train step
         data = dict(
@@ -133,11 +190,8 @@ class TestStableDiffusionXLT2IAdapter(TestCase):
         assert isinstance(log_vars["loss"], torch.Tensor)
 
     def test_val_and_test_step(self):
-        StableDiffuser = StableDiffusionXLT2IAdapter(
-            "hf-internal-testing/tiny-stable-diffusion-xl-pipe",
-            adapter_model="hf-internal-testing/tiny-adapter",
-            loss=L2Loss(),
-            data_preprocessor=SDXLControlNetDataPreprocessor())
+        cfg = self._get_config()
+        StableDiffuser = MODELS.build(cfg)
 
         # test val_step
         with pytest.raises(NotImplementedError, match="val_step is not"):

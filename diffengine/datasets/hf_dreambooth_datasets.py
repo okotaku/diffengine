@@ -123,7 +123,7 @@ class HFDreamBoothDataset(Dataset):
                 f"class_image_config needs a dict with keys {essential_keys}"
             self.generate_class_image(class_image_config)
 
-    def generate_class_image(self, class_image_config) -> None:
+    def generate_class_image(self, class_image_config: dict) -> None:
         """Generate class images for prior preservation loss."""
         class_images_dir = Path(class_image_config["data_dir"])
         if class_images_dir.exists(

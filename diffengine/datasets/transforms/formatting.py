@@ -9,7 +9,7 @@ from diffengine.datasets.transforms import BaseTransform
 from diffengine.registry import TRANSFORMS
 
 
-def to_tensor(data) -> torch.Tensor:
+def to_tensor(data) -> torch.Tensor:  # noqa
     """Convert objects of various python types to :obj:`torch.Tensor`.
 
     Supported types are: :class:`numpy.ndarray`, :class:`torch.Tensor`,

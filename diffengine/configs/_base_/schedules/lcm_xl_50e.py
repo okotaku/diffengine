@@ -1,7 +1,11 @@
+from bitsandbytes.optim import AdamW8bit
+from mmengine.hooks import CheckpointHook
+from mmengine.optim import AmpOptimWrapper
+
 optim_wrapper = dict(
-    type="AmpOptimWrapper",
+    type=AmpOptimWrapper,
     dtype="float16",
-    optimizer=dict(type="AdamW8bit", lr=1e-6, weight_decay=0.0),
+    optimizer=dict(type=AdamW8bit, lr=1e-6, weight_decay=0.0),
     clip_grad=dict(max_norm=1.0))
 
 # train, val, test setting
@@ -11,7 +15,7 @@ test_cfg = None
 
 default_hooks = dict(
     checkpoint=dict(
-        type="CheckpointHook",
+        type=CheckpointHook,
         interval=1,
         max_keep_ckpts=3,
     ))

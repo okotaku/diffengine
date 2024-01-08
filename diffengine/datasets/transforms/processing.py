@@ -26,13 +26,13 @@ if is_ftfy_available():
     import ftfy
 
 
-def _str_to_torch_dtype(t: str):
+def _str_to_torch_dtype(t: str):  # noqa
     """Map to torch.dtype."""
     import torch  # noqa: F401
     return eval(f"torch.{t}")  # noqa
 
 
-def _interpolation_modes_from_str(t: str):
+def _interpolation_modes_from_str(t: str):  # noqa
     """Map to Interpolation."""
     t = t.lower()
     inverse_modes_mapping = {
@@ -60,7 +60,7 @@ class TorchVisonTransformWrapper:
     """
 
     def __init__(self,
-                 transform,
+                 transform,  # noqa
                  *args,
                  keys: list[str] | None = None,
                  **kwargs) -> None:
@@ -75,7 +75,7 @@ class TorchVisonTransformWrapper:
             kwargs["dtype"] = _str_to_torch_dtype(kwargs["dtype"])
         self.t = transform(*args, **kwargs)
 
-    def __call__(self, results) -> dict:
+    def __call__(self, results: dict) -> dict:
         """Call transform."""
         for k in self.keys:
             results[k] = self.t(results[k])
@@ -319,7 +319,8 @@ class RandomHorizontalFlip(BaseTransform):
         keys (List[str]): `keys` to apply augmentation from results.
     """
 
-    def __init__(self, *args, p: float = 0.5, keys=None, **kwargs) -> None:
+    def __init__(self, *args, p: float = 0.5,
+                 keys: list[str] | None = None, **kwargs) -> None:
         if keys is None:
             keys = ["img"]
         self.p = p
@@ -443,7 +444,8 @@ class RandomTextDrop(BaseTransform):
         keys (List[str]): `keys` to apply augmentation from results.
     """
 
-    def __init__(self, p: float = 0.1, keys=None) -> None:
+    def __init__(self, p: float = 0.1,
+                 keys: list[str] | None = None) -> None:
         if keys is None:
             keys = ["text"]
         self.p = p
@@ -473,7 +475,8 @@ class T5TextPreprocess(BaseTransform):
         clean_caption (bool): clean caption. Defaults to False.
     """
 
-    def __init__(self, keys=None,
+    def __init__(self,
+                 keys: list[str] | None = None,
                  *,
                  clean_caption: bool = True) -> None:
         if clean_caption:
@@ -704,10 +707,13 @@ class AddConstantCaption(BaseTransform):
 
     Args:
     ----
-        keys (List[str]): `keys` to apply augmentation from results.
+        constant_caption (str): `constant_caption` to add.
+        keys (List[str], optional): `keys` to apply augmentation from results.
+            Defaults to None.
     """
 
-    def __init__(self, constant_caption: str, keys=None) -> None:
+    def __init__(self, constant_caption: str,
+                 keys: list[str] | None = None) -> None:
         if keys is None:
             keys = ["text"]
         self.constant_caption: str = constant_caption

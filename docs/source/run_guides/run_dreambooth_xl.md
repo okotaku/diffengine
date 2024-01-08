@@ -9,15 +9,13 @@ All configuration files are placed under the [`configs/stable_diffusion_xl_dream
 Following is the example config fixed from the stable_diffusion_xl_dreambooth_lora_dog config file in [`configs/stable_diffusion_xl_dreambooth/stable_diffusion_xl_dreambooth_lora_dog.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_dreambooth/stable_diffusion_xl_dreambooth_lora_dog.py):
 
 ```
-_base_ = [
-    "../_base_/models/stable_diffusion_xl_lora.py",
-    "../_base_/datasets/dog_dreambooth_xl.py",
-    "../_base_/schedules/stable_diffusion_500.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(
-    dataset=dict(class_image_config=dict(model={{_base_.model.model}})))
+with read_base():
+    from .._base_.datasets.dog_dreambooth_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_lora import *
+    from .._base_.schedules.stable_diffusion_500 import *
 ```
 
 #### Finetuning the text encoder and UNet
@@ -25,14 +23,16 @@ train_dataloader = dict(
 The script also allows you to finetune the text_encoder along with the unet.
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl_lora.py',
-    '../_base_/datasets/dog_dreambooth_xl.py',
-    '../_base_/schedules/stable_diffusion_500.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-model = dict(finetune_text_encoder=True)  # fine tune text encoder
+with read_base():
+    from .._base_.datasets.dog_dreambooth_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_lora import *
+    from .._base_.schedules.stable_diffusion_500 import *
+
+
+model.update(finetune_text_encoder=True)  # fine tune text encoder
 ```
 
 #### Finetuning with Full Parameters (without LoRA)
@@ -40,16 +40,13 @@ model = dict(finetune_text_encoder=True)  # fine tune text encoder
 The script also allows you to finetune full parameters.
 
 ```
-_base_ = [
-    '../_base_/datasets/dog_dreambooth_xl.py',
-    '../_base_/schedules/stable_diffusion_500.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-model = dict(  # not using lora_config
-    type='StableDiffusionXL',
-    model='stabilityai/stable-diffusion-xl-base-1.0',
-    vae_model='madebyollin/sdxl-vae-fp16-fix')
+with read_base():
+    from .._base_.datasets.dog_dreambooth_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl import *
+    from .._base_.schedules.stable_diffusion_500 import *
 ```
 
 #### Finetuning with prior-preserving loss
@@ -57,15 +54,19 @@ model = dict(  # not using lora_config
 The script also allows you to finetune with prior-preserving loss.
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl_lora.py',
-    '../_base_/datasets/dog_dreambooth_xl.py',
-    '../_base_/schedules/stable_diffusion_500.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(
-    dataset=dict(class_prompt='a photo of dog'),  # class_prompt=str means training with prior-preserving loss
+with read_base():
+    from .._base_.datasets.dog_dreambooth_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_lora import *
+    from .._base_.schedules.stable_diffusion_500 import *
+
+
+train_dataloader.update(
+    dataset=dict(
+        class_image_config=dict(model=model.model),
+        class_prompt='a photo of dog'),  # class_prompt=str means training with prior-preserving loss
 )
 ```
 

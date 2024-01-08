@@ -25,7 +25,7 @@ class DumpImage:
         mmengine.mkdir_or_exist(self.dump_dir)
         self.num_dumped_imgs = Value("i", 0)
 
-    def __call__(self, results) -> dict:
+    def __call__(self, results: dict) -> dict:
         """Dump the input image to the specified directory.
 
         No changes will be
@@ -88,7 +88,7 @@ class DumpMaskedImage:
         mmengine.mkdir_or_exist(self.dump_dir)
         self.num_dumped_imgs = Value("i", 0)
 
-    def __call__(self, results) -> dict:
+    def __call__(self, results: dict) -> dict:
         """Dump the input image to the specified directory.
 
         No changes will be

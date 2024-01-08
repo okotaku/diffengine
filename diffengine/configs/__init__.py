@@ -3,7 +3,7 @@
 import os
 
 
-def get_cfgs_name_path():
+def get_cfgs_name_path() -> dict:
     path = os.path.dirname(__file__)
     mapping = {}
     for root, _, files in os.walk(path):

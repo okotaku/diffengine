@@ -5,7 +5,7 @@ import argparse
 from diffengine.configs import cfgs_name_path
 
 
-def parse_args():  # noqa
+def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-p", "--pattern", default=None, help="Pattern for fuzzy matching")
