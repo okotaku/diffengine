@@ -9,16 +9,24 @@ All configuration files are placed under the [`configs/stable_diffusion_xl_lora`
 Following is the example config fixed from the stable_diffusion_xl_lora_pokemon_blip config file in [`configs/stable_diffusion_xl_lora/stable_diffusion_xl_lora_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_lora/stable_diffusion_xl_lora_pokemon_blip.py):
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl_lora.py',
-    '../_base_/datasets/pokemon_blip_xl.py',
-    '../_base_/schedules/stable_diffusion_50e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
+
+from diffengine.engine.hooks import PeftSaveHook, VisualizationHook
+
+with read_base():
+    from .._base_.datasets.pokemon_blip_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_lora import *
+    from .._base_.schedules.stable_diffusion_50e import *
+
 
 custom_hooks = [
-    dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
-    dict(type='PeftSaveHook'),  # Need to change from SDCheckpointHook
+    dict(
+        type=VisualizationHook,
+        prompt=["yoda pokemon"] * 4,
+        height=1024,
+        width=1024),
+    dict(type=PeftSaveHook),  # Need to change from SDCheckpointHook
 ]
 ```
 
@@ -27,19 +35,30 @@ custom_hooks = [
 The script also allows you to finetune the text_encoder along with the unet, [LoRA](https://arxiv.org/abs/2106.09685) parameters.
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl_lora.py',
-    '../_base_/datasets/pokemon_blip_xl.py',
-    '../_base_/schedules/stable_diffusion_50e.py',
-    '../_base_/default_runtime.py'
-]
-model = dict(
-    lora_config=dict(rank=8),  # set LoRA and rank parameter
+from mmengine.config import read_base
+
+from diffengine.engine.hooks import PeftSaveHook, VisualizationHook
+
+with read_base():
+    from .._base_.datasets.pokemon_blip_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_lora import *
+    from .._base_.schedules.stable_diffusion_50e import *
+
+model.update(
+    text_encoder_lora_config=dict(  # set LoRA and rank parameter
+                type="LoRA", r=4,
+                target_modules=["q_proj", "k_proj", "v_proj", "out_proj"]),
     finetune_text_encoder=True  # fine tune text encoder
 )
+
 custom_hooks = [
-    dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
-    dict(type='PeftSaveHook'),  # Need to change from SDCheckpointHook
+    dict(
+        type=VisualizationHook,
+        prompt=["yoda pokemon"] * 4,
+        height=1024,
+        width=1024),
+    dict(type=PeftSaveHook),  # Need to change from SDCheckpointHook
 ]
 ```
 

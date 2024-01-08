@@ -9,25 +9,33 @@ All configuration files are placed under the [`configs/lcm`](https://github.com/
 Following is the example config fixed from the lcm_xl_pokemon_blip config file in [`configs/lcm/lcm_xl_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/lcm/lcm_xl_pokemon_blip.py):
 
 ```
-_base_ = [
-    "../_base_/models/lcm_xl.py",
-    "../_base_/datasets/pokemon_blip_xl_pre_compute.py",
-    "../_base_/schedules/lcm_xl_50e.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(batch_size=2)
+from diffengine.engine.hooks import (
+    LCMEMAUpdateHook,
+    SDCheckpointHook,
+    VisualizationHook,
+)
 
-optim_wrapper = dict(accumulative_counts=2)  # update every four times
+with read_base():
+    from .._base_.datasets.pokemon_blip_xl_pre_compute import *
+    from .._base_.default_runtime import *
+    from .._base_.models.lcm_xl import *
+    from .._base_.schedules.lcm_xl_50e import *
+
+
+train_dataloader.update(batch_size=2)
+
+optim_wrapper.update(accumulative_counts=2)  # update every four times
 
 custom_hooks = [
     dict(
-        type="VisualizationHook",
+        type=VisualizationHook,
         prompt=["yoda pokemon"] * 4,
         height=1024,
         width=1024),
-    dict(type="SDCheckpointHook"),
-    dict(type="LCMEMAUpdateHook"),
+    dict(type=SDCheckpointHook),
+    dict(type=LCMEMAUpdateHook),
 ]
 ```
 

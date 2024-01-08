@@ -9,17 +9,19 @@ All configuration files are placed under the [`configs/stable_diffusion_xl_contr
 Following is the example config fixed from the stable_diffusion_xl_controlnet_fill50k config file in [`configs/stable_diffusion_xl_controlnet/stable_diffusion_xl_controlnet_fill50k.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_xl_controlnet/stable_diffusion_xl_controlnet_fill50k.py):
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl_controlnet.py',
-    '../_base_/datasets/fill50k_controlnet_xl.py',
-    '../_base_/schedules/stable_diffusion_1e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-optim_wrapper = dict(
+with read_base():
+    from .._base_.datasets.fill50k_controlnet_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_controlnet import *
+    from .._base_.schedules.stable_diffusion_1e import *
+
+
+optim_wrapper.update(
     optimizer=dict(lr=1e-5),
     accumulative_counts=2,
-    )
+)
 ```
 
 #### Finetuning with Min-SNR Weighting Strategy
@@ -27,19 +29,21 @@ optim_wrapper = dict(
 The script also allows you to finetune with [Min-SNR Weighting Strategy](https://arxiv.org/abs/2303.09556).
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl_controlnet.py',
-    '../_base_/datasets/fill50k_controlnet_xl.py',
-    '../_base_/schedules/stable_diffusion_1e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-optim_wrapper = dict(
+with read_base():
+    from .._base_.datasets.fill50k_controlnet_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_controlnet import *
+    from .._base_.schedules.stable_diffusion_1e import *
+
+
+optim_wrapper.update(
     optimizer=dict(lr=1e-5),
     accumulative_counts=2,
-    )
+)
 
-model = dict(loss=dict(type='SNRL2Loss', snr_gamma=5.0, loss_weight=1.0))  # setup Min-SNR Weighting Strategy
+model.update(loss=dict(type='SNRL2Loss', snr_gamma=5.0, loss_weight=1.0))  # setup Min-SNR Weighting Strategy
 ```
 
 ## Run training

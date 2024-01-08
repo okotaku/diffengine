@@ -9,16 +9,18 @@ All configuration files are placed under the [`configs/stable_diffusion_xl`](htt
 Following is the example config fixed from the stable_diffusion_xl_pokemon_blip config file in [`configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py`](https://github.com/okotaku/diffengine/blob/main/diffengine/configs/stable_diffusion_xl/stable_diffusion_xl_pokemon_blip.py):
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl.py',
-    '../_base_/datasets/pokemon_blip_xl.py',
-    '../_base_/schedules/stable_diffusion_xl_50e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(batch_size=1)  # Because of GPU memory limit
+with read_base():
+    from .._base_.datasets.pokemon_blip_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl import *
+    from .._base_.schedules.stable_diffusion_xl_50e import *
 
-optim_wrapper = dict(accumulative_counts=4)  # update every four times
+
+train_dataloader.update(batch_size=1)  # Because of GPU memory limit
+
+optim_wrapper.update(accumulative_counts=4)  # update every four times
 ```
 
 #### Finetuning the text encoder and UNet
@@ -26,18 +28,20 @@ optim_wrapper = dict(accumulative_counts=4)  # update every four times
 The script also allows you to finetune the text_encoder along with the unet.
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl.py',
-    '../_base_/datasets/pokemon_blip_xl.py',
-    '../_base_/schedules/stable_diffusion_xl_50e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(batch_size=1)  # Because of GPU memory limit
+with read_base():
+    from .._base_.datasets.pokemon_blip_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl import *
+    from .._base_.schedules.stable_diffusion_xl_50e import *
 
-optim_wrapper = dict(accumulative_counts=4)  # update every four times
 
-model = dict(finetune_text_encoder=True)  # fine tune text encoder
+train_dataloader.update(batch_size=1)  # Because of GPU memory limit
+
+optim_wrapper.update(accumulative_counts=4)  # update every four times
+
+model.update(finetune_text_encoder=True)  # fine tune text encoder
 ```
 
 #### Finetuning with Unet EMA
@@ -45,21 +49,23 @@ model = dict(finetune_text_encoder=True)  # fine tune text encoder
 The script also allows you to finetune with Unet EMA.
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl.py',
-    '../_base_/datasets/pokemon_blip_xl.py',
-    '../_base_/schedules/stable_diffusion_xl_50e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(batch_size=1)  # Because of GPU memory limit
+with read_base():
+    from .._base_.datasets.pokemon_blip_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl import *
+    from .._base_.schedules.stable_diffusion_xl_50e import *
 
-optim_wrapper = dict(accumulative_counts=4)  # update every four times
+
+train_dataloader.update(batch_size=1)  # Because of GPU memory limit
+
+optim_wrapper.update(accumulative_counts=4)  # update every four times
 
 custom_hooks = [  # Hook is list, we should write all custom_hooks again.
-    dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
-    dict(type='SDCheckpointHook'),
-    dict(type='UnetEMAHook', momentum=1e-4, priority='ABOVE_NORMAL')  # setup EMA Hook
+    dict(type=VisualizationHook, prompt=['yoda pokemon'] * 4),
+    dict(type=SDCheckpointHook),
+    dict(type=UnetEMAHook, momentum=1e-4, priority='ABOVE_NORMAL')  # setup EMA Hook
 ]
 ```
 
@@ -68,18 +74,20 @@ custom_hooks = [  # Hook is list, we should write all custom_hooks again.
 The script also allows you to finetune with [Min-SNR Weighting Strategy](https://arxiv.org/abs/2303.09556).
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_xl.py',
-    '../_base_/datasets/pokemon_blip_xl.py',
-    '../_base_/schedules/stable_diffusion_xl_50e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-train_dataloader = dict(batch_size=1)  # Because of GPU memory limit
+with read_base():
+    from .._base_.datasets.pokemon_blip_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl import *
+    from .._base_.schedules.stable_diffusion_xl_50e import *
 
-optim_wrapper = dict(accumulative_counts=4)  # update every four times
 
-model = dict(loss=dict(type='SNRL2Loss', snr_gamma=5.0, loss_weight=1.0))  # setup Min-SNR Weighting Strategy
+train_dataloader.update(batch_size=1)  # Because of GPU memory limit
+
+optim_wrapper.update(accumulative_counts=4)  # update every four times
+
+model.update(loss=dict(type='SNRL2Loss', snr_gamma=5.0, loss_weight=1.0))  # setup Min-SNR Weighting Strategy
 ```
 
 ## Run training

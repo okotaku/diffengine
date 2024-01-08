@@ -9,18 +9,19 @@ All configuration files are placed under the [`configs/instruct_pix2pix`](https:
 Following is the example config fixed from the stable_diffusion_xl_instruct_pix2pix config file in [`configs/instruct_pix2pix/stable_diffusion_xl_instruct_pix2pix.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/instruct_pix2pix/stable_diffusion_xl_instruct_pix2pix.py):
 
 ```
-_base_ = [
-    "../_base_/models/stable_diffusion_xl_instruct_pix2pix.py",
-    "../_base_/datasets/instructpix2pix_xl.py",
-    "../_base_/schedules/stable_diffusion_3e.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
 
-optim_wrapper = dict(
+with read_base():
+    from .._base_.datasets.instructpix2pix_xl import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_xl_instruct_pix2pix import *
+    from .._base_.schedules.stable_diffusion_3e import *
+
+
+optim_wrapper.update(
     optimizer=dict(
-        _delete_=True,
         type="Adafactor",
-        lr=5e-5,
+        lr=3e-5,
         weight_decay=1e-2,
         scale_parameter=False,
         relative_step=False),

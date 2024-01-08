@@ -9,18 +9,22 @@ All configuration files are placed under the [`configs/stable_diffusion_lora`](h
 Following is the example config fixed from the stable_diffusion_v15_lora_pokemon_blip config file in [`configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/stable_diffusion_lora/stable_diffusion_v15_lora_pokemon_blip.py):
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_v15_lora.py',
-    '../_base_/datasets/pokemon_blip.py',
-    '../_base_/schedules/stable_diffusion_50e.py',
-    '../_base_/default_runtime.py'
-]
+from mmengine.config import read_base
 
-model = dict(lora_config=dict(rank=32))  # set LoRA and rank parameter
+from diffengine.engine.hooks import PeftSaveHook, VisualizationHook
+
+with read_base():
+    from .._base_.datasets.pokemon_blip import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_v15_lora import *
+    from .._base_.schedules.stable_diffusion_50e import *
+
+model.update(unet_lora_config=dict(r=32,
+        lora_alpha=32))
 
 custom_hooks = [
-    dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
-    dict(type='PeftSaveHook'),  # Need to change from SDCheckpointHook
+    dict(type=VisualizationHook, prompt=["yoda pokemon"] * 4),
+    dict(type=PeftSaveHook),  # Need to change from SDCheckpointHook
 ]
 ```
 
@@ -29,19 +33,26 @@ custom_hooks = [
 The script also allows you to finetune the text_encoder along with the unet, [LoRA](https://arxiv.org/abs/2106.09685) parameters.
 
 ```
-_base_ = [
-    '../_base_/models/stable_diffusion_v15_lora.py',
-    '../_base_/datasets/pokemon_blip.py',
-    '../_base_/schedules/stable_diffusion_50e.py',
-    '../_base_/default_runtime.py'
-]
-model = dict(
-    lora_config=dict(rank=32),  # set LoRA and rank parameter
-    finetune_text_encoder=True  # fine tune text encoder
-)
+from mmengine.config import read_base
+
+from diffengine.engine.hooks import PeftSaveHook, VisualizationHook
+
+with read_base():
+    from .._base_.datasets.pokemon_blip import *
+    from .._base_.default_runtime import *
+    from .._base_.models.stable_diffusion_v15_lora_textencoder import *
+    from .._base_.schedules.stable_diffusion_50e import *
+
+
+model.update(
+    unet_lora_config=dict(r=32,
+        lora_alpha=32),
+    text_encoder_lora_config=dict(r=32,
+        lora_alpha=32))
+
 custom_hooks = [
-    dict(type='VisualizationHook', prompt=['yoda pokemon'] * 4),
-    dict(type='PeftSaveHook'),  # Need to change from SDCheckpointHook
+    dict(type=VisualizationHook, prompt=["yoda pokemon"] * 4),
+    dict(type=PeftSaveHook),  # Need to change from SDCheckpointHook
 ]
 ```
 

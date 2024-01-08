@@ -9,12 +9,13 @@ All configuration files are placed under the [`configs/kandinsky_v22`](https://g
 Following is the example config fixed from the kandinsky_v22_prior_pokemon_blip config file in [`configs/kandinsky_v22/kandinsky_v22_prior_pokemon_blip.py`](https://github.com/okotaku/diffengine/tree/main/diffengine/configs/kandinsky_v22/kandinsky_v22_prior_pokemon_blip.py):
 
 ```
-_base_ = [
-    "../_base_/models/kandinsky_v22_prior.py",
-    "../_base_/datasets/pokemon_blip_kandinsky_prior.py",
-    "../_base_/schedules/stable_diffusion_50e.py",
-    "../_base_/default_runtime.py",
-]
+from mmengine.config import read_base
+
+with read_base():
+    from .._base_.datasets.pokemon_blip_kandinsky_prior import *
+    from .._base_.default_runtime import *
+    from .._base_.models.kandinsky_v22_prior import *
+    from .._base_.schedules.stable_diffusion_50e import *
 ```
 
 ## Run training
