@@ -1,43 +1,23 @@
 import copy
 from unittest.mock import MagicMock
 
+from mmengine.config import Config
 from mmengine.registry import MODELS
 from mmengine.runner import EpochBasedTrainLoop
 from mmengine.testing import RunnerTestCase
 
 from diffengine.engine.hooks import VisualizationHook
-from diffengine.models.editors import (
-    SDControlNetDataPreprocessor,
-    SDDataPreprocessor,
-    StableDiffusion,
-    StableDiffusionControlNet,
-)
-from diffengine.models.losses import L2Loss
 from diffengine.models.utils import TimeSteps, WhiteNoise
 
 
 class TestVisualizationHook(RunnerTestCase):
 
     def setUp(self) -> None:
-        MODELS.register_module(name="StableDiffusion", module=StableDiffusion)
-        MODELS.register_module(
-            name="SDDataPreprocessor", module=SDDataPreprocessor)
-        MODELS.register_module(
-            name="StableDiffusionControlNet", module=StableDiffusionControlNet)
-        MODELS.register_module(
-            name="SDControlNetDataPreprocessor",
-            module=SDControlNetDataPreprocessor)
-        MODELS.register_module(name="L2Loss", module=L2Loss)
         MODELS.register_module(name="WhiteNoise", module=WhiteNoise)
         MODELS.register_module(name="TimeSteps", module=TimeSteps)
         return super().setUp()
 
     def tearDown(self):
-        MODELS.module_dict.pop("StableDiffusion")
-        MODELS.module_dict.pop("SDDataPreprocessor")
-        MODELS.module_dict.pop("StableDiffusionControlNet")
-        MODELS.module_dict.pop("SDControlNetDataPreprocessor")
-        MODELS.module_dict.pop("L2Loss")
         MODELS.module_dict.pop("WhiteNoise")
         MODELS.module_dict.pop("TimeSteps")
         return super().tearDown()
@@ -74,8 +54,7 @@ class TestVisualizationHook(RunnerTestCase):
     def test_after_train_iter(self):
         cfg = copy.deepcopy(self.iter_based_cfg)
         cfg.train_cfg.max_iters = 100
-        cfg.model.type = "StableDiffusion"
-        cfg.model.model = "diffusers/tiny-stable-diffusion-torch"
+        cfg.model = Config.fromfile("tests/configs/sd.py").model
         runner = self.build_runner(cfg)
         hook = VisualizationHook(prompt=["a dog"], by_epoch=False)
         for i in range(10):
@@ -85,9 +64,7 @@ class TestVisualizationHook(RunnerTestCase):
     def test_after_train_iter_with_condition(self):
         cfg = copy.deepcopy(self.iter_based_cfg)
         cfg.train_cfg.max_iters = 100
-        cfg.model.type = "StableDiffusionControlNet"
-        cfg.model.model = "hf-internal-testing/tiny-stable-diffusion-pipe"
-        cfg.model.controlnet_model = "hf-internal-testing/tiny-controlnet"
+        cfg.model = Config.fromfile("tests/configs/sdcn.py").model
         runner = self.build_runner(cfg)
         hook = VisualizationHook(
             prompt=["a dog"],
