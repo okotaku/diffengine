@@ -4,6 +4,7 @@ from collections import OrderedDict
 from mmengine.hooks import Hook
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
+from mmengine.runner import Runner
 
 
 @HOOKS.register_module()
@@ -16,7 +17,7 @@ class ControlNetSaveHook(Hook):
 
     priority = "VERY_LOW"
 
-    def before_save_checkpoint(self, runner, checkpoint: dict) -> None:
+    def before_save_checkpoint(self, runner: Runner, checkpoint: dict) -> None:
         """Before save checkpoint hook.
 
         Args:

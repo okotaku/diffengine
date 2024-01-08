@@ -2,6 +2,7 @@ import torch
 from mmengine.hooks import Hook
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
+from mmengine.runner import Runner
 
 
 @HOOKS.register_module()
@@ -26,7 +27,7 @@ class CompileHook(Hook):
         self.mode = mode
         self.compile_main = compile_main
 
-    def before_train(self, runner) -> None:
+    def before_train(self, runner: Runner) -> None:
         """Compile the model.
 
         Args:

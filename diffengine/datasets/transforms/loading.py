@@ -12,8 +12,11 @@ from diffengine.datasets.transforms.base import BaseTransform
 from diffengine.registry import TRANSFORMS
 
 
-def random_bbox(img_shape, max_bbox_shape, max_bbox_delta=40, min_margin=20,
-                ) -> tuple:
+def random_bbox(img_shape: tuple[int, int],
+                max_bbox_shape: int | tuple[int, int],
+                max_bbox_delta: int | tuple[int, int] = 40,
+                min_margin: int | tuple[int, int] = 20,
+                ) -> tuple[int, int, int, int]:
     """Generate a random bbox for the mask on a given image.
 
     Copied from
@@ -89,7 +92,9 @@ def random_bbox(img_shape, max_bbox_shape, max_bbox_delta=40, min_margin=20,
     return (top, left, h, w)
 
 
-def bbox2mask(img_shape, bbox, dtype="uint8") -> np.ndarray:
+def bbox2mask(img_shape: tuple[int, int],
+              bbox: tuple[int, int, int, int],
+              dtype: str = "uint8") -> np.ndarray:
     """Generate mask in np.ndarray from bbox.
 
     Copied from
@@ -120,12 +125,12 @@ def bbox2mask(img_shape, bbox, dtype="uint8") -> np.ndarray:
     return mask
 
 
-def random_irregular_mask(img_shape,
-                          num_vertices=(4, 8),
-                          max_angle=4,
-                          length_range=(10, 100),
-                          brush_width=(10, 40),
-                          dtype="uint8") -> np.ndarray:
+def random_irregular_mask(img_shape: tuple[int, int],
+                          num_vertices: int | tuple[int, int] = (4, 8),
+                          max_angle: float = 4,
+                          length_range: int | tuple[int, int] = (10, 100),
+                          brush_width: int | tuple[int, int] = (10, 40),
+                          dtype: str = "uint8") -> np.ndarray:
     """Generate random irregular masks.
 
     Copied from
@@ -212,8 +217,9 @@ def random_irregular_mask(img_shape,
 
 
 
-def get_irregular_mask(img_shape, area_ratio_range=(0.15, 0.5), **kwargs,
-                       ) -> np.ndarray:
+def get_irregular_mask(img_shape: tuple[int, int],
+                       area_ratio_range: tuple[float, float] = (0.15, 0.5),
+                       **kwargs) -> np.ndarray:
     """Get irregular mask with the constraints in mask ratio.
 
     Copied from
@@ -239,13 +245,13 @@ def get_irregular_mask(img_shape, area_ratio_range=(0.15, 0.5), **kwargs,
     return mask
 
 
-def brush_stroke_mask(img_shape,
-                      num_vertices=(4, 12),
-                      mean_angle=2 * math.pi / 5,
-                      angle_range=2 * math.pi / 15,
-                      brush_width=(12, 40),
-                      max_loops=4,
-                      dtype="uint8"):
+def brush_stroke_mask(img_shape: tuple[int, int],
+                      num_vertices: int | tuple[int, int] = (4, 12),
+                      mean_angle: float = 2 * math.pi / 5,
+                      angle_range: float = 2 * math.pi / 15,
+                      brush_width: int | tuple[int, int] = (12, 40),
+                      max_loops: int = 4,
+                      dtype: str = "uint8") -> np.ndarray:
     """Generate free-form mask.
 
     Copied from
@@ -402,12 +408,13 @@ class LoadMask(BaseTransform):
             different configs. Default: None.
     """
 
-    def __init__(self, mask_mode="bbox", mask_config=None) -> None:
+    def __init__(self, mask_mode: str = "bbox",
+                 mask_config: dict | None = None) -> None:
         self.mask_mode = mask_mode
         self.mask_config = dict() if mask_config is None else mask_config
         assert isinstance(self.mask_config, dict)
 
-    def transform(self, results):
+    def transform(self, results: dict) -> dict:
         """Transform function.
 
         Args:
@@ -419,7 +426,7 @@ class LoadMask(BaseTransform):
         -------
             dict: A dict containing the processed data and information.
         """
-        img_shape = (results["img"].height, results["img"].width)
+        img_shape: tuple[int, int] = (results["img"].height, results["img"].width)
         if self.mask_mode == "bbox":
             mask_bbox = random_bbox(img_shape=img_shape,
                                     **self.mask_config)

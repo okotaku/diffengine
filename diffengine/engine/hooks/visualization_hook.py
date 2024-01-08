@@ -4,6 +4,7 @@ from mmengine.hooks import Hook
 from mmengine.hooks.hook import DATA_BATCH
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
+from mmengine.runner import Runner
 
 
 @HOOKS.register_module()
@@ -44,7 +45,7 @@ class VisualizationHook(Hook):
 
     def after_train_iter(
             self,
-            runner,
+            runner: Runner,
             batch_idx: int,
             data_batch: DATA_BATCH = None,  # noqa
             outputs: Optional[dict] = None) -> None:  # noqa
@@ -73,7 +74,7 @@ class VisualizationHook(Hook):
                 runner.visualizer.add_image(
                     f"image{i}_step", image, step=runner.iter)
 
-    def after_train_epoch(self, runner) -> None:
+    def after_train_epoch(self, runner: Runner) -> None:
         """After train epoch hook.
 
         Args:

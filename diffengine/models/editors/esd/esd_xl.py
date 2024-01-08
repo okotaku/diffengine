@@ -95,7 +95,7 @@ class ESDXL(StableDiffusionXL):
                     msg,
                 )
 
-    def train(self, *, mode=True) -> None:
+    def train(self, *, mode: bool = True) -> None:
         """Convert the model into training mode."""
         super().train(mode)
         self._freeze_unet()

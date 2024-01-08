@@ -5,6 +5,7 @@ import torch
 from mmengine.hooks import Hook
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
+from mmengine.runner import Runner
 
 from diffengine.models.archs import process_ip_adapter_state_dict
 
@@ -19,7 +20,7 @@ class IPAdapterSaveHook(Hook):
 
     priority = "VERY_LOW"
 
-    def before_save_checkpoint(self, runner, checkpoint: dict) -> None:
+    def before_save_checkpoint(self, runner: Runner, checkpoint: dict) -> None:
         """Before save checkpoint hook.
 
         Args:

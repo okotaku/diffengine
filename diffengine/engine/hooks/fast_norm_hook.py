@@ -3,6 +3,7 @@ from mmengine.hooks import Hook
 from mmengine.logging import print_log
 from mmengine.model import is_model_wrapper
 from mmengine.registry import HOOKS
+from mmengine.runner import Runner
 from torch import nn
 from torch.nn import functional as F  # noqa
 
@@ -12,7 +13,7 @@ except ImportError:
     apex = None
 
 
-def _fast_gn_forward(self, x) -> torch.Tensor:
+def _fast_gn_forward(self, x: torch.Tensor) -> torch.Tensor:  # noqa
     """Faster group normalization forward.
 
     Copied from
@@ -113,7 +114,7 @@ class FastNormHook(Hook):
         for name, immediate_child_module in module.named_children():
             self._replace_gn_forward(immediate_child_module, name)
 
-    def before_train(self, runner) -> None:  # noqa: C901 PLR0912
+    def before_train(self, runner: Runner) -> None:  # noqa: C901 PLR0912
         """Replace the normalization layer with a faster one.
 
         Args:

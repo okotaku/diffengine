@@ -1,7 +1,7 @@
 from peft import LoHaConfig, LoKrConfig, LoraConfig, OFTConfig, PeftConfig
 
 
-def create_peft_config(config) -> PeftConfig:
+def create_peft_config(config: dict) -> PeftConfig:
     """Create a PEFT config from a DiffEngine config.
 
     Args:
