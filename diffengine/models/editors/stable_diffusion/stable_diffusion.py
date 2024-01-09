@@ -86,12 +86,12 @@ class StableDiffusion(BaseModel):
     ) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDDataPreprocessor"}
-        if noise_generator is None:
-            noise_generator = {"type": "WhiteNoise"}
-        if timesteps_generator is None:
-            timesteps_generator = {"type": "TimeSteps"}
         if loss is None:
-            loss = {"type": "L2Loss", "loss_weight": 1.0}
+            loss = {}
+        if noise_generator is None:
+            noise_generator = {}
+        if timesteps_generator is None:
+            timesteps_generator = {}
         super().__init__(data_preprocessor=data_preprocessor)
         if (
             unet_lora_config is not None) and (
@@ -123,20 +123,36 @@ class StableDiffusion(BaseModel):
         self.enable_xformers = enable_xformers
 
         if not isinstance(loss, nn.Module):
-            loss = MODELS.build(loss)
+            loss = MODELS.build(
+                loss,
+                default_args={"type": "L2Loss", "loss_weight": 1.0})
         self.loss_module: nn.Module = loss
 
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
-        self.tokenizer = MODELS.build(tokenizer)
-        self.scheduler = MODELS.build(scheduler)
+        self.tokenizer = MODELS.build(
+            tokenizer,
+            default_args={"pretrained_model_name_or_path": model})
+        self.scheduler = MODELS.build(
+            scheduler,
+            default_args={"pretrained_model_name_or_path": model})
 
-        self.text_encoder = MODELS.build(text_encoder)
-        self.vae = MODELS.build(vae)
-        self.unet = MODELS.build(unet)
-        self.noise_generator = MODELS.build(noise_generator)
-        self.timesteps_generator = MODELS.build(timesteps_generator)
+        self.text_encoder = MODELS.build(
+            text_encoder,
+            default_args={"pretrained_model_name_or_path": model})
+        self.vae = MODELS.build(
+            vae,
+            default_args={"pretrained_model_name_or_path": model})
+        self.unet = MODELS.build(
+            unet,
+            default_args={"pretrained_model_name_or_path": model})
+        self.noise_generator = MODELS.build(
+            noise_generator,
+            default_args={"type": "WhiteNoise"})
+        self.timesteps_generator = MODELS.build(
+            timesteps_generator,
+            default_args={"type": "TimeSteps"})
         self.prepare_model()
         self.set_lora()
         self.set_xformers()

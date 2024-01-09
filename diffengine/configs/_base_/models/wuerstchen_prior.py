@@ -12,13 +12,10 @@ prior_model="warp-ai/wuerstchen-prior"
 model = dict(type=WuerstchenPriorModel,
              decoder_model=decoder_model,
              tokenizer=dict(type=PreTrainedTokenizerFast.from_pretrained,
-                            pretrained_model_name_or_path=prior_model,
                             subfolder="tokenizer"),
              scheduler=dict(type=DDPMWuerstchenScheduler),
              text_encoder=dict(type=CLIPTextModel.from_pretrained,
-                               pretrained_model_name_or_path=prior_model,
                                subfolder="text_encoder"),
              image_encoder=dict(type=EfficientNetEncoder, pretrained=True),
              prior=dict(type=WuerstchenPrior.from_pretrained,
-                        pretrained_model_name_or_path=prior_model,
                         subfolder="prior"))

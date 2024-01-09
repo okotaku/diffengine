@@ -1,4 +1,5 @@
 # flake8: noqa: C901
+import inspect
 from copy import deepcopy
 from typing import Optional, Union
 
@@ -31,6 +32,8 @@ class WuerstchenPriorModel(BaseModel):
         prior (dict): Config of prior.
         decoder_model (str): pretrained decoder model name of Wuerstchen.
             Defaults to 'warp-ai/wuerstchen'.
+        prior_model (str): pretrained prior model name of Wuerstchen.
+            Defaults to 'warp-ai/wuerstchen-prior'.
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
         prior_lora_config (dict, optional): The LoRA config dict for Prior.
@@ -69,6 +72,7 @@ class WuerstchenPriorModel(BaseModel):
         image_encoder: dict,
         prior: dict,
         decoder_model: str = "warp-ai/wuerstchen",
+        prior_model: str = "warp-ai/wuerstchen-prior",
         loss: dict | None = None,
         prior_lora_config: dict | None = None,
         text_encoder_lora_config: dict | None = None,
@@ -84,11 +88,11 @@ class WuerstchenPriorModel(BaseModel):
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDDataPreprocessor"}
         if noise_generator is None:
-            noise_generator = {"type": "WhiteNoise"}
+            noise_generator = {}
         if timesteps_generator is None:
-            timesteps_generator = {"type": "WuerstchenRandomTimeSteps"}
+            timesteps_generator = {}
         if loss is None:
-            loss = {"type": "L2Loss", "loss_weight": 1.0}
+            loss = {}
         super().__init__(data_preprocessor=data_preprocessor)
         if (
             prior_lora_config is not None) and (
@@ -119,13 +123,21 @@ class WuerstchenPriorModel(BaseModel):
         self.input_perturbation_gamma = input_perturbation_gamma
 
         if not isinstance(loss, nn.Module):
-            loss = MODELS.build(loss)
+            loss = MODELS.build(
+                loss,
+                default_args={"type": "L2Loss", "loss_weight": 1.0})
         self.loss_module: nn.Module = loss
         assert not self.loss_module.use_snr, \
             "WuerstchenPriorModel does not support SNR loss."
 
-        self.tokenizer = MODELS.build(tokenizer)
-        self.text_encoder = MODELS.build(text_encoder)
+        self.tokenizer = MODELS.build(
+            tokenizer,
+            default_args={"pretrained_model_name_or_path": prior_model,
+                } if not inspect.isclass(tokenizer.get("type")) else None)
+        self.text_encoder = MODELS.build(
+            text_encoder,
+            default_args={"pretrained_model_name_or_path": prior_model,
+                } if not inspect.isclass(text_encoder.get("type")) else None)
 
         pretrained_image_encoder = image_encoder.pop("pretrained_image_encoder", False)
         self.image_encoder = MODELS.build(image_encoder)
@@ -137,9 +149,16 @@ class WuerstchenPriorModel(BaseModel):
 
         self.scheduler = MODELS.build(scheduler)
 
-        self.prior = MODELS.build(prior)
-        self.noise_generator = MODELS.build(noise_generator)
-        self.timesteps_generator = MODELS.build(timesteps_generator)
+        self.prior = MODELS.build(
+            prior,
+            default_args={"pretrained_model_name_or_path": prior_model,
+                } if not inspect.isclass(prior.get("type")) else None)
+        self.noise_generator = MODELS.build(
+            noise_generator,
+            default_args={"type": "WhiteNoise"})
+        self.timesteps_generator = MODELS.build(
+            timesteps_generator,
+            default_args={"type": "WuerstchenRandomTimeSteps"})
         self.prepare_model()
         self.set_lora()
 
