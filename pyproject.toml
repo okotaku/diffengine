@@ -2,7 +2,7 @@
 name = "diffengine"
 description = "diffengine"
 authors = [{ name = "takuoko", email = "to78314910@gmail.com" }]
-version = "0.3.0"
+version = "1.0.0"
 requires-python = ">= 3.10"
 readme = "README.md"
 dependencies = [
