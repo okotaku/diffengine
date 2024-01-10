@@ -16,14 +16,14 @@ model = dict(
                  type=AutoTokenizer.from_pretrained,
                 pretrained_model_name_or_path="hf-internal-testing/tiny-random-t5"),
              scheduler=dict(type=DDPMScheduler.from_pretrained,
-                            pretrained_model_name_or_path=base_model,
                             subfolder="scheduler"),
              text_encoder=dict(type=T5EncoderModel.from_pretrained,
                                pretrained_model_name_or_path="hf-internal-testing/tiny-random-t5"),
              vae=dict(
                 type=AutoencoderKL),
-             transformer=dict(type=Transformer2DModel,
-                               sample_size=8,
+             transformer=dict(
+                type=Transformer2DModel,
+                sample_size=8,
                 num_layers=2,
                 patch_size=2,
                 attention_head_dim=8,

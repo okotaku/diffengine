@@ -1,3 +1,4 @@
+import inspect
 from copy import deepcopy
 from typing import Optional, Union
 
@@ -90,11 +91,11 @@ class PixArtAlpha(BaseModel):
         if data_preprocessor is None:
             data_preprocessor = {"type": "PixArtAlphaDataPreprocessor"}
         if noise_generator is None:
-            noise_generator = {"type": "WhiteNoise"}
+            noise_generator = {}
         if timesteps_generator is None:
-            timesteps_generator = {"type": "TimeSteps"}
+            timesteps_generator = {}
         if loss is None:
-            loss = {"type": "L2Loss", "loss_weight": 1.0}
+            loss = {}
         super().__init__(data_preprocessor=data_preprocessor)
         if (
             transformer_lora_config is not None) and (
@@ -127,20 +128,46 @@ class PixArtAlpha(BaseModel):
         self.enable_xformers = enable_xformers
 
         if not isinstance(loss, nn.Module):
-            loss = MODELS.build(loss)
+            loss = MODELS.build(
+                loss,
+                default_args={"type": "L2Loss", "loss_weight": 1.0})
         self.loss_module: nn.Module = loss
 
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
-        self.tokenizer = MODELS.build(tokenizer)
-        self.scheduler = MODELS.build(scheduler)
+        self.tokenizer = MODELS.build(
+            tokenizer,
+            default_args={
+                "pretrained_model_name_or_path": model,
+                } if not inspect.isclass(tokenizer.get("type")) else None)
+        self.scheduler = MODELS.build(
+            scheduler,
+            default_args={
+                "pretrained_model_name_or_path": model,
+                } if not inspect.isclass(scheduler.get("type")) else None)
 
-        self.text_encoder = MODELS.build(text_encoder)
-        self.vae = MODELS.build(vae)
-        self.transformer = MODELS.build(transformer)
-        self.noise_generator = MODELS.build(noise_generator)
-        self.timesteps_generator = MODELS.build(timesteps_generator)
+        self.text_encoder = MODELS.build(
+            text_encoder,
+            default_args={
+                "pretrained_model_name_or_path": model,
+                } if not inspect.isclass(text_encoder.get("type")) else None)
+        self.vae = MODELS.build(
+            vae,
+            default_args={
+                "pretrained_model_name_or_path": model,
+                } if not inspect.isclass(vae.get("type")) else None)
+        self.transformer = MODELS.build(
+            transformer,
+            default_args={
+                "pretrained_model_name_or_path": model,
+                } if not inspect.isclass(transformer.get("type")) else None)
+        self.noise_generator = MODELS.build(
+            noise_generator,
+            default_args={"type": "WhiteNoise"})
+        self.timesteps_generator = MODELS.build(
+            timesteps_generator,
+            default_args={"type": "TimeSteps"})
         self.prepare_model()
         self.set_lora()
         self.set_xformers()

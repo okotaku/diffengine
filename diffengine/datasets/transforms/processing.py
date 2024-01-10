@@ -102,7 +102,7 @@ def register_vision_transforms() -> list[str]:
             # must startswith a capital letter
             continue
         _transform = getattr(torchvision.transforms, module_name)
-        if inspect.isclass(_transform) and callable(
+        if not inspect.isclass(_transform) and callable(
                 _transform) and not isinstance(_transform, (EnumMeta)):
             from functools import partial
             TRANSFORMS.register_module(

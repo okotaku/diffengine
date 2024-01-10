@@ -109,11 +109,11 @@ class SSD1B(StableDiffusionXL):
         if data_preprocessor is None:
             data_preprocessor = {"type": "SDXLDataPreprocessor"}
         if noise_generator is None:
-            noise_generator = {"type": "WhiteNoise"}
+            noise_generator = {}
         if timesteps_generator is None:
-            timesteps_generator = {"type": "TimeSteps"}
+            timesteps_generator = {}
         if loss is None:
-            loss = {"type": "L2Loss", "loss_weight": 1.0}
+            loss = {}
         super(StableDiffusionXL, self).__init__(data_preprocessor=data_preprocessor)
         self.model = model
         self.finetune_text_encoder = finetune_text_encoder
@@ -124,31 +124,51 @@ class SSD1B(StableDiffusionXL):
         self.enable_xformers = enable_xformers
 
         if not isinstance(loss, nn.Module):
-            loss = MODELS.build(loss)
+            loss = MODELS.build(
+                loss,
+                default_args={"type": "L2Loss", "loss_weight": 1.0})
         self.loss_module: nn.Module = loss
 
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
         if not self.pre_compute_text_embeddings:
-            self.tokenizer_one = MODELS.build(tokenizer_one)
-            self.tokenizer_two = MODELS.build(tokenizer_two)
+            self.tokenizer_one = MODELS.build(
+                tokenizer_one,
+                default_args={"pretrained_model_name_or_path": model})
+            self.tokenizer_two = MODELS.build(
+                tokenizer_two,
+                default_args={"pretrained_model_name_or_path": model})
 
-            self.text_encoder_one = MODELS.build(text_encoder_one)
-            self.text_encoder_two = MODELS.build(text_encoder_two)
+            self.text_encoder_one = MODELS.build(
+                text_encoder_one,
+                default_args={"pretrained_model_name_or_path": model})
+            self.text_encoder_two = MODELS.build(
+                text_encoder_two,
+                default_args={"pretrained_model_name_or_path": model})
 
-        self.scheduler = MODELS.build(scheduler)
+        self.scheduler = MODELS.build(
+            scheduler,
+            default_args={"pretrained_model_name_or_path": model})
 
-        self.vae = MODELS.build(vae)
-        self.orig_unet = MODELS.build(teacher_unet)
+        self.vae = MODELS.build(
+            vae,
+            default_args={"pretrained_model_name_or_path": model})
+        self.orig_unet = MODELS.build(
+            teacher_unet,
+            default_args={"pretrained_model_name_or_path": model})
         self.unet = MODELS.build(student_unet)
 
         # prepare student model
         if student_weight_from_teacher:
             self.unet.load_state_dict(self.orig_unet.state_dict(),
                                       strict=False)
-        self.noise_generator = MODELS.build(noise_generator)
-        self.timesteps_generator = MODELS.build(timesteps_generator)
+        self.noise_generator = MODELS.build(
+            noise_generator,
+            default_args={"type": "WhiteNoise"})
+        self.timesteps_generator = MODELS.build(
+            timesteps_generator,
+            default_args={"type": "TimeSteps"})
         self.prepare_model()
         self.set_lora()
         self.set_xformers()

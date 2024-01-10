@@ -98,11 +98,11 @@ class IPAdapterXL(StableDiffusionXL):
         Disable gradient for some models.
         """
         self.image_encoder = MODELS.build(self.image_encoder_config)
-        self.image_projection_config.update(
-            cross_attention_dim=self.unet.config.cross_attention_dim,
-            image_embed_dim=self.image_encoder.config.projection_dim,
-        )
-        self.image_projection = MODELS.build(self.image_projection_config)
+        self.image_projection = MODELS.build(
+            self.image_projection_config,
+            default_args={
+                "cross_attention_dim": self.unet.config.cross_attention_dim,
+                "image_embed_dim": self.image_encoder.config.projection_dim})
         self.image_encoder.requires_grad_(requires_grad=False)
         super().prepare_model()
 
@@ -297,11 +297,11 @@ class IPAdapterXLPlus(IPAdapterXL):
         Disable gradient for some models.
         """
         self.image_encoder = MODELS.build(self.image_encoder_config)
-        self.image_projection_config.update(
-            embed_dims=self.image_encoder.config.hidden_size,
-            output_dims=self.unet.config.cross_attention_dim,
-        )
-        self.image_projection = MODELS.build(self.image_projection_config)
+        self.image_projection = MODELS.build(
+            self.image_projection_config,
+            default_args={
+                "embed_dims": self.image_encoder.config.hidden_size,
+                "output_dims": self.unet.config.cross_attention_dim})
         self.image_encoder.requires_grad_(requires_grad=False)
         super(IPAdapterXL, self).prepare_model()
 

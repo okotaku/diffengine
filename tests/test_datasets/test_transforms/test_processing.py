@@ -10,6 +10,7 @@ from mmengine.utils import digit_version
 from PIL import Image
 from torchvision import transforms
 
+from diffengine.datasets.transforms import TorchVisonTransformWrapper
 from diffengine.datasets.transforms.processing import VISION_TRANSFORMS
 from diffengine.registry import TRANSFORMS
 
@@ -29,7 +30,9 @@ class TestVisionTransformWrapper(TestCase):
         vision_trans = transforms.RandomResizedCrop(224)
         vision_transformed_img = vision_trans(data["img"])
         trans = TRANSFORMS.build(
-            dict(type="torchvision/RandomResizedCrop", size=224))
+            dict(type=TorchVisonTransformWrapper,
+                 transform=torchvision.transforms.RandomResizedCrop,
+                 size=224))
         transformed_img = trans(data)["img"]
         np.equal(np.array(vision_transformed_img), np.array(transformed_img))
 
@@ -38,7 +41,9 @@ class TestVisionTransformWrapper(TestCase):
         vision_trans = transforms.ConvertImageDtype(torch.float)
         vision_transformed_img = vision_trans(data["img"])
         trans = TRANSFORMS.build(
-            dict(type="torchvision/ConvertImageDtype", dtype="float"))
+            dict(type=TorchVisonTransformWrapper,
+                 transform=torchvision.transforms.ConvertImageDtype,
+                 dtype="float"))
         transformed_img = trans(data)["img"]
         np.equal(np.array(vision_transformed_img), np.array(transformed_img))
 
@@ -52,7 +57,9 @@ class TestVisionTransformWrapper(TestCase):
         vision_trans = transforms.Resize(224, interpolation_t)
         vision_transformed_img = vision_trans(data["img"])
         trans = TRANSFORMS.build(
-            dict(type="torchvision/Resize", size=224, interpolation="nearest"))
+            dict(type=TorchVisonTransformWrapper,
+                 transform=torchvision.transforms.Resize,
+                 size=224, interpolation="nearest"))
         transformed_img = trans(data)["img"]
         np.equal(np.array(vision_transformed_img), np.array(transformed_img))
 
@@ -69,12 +76,18 @@ class TestVisionTransformWrapper(TestCase):
         vision_transformed_img = vision_trans(data["img"])
 
         pipeline_cfg = [
-            dict(type="torchvision/Resize", size=176),
+            dict(type=TorchVisonTransformWrapper,
+                 transform=torchvision.transforms.Resize,
+                 size=176),
             dict(type="RandomHorizontalFlip"),
-            dict(type="torchvision/PILToTensor"),
-            dict(type="torchvision/ConvertImageDtype", dtype="float"),
+            dict(type=TorchVisonTransformWrapper,
+                 transform=torchvision.transforms.PILToTensor),
+            dict(type=TorchVisonTransformWrapper,
+                 transform=torchvision.transforms.ConvertImageDtype,
+                 dtype="float"),
             dict(
-                type="torchvision/Normalize",
+                type=TorchVisonTransformWrapper,
+                transform=torchvision.transforms.Normalize,
                 mean=(0.485, 0.456, 0.406),
                 std=(0.229, 0.224, 0.225),
             ),

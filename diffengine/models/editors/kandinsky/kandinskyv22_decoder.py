@@ -1,3 +1,4 @@
+import inspect
 from copy import deepcopy
 from typing import Optional, Union
 
@@ -25,6 +26,8 @@ class KandinskyV22Decoder(BaseModel):
         unet (dict): Config of unet.
         decoder_model (str): pretrained model name of decoder.
             Defaults to "kandinsky-community/kandinsky-2-2-decoder".
+        prior_model (str): pretrained model name of prior.
+            Defaults to "kandinsky-community/kandinsky-2-2-prior".
         loss (dict): Config of loss. Defaults to
             ``dict(type='L2Loss', loss_weight=1.0)``.
         unet_lora_config (dict, optional): The LoRA config dict for Unet.
@@ -61,6 +64,7 @@ class KandinskyV22Decoder(BaseModel):
         vae: dict,
         unet: dict,
         decoder_model: str = "kandinsky-community/kandinsky-2-2-decoder",
+        prior_model: str = "kandinsky-community/kandinsky-2-2-prior",
         loss: dict | None = None,
         unet_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
@@ -76,11 +80,11 @@ class KandinskyV22Decoder(BaseModel):
         if data_preprocessor is None:
             data_preprocessor = {"type": "KandinskyV22DecoderDataPreprocessor"}
         if noise_generator is None:
-            noise_generator = {"type": "WhiteNoise"}
+            noise_generator = {}
         if timesteps_generator is None:
-            timesteps_generator = {"type": "TimeSteps"}
+            timesteps_generator = {}
         if loss is None:
-            loss = {"type": "L2Loss", "loss_weight": 1.0}
+            loss = {}
         super().__init__(data_preprocessor=data_preprocessor)
 
         self.decoder_model = decoder_model
@@ -91,19 +95,37 @@ class KandinskyV22Decoder(BaseModel):
         self.enable_xformers = enable_xformers
 
         if not isinstance(loss, nn.Module):
-            loss = MODELS.build(loss)
+            loss = MODELS.build(
+                loss,
+                default_args={"type": "L2Loss", "loss_weight": 1.0})
         self.loss_module: nn.Module = loss
 
         assert prediction_type in [None, "epsilon", "v_prediction"]
         self.prediction_type = prediction_type
 
-        self.scheduler = MODELS.build(scheduler)
+        self.scheduler = MODELS.build(
+            scheduler,
+            default_args={"pretrained_model_name_or_path": decoder_model,
+                } if not inspect.isclass(scheduler.get("type")) else None)
 
-        self.image_encoder = MODELS.build(image_encoder)
-        self.vae = MODELS.build(vae)
-        self.unet = MODELS.build(unet)
-        self.noise_generator = MODELS.build(noise_generator)
-        self.timesteps_generator = MODELS.build(timesteps_generator)
+        self.image_encoder = MODELS.build(
+            image_encoder,
+            default_args={"pretrained_model_name_or_path": prior_model,
+                } if not inspect.isclass(image_encoder.get("type")) else None)
+        self.vae = MODELS.build(
+            vae,
+            default_args={"pretrained_model_name_or_path": decoder_model,
+                } if not inspect.isclass(vae.get("type")) else None)
+        self.unet = MODELS.build(
+            unet,
+            default_args={"pretrained_model_name_or_path": decoder_model,
+                } if not inspect.isclass(unet.get("type")) else None)
+        self.noise_generator = MODELS.build(
+            noise_generator,
+            default_args={"type": "WhiteNoise"})
+        self.timesteps_generator = MODELS.build(
+            timesteps_generator,
+            default_args={"type": "TimeSteps"})
 
         self.prepare_model()
         self.set_lora()
