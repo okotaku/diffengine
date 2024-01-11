@@ -189,48 +189,49 @@ For detailed user guides and advanced guides, please refer to our [Documentation
     <tr valign="top">
       <td>
         <ul>
-            <li><a href="configs/stable_diffusion/README.md">Stable Diffusion (2022)</a></li>
-            <li><a href="configs/stable_diffusion_controlnet/README.md">ControlNet (ICCV'2023)</a></li>
-            <li><a href="configs/stable_diffusion_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
-            <li><a href="configs/stable_diffusion_lora/README.md">LoRA (ICLR'2022)</a></li>
-            <li><a href="configs/distill_sd_dreambooth/README.md">Distill SD DreamBooth (2023)</a></li>
-            <li><a href="configs/stable_diffusion_inpaint/README.md">Inpaint</a></li>
+            <li><a href="diffengine/configs/stable_diffusion/README.md">Stable Diffusion (2022)</a></li>
+            <li><a href="diffengine/configs/stable_diffusion_controlnet/README.md">ControlNet (ICCV'2023)</a></li>
+            <li><a href="diffengine/configs/stable_diffusion_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
+            <li><a href="diffengine/configs/stable_diffusion_lora/README.md">LoRA (ICLR'2022)</a></li>
+            <li><a href="diffengine/configs/distill_sd_dreambooth/README.md">Distill SD DreamBooth (2023)</a></li>
+            <li><a href="diffengine/configs/stable_diffusion_inpaint/README.md">Inpaint</a></li>
       </ul>
       </td>
       <td>
         <ul>
-          <li><a href="configs/stable_diffusion_xl/README.md">Stable Diffusion XL (2023)</a></li>
-          <li><a href="configs/stable_diffusion_xl_controlnet/README.md">ControlNet (ICCV'2023)</a></li>
-          <li><a href="configs/stable_diffusion_xl_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
-          <li><a href="configs/stable_diffusion_xl_lora/README.md">LoRA (ICLR'2022)</a></li>
-          <li><a href="configs/stable_diffusion_xl_controlnet_small/README.md">ControlNet Small (2023)</a></li>
-          <li><a href="configs/t2i_adapter/README.md">T2I-Adapter (2023)</a></li>
-          <li><a href="configs/ip_adapter/README.md">IP-Adapter (2023)</a></li>
-          <li><a href="configs/esd/README.md">Erasing Concepts from Diffusion Models (2023)</a></li>
-          <li><a href="configs/ssd_1b/README.md">SSD-1B (2023)</a></li>
-          <li><a href="configs/instruct_pix2pix/README.md">InstructPix2Pix (2022)</a></li>
-          <li><a href="configs/loha/README.md">LoHa (ICLR'2022)</a></li>
-          <li><a href="configs/lokr/README.md">LoKr (2022)</a></li>
-          <li><a href="configs/oft/README.md">OFT (NeurIPS'2023)</a></li>
-          <li><a href="configs/stable_diffusion_xl_controlnetxs/README.md">ControlNet-XS (2023)</a></li>
-          <li><a href="configs/stable_diffusion_xl_inpaint/README.md">Inpaint</a></li>
+          <li><a href="diffengine/configs/stable_diffusion_xl/README.md">Stable Diffusion XL (2023)</a></li>
+          <li><a href="diffengine/configs/stable_diffusion_xl_controlnet/README.md">ControlNet (ICCV'2023)</a></li>
+          <li><a href="diffengine/configs/stable_diffusion_xl_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
+          <li><a href="diffengine/configs/stable_diffusion_xl_lora/README.md">LoRA (ICLR'2022)</a></li>
+          <li><a href="diffengine/configs/stable_diffusion_xl_controlnet_small/README.md">ControlNet Small (2023)</a></li>
+          <li><a href="diffengine/configs/t2i_adapter/README.md">T2I-Adapter (2023)</a></li>
+          <li><a href="diffengine/configs/ip_adapter/README.md">IP-Adapter (2023)</a></li>
+          <li><a href="diffengine/configs/esd/README.md">Erasing Concepts from Diffusion Models (2023)</a></li>
+          <li><a href="diffengine/configs/ssd_1b/README.md">SSD-1B (2023)</a></li>
+          <li><a href="diffengine/configs/instruct_pix2pix/README.md">InstructPix2Pix (2022)</a></li>
+          <li><a href="diffengine/configs/loha/README.md">LoHa (ICLR'2022)</a></li>
+          <li><a href="diffengine/configs/lokr/README.md">LoKr (2022)</a></li>
+          <li><a href="diffengine/configs/oft/README.md">OFT (NeurIPS'2023)</a></li>
+          <li><a href="diffengine/configs/stable_diffusion_xl_controlnetxs/README.md">ControlNet-XS (2023)</a></li>
+          <li><a href="diffengine/configs/stable_diffusion_xl_inpaint/README.md">Inpaint</a></li>
         </ul>
       </td>
       <td>
         <ul>
-            <li><a href="configs/deepfloyd_if/README.md">DeepFloyd IF (2023)</a></li>
-            <li><a href="configs/deepfloyd_if_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
+            <li><a href="diffengine/configs/deepfloyd_if/README.md">DeepFloyd IF (2023)</a></li>
+            <li><a href="diffengine/configs/deepfloyd_if_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
       </ul>
       </td>
       <td>
         <ul>
-            <li><a href="configs/min_snr_loss/README.md">Min-SNR Loss (ICCV'2023)</a></li>
-            <li><a href="configs/debias_estimation_loss/README.md">DeBias Estimation Loss (2023)</a></li>
-            <li><a href="configs/offset_noise/README.md">Offset Noise (2023)</a></li>
-            <li><a href="configs/pyramid_noise/README.md">Pyramid Noise (2023)</a></li>
-            <li><a href="configs/input_perturbation/README.md">Input Perturbation (2023)</a></li>
-            <li><a href="configs/timesteps_bias/README.md">Time Steps Bias (2023)</a></li>
-            <li><a href="configs/v_prediction/README.md">V Prediction (ICLR'2022)</a></li>
+            <li><a href="diffengine/configs/min_snr_loss/README.md">Min-SNR Loss (ICCV'2023)</a></li>
+            <li><a href="diffengine/configs/debias_estimation_loss/README.md">DeBias Estimation Loss (2023)</a></li>
+            <li><a href="diffengine/configs/offset_noise/README.md">Offset Noise (2023)</a></li>
+            <li><a href="diffengine/configs/pyramid_noise/README.md">Pyramid Noise (2023)</a></li>
+            <li><a href="diffengine/configs/input_perturbation/README.md">Input Perturbation (2023)</a></li>
+            <li><a href="diffengine/configs/timesteps_bias/README.md">Time Steps Bias (2023)</a></li>
+            <li><a href="diffengine/configs/v_prediction/README.md">V Prediction (ICLR'2022)</a></li>
+            <li><a href="diffengine/configs/diffusion_dpo/README.md">Diffusion DPO (2023)</a></li>
       </ul>
       </td>
     </tr>
@@ -255,27 +256,27 @@ For detailed user guides and advanced guides, please refer to our [Documentation
     <tr valign="top">
       <td>
         <ul>
-            <li><a href="configs/wuerstchen/README.md">Wuerstchen (2023)</a></li>
-            <li><a href="configs/wuerstchen_lora/README.md">LoRA (ICLR'2022)</a></li>
+            <li><a href="diffengine/configs/wuerstchen/README.md">Wuerstchen (2023)</a></li>
+            <li><a href="diffengine/configs/wuerstchen_lora/README.md">LoRA (ICLR'2022)</a></li>
       </ul>
       </td>
       <td>
         <ul>
-            <li><a href="configs/lcm/README.md">Latent Consistency Models (2023)</a></li>
-            <li><a href="configs/lcm_lora/README.md">LoRA (ICLR'2022)</a></li>
+            <li><a href="diffengine/configs/lcm/README.md">Latent Consistency Models (2023)</a></li>
+            <li><a href="diffengine/configs/lcm_lora/README.md">LoRA (ICLR'2022)</a></li>
       </ul>
       </td>
       <td>
         <ul>
-            <li><a href="configs/pixart_alpha/README.md">PixArt-α (2023)</a></li>
-            <li><a href="configs/pixart_alpha_lora/README.md">LoRA (ICLR'2022)</a></li>
-            <li><a href="configs/pixart_alpha_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
+            <li><a href="diffengine/configs/pixart_alpha/README.md">PixArt-α (2023)</a></li>
+            <li><a href="diffengine/configs/pixart_alpha_lora/README.md">LoRA (ICLR'2022)</a></li>
+            <li><a href="diffengine/configs/pixart_alpha_dreambooth/README.md">DreamBooth (CVPR'2023)</a></li>
       </ul>
       </td>
       <td>
         <ul>
-            <li><a href="configs/kandinsky_v22/README.md">Kandinsky 2.2 (2023)</a></li>
-            <li><a href="configs/kandinsky_v3/README.md">Kandinsky 3 (2023)</a></li>
+            <li><a href="diffengine/configs/kandinsky_v22/README.md">Kandinsky 2.2 (2023)</a></li>
+            <li><a href="diffengine/configs/kandinsky_v3/README.md">Kandinsky 3 (2023)</a></li>
       </ul>
       </td>
     </tr>
