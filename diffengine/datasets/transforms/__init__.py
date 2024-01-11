@@ -9,6 +9,7 @@ from .processing import (
     CLIPImageProcessor,
     ComputePixArtImgInfo,
     ComputeTimeIds,
+    ConcatMultipleImgs,
     GetMaskedImage,
     MaskToTensor,
     MultiAspectRatioResizeCenterCrop,
@@ -43,4 +44,5 @@ __all__ = [
     "AddConstantCaption",
     "DumpMaskedImage",
     "TorchVisonTransformWrapper",
+    "ConcatMultipleImgs",
 ]

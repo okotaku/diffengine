@@ -16,6 +16,8 @@ class HuberLoss(BaseLoss):
             Default: 1.0
         loss_weight (float, optional): Weight of this loss item.
             Defaults to ``1.``.
+        reduction: (str): The reduction method for the loss.
+            Defaults to 'mean'.
         loss_name (str, optional): Name of the loss item. If you want this loss
             item to be included into the backward graph, `loss_` must be the
             prefix of the name. Defaults to 'l2'.
@@ -24,11 +26,16 @@ class HuberLoss(BaseLoss):
     def __init__(self,
                  delta: float = 1.0,
                  loss_weight: float = 1.0,
+                 reduction: str = "mean",
                  loss_name: str = "l2") -> None:
 
         super().__init__()
+        assert reduction in ["mean", "none"], (
+            f"reduction should be 'mean' or 'none', got {reduction}"
+        )
         self.delta = delta
         self.loss_weight = loss_weight
+        self.reduction = reduction
         self._loss_name = loss_name
 
     def forward(self,
@@ -51,6 +58,9 @@ class HuberLoss(BaseLoss):
         if weight is not None:
             loss = F.huber_loss(
                 pred, gt, reduction="none", delta=self.delta) * weight
-            return loss.mean() * self.loss_weight
+            if self.reduction == "mean":
+                loss = loss.mean()
+            return loss * self.loss_weight
 
-        return F.huber_loss(pred, gt, delta=self.delta) * self.loss_weight
+        return F.huber_loss(pred, gt, delta=self.delta,
+                            reduction=self.reduction) * self.loss_weight

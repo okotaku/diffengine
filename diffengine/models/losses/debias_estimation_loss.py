@@ -16,6 +16,8 @@ class DeBiasEstimationLoss(BaseLoss):
     ----
         loss_weight (float): Weight of this loss item.
             Defaults to ``1.``.
+        reduction: (str): The reduction method for the loss.
+            Defaults to 'mean'.
         loss_name (str, optional): Name of the loss item. If you want this loss
             item to be included into the backward graph, `loss_` must be the
             prefix of the name. Defaults to 'l2'.
@@ -23,10 +25,15 @@ class DeBiasEstimationLoss(BaseLoss):
 
     def __init__(self,
                  loss_weight: float = 1.0,
+                 reduction: str = "mean",
                  loss_name: str = "debias_estimation") -> None:
 
         super().__init__()
+        assert reduction in ["mean", "none"], (
+            f"reduction should be 'mean' or 'none', got {reduction}"
+        )
         self.loss_weight = loss_weight
+        self.reduction = reduction
         self._loss_name = loss_name
 
     @property
@@ -69,5 +76,6 @@ class DeBiasEstimationLoss(BaseLoss):
             dim=list(range(1, len(loss.shape)))) * mse_loss_weights
         if weight is not None:
             loss = loss * weight
-        loss = loss.mean()
+        if self.reduction == "mean":
+            loss = loss.mean()
         return loss * self.loss_weight

@@ -78,7 +78,10 @@ class TorchVisonTransformWrapper:
     def __call__(self, results: dict) -> dict:
         """Call transform."""
         for k in self.keys:
-            results[k] = self.t(results[k])
+            if not isinstance(results[k], list):
+                results[k] = self.t(results[k])
+            else:
+                results[k] = [self.t(img) for img in results[k]]
         return results
 
     def __repr__(self) -> str:
@@ -132,10 +135,15 @@ class SaveImageShape(BaseTransform):
         -------
             dict: 'ori_img_shape' key is added as original image shape.
         """
-        results["ori_img_shape"] = [
-            results["img"].height,
-            results["img"].width,
-        ]
+        if not isinstance(results["img"], list):
+            imgs = [results["img"]]
+        else:
+            imgs = results["img"]
+
+        ori_img_shape = [[img.height, img.width] for img in imgs]
+        if not isinstance(results["img"], list):
+            ori_img_shape = ori_img_shape[0]
+        results["ori_img_shape"] = ori_img_shape
         return results
 
 
@@ -187,16 +195,46 @@ class RandomCrop(BaseTransform):
             dict: 'crop_top_left' and  `crop_bottom_right` key is added as crop
                 point.
         """
-        if self.force_same_size:
-            assert all(
-                results["img"].size == results[k].size for k in self.keys), (
-                "Size mismatch. {k: results[k].size for k in self.keys}"
-            )
-        y1, x1, h, w = self.pipeline.get_params(results["img"], self.size)
+        components = dict()
         for k in self.keys:
-            results[k] = crop(results[k], y1, x1, h, w)
-        results["crop_top_left"] = [y1, x1]
-        results["crop_bottom_right"] = [y1 + h, x1 + w]
+            if not isinstance(results["img"], list):
+                components[k] = [results[k]]
+            else:
+                components[k] = results[k]
+
+        crop_top_left = []
+        crop_bottom_right = []
+        before_crop_size = []
+        for i in range(len(components["img"])):
+            if self.force_same_size:
+                assert all(
+                    components["img"][i].size == components[k][i].size
+                    for k in self.keys), (
+                    "Size mismatch."
+                )
+            before_crop_size.append([components["img"][i].height,
+                                     components["img"][i].width])
+
+            y1, x1, h, w = self.pipeline.get_params(components["img"][i],
+                                                    self.size)
+            for k in self.keys:
+                components[k][i] = crop(components[k][i], y1, x1, h, w)
+            crop_top_left.append([y1, x1])
+            crop_bottom_right.append([y1 + h, x1 + w])
+
+        if not isinstance(results["img"], list):
+            for k in self.keys:
+                components[k] = components[k][0]
+            crop_top_left = crop_top_left[0]
+            crop_bottom_right = crop_bottom_right[0]
+            before_crop_size = before_crop_size[0]
+
+        for k in self.keys:
+            results[k] = components[k]
+
+        results["crop_top_left"] = crop_top_left
+        results["crop_bottom_right"] = crop_bottom_right
+        results["before_crop_size"] = before_crop_size
         return results
 
 
@@ -242,15 +280,50 @@ class CenterCrop(BaseTransform):
         -------
             dict: 'crop_top_left' key is added as crop points.
         """
-        assert all(results["img"].size == results[k].size for k in self.keys)
-        y1 = max(0, int(round((results["img"].height - self.size[0]) / 2.0)))
-        x1 = max(0, int(round((results["img"].width - self.size[1]) / 2.0)))
-        y2 = max(0, int(round((results["img"].height + self.size[0]) / 2.0)))
-        x2 = max(0, int(round((results["img"].width + self.size[1]) / 2.0)))
+        components = dict()
         for k in self.keys:
-            results[k] = self.pipeline(results[k])
-        results["crop_top_left"] = [y1, x1]
-        results["crop_bottom_right"] = [y2, x2]
+            if not isinstance(results["img"], list):
+                components[k] = [results[k]]
+            else:
+                components[k] = results[k]
+
+        crop_top_left: list = []
+        crop_bottom_right: list = []
+        before_crop_size: list = []
+        for i in range(len(components["img"])):
+            assert all(
+                components["img"][i].size == components[k][i].size
+                for k in self.keys), (
+                "Size mismatch."
+            )
+            before_crop_size.append([components["img"][i].height,
+                                     components["img"][i].width])
+
+            y1 = max(0, int(round(
+                (components["img"][i].height - self.size[0]) / 2.0)))
+            x1 = max(0, int(round(
+                (components["img"][i].width - self.size[1]) / 2.0)))
+            y2 = max(0, int(round(
+                (components["img"][i].height + self.size[0]) / 2.0)))
+            x2 = max(0, int(round(
+                (components["img"][i].width + self.size[1]) / 2.0)))
+            for k in self.keys:
+                components[k][i] = self.pipeline(components[k][i])
+            crop_top_left.append([y1, x1])
+            crop_bottom_right.append([y2, x2])
+
+        if not isinstance(results["img"], list):
+            for k in self.keys:
+                components[k] = components[k][0]
+            crop_top_left = crop_top_left[0]
+            crop_bottom_right = crop_bottom_right[0]
+            before_crop_size = before_crop_size[0]
+
+        for k in self.keys:
+            results[k] = components[k]
+        results["crop_top_left"] = crop_top_left
+        results["crop_bottom_right"] = crop_bottom_right
+        results["before_crop_size"] = before_crop_size
         return results
 
 
@@ -298,6 +371,8 @@ class MultiAspectRatioResizeCenterCrop(BaseTransform):
         ----
             results (dict): The result dict.
         """
+        assert not isinstance(results["img"], list), (
+            "MultiAspectRatioResizeCenterCrop only support single image.")
         aspect_ratio = results["img"].height / results["img"].width
         bucked_id = np.argmin(np.abs(aspect_ratio - self.aspect_ratios))
         return self.pipelines[bucked_id](results)
@@ -328,7 +403,7 @@ class RandomHorizontalFlip(BaseTransform):
         self.pipeline = torchvision.transforms.RandomHorizontalFlip(
             *args, p=1.0, **kwargs)
 
-    def transform(self, results: dict) -> dict | tuple[list, list] | None:
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:  # noqa: C901,PLR0912
         """Transform.
 
         Args:
@@ -339,15 +414,42 @@ class RandomHorizontalFlip(BaseTransform):
         -------
             dict: 'crop_top_left' key is fixed.
         """
-        if random.random() < self.p:
-            assert all(results["img"].size == results[k].size
-                       for k in self.keys)
+        components = dict()
+        additional_keys = [
+            "crop_top_left", "crop_bottom_right", "before_crop_size",
+            ] if "crop_top_left" in results else []
+        for k in self.keys + additional_keys:
+            if not isinstance(results["img"], list):
+                components[k] = [results[k]]
+            else:
+                components[k] = results[k]
+
+        crop_top_left = []
+        for i in range(len(components["img"])):
+            if random.random() < self.p:
+                assert all(components["img"][i].size == components[k][i].size
+                        for k in self.keys)
+                for k in self.keys:
+                    components[k][i] = self.pipeline(components[k][i])
+                if "crop_top_left" in results:
+                    y1 = components["crop_top_left"][i][0]
+                    x1 = (
+                        components["before_crop_size"][i][1] - components[
+                            "crop_bottom_right"][i][1])
+                    crop_top_left.append([y1, x1])
+            elif "crop_top_left" in results:
+                crop_top_left.append(components["crop_top_left"][i])
+
+        if not isinstance(results["img"], list):
             for k in self.keys:
-                results[k] = self.pipeline(results[k])
+                components[k] = components[k][0]
             if "crop_top_left" in results:
-                y1 = results["crop_top_left"][0]
-                x1 = results["img"].width - results["crop_bottom_right"][1]
-                results["crop_top_left"] = [y1, x1]
+                crop_top_left = crop_top_left[0]
+
+        for k in self.keys:
+            results[k] = components[k]
+        if "crop_top_left" in results:
+            results["crop_top_left"] = crop_top_left
         return results
 
 
@@ -368,9 +470,23 @@ class ComputeTimeIds(BaseTransform):
         """
         assert "ori_img_shape" in results
         assert "crop_top_left" in results
-        target_size = [results["img"].height, results["img"].width]
-        time_ids = results["ori_img_shape"] + results[
-            "crop_top_left"] + target_size
+
+        time_ids = []
+        if not isinstance(results["img"], list):
+            img = [results["img"]]
+            ori_img_shape = [results["ori_img_shape"]]
+            crop_top_left = [results["crop_top_left"]]
+        else:
+            img = results["img"]
+            ori_img_shape = results["ori_img_shape"]
+            crop_top_left = results["crop_top_left"]
+
+        for i in range(len(img)):
+            target_size = [img[i].height, img[i].width]
+            time_ids.append(ori_img_shape[i] + crop_top_left[i] + target_size)
+
+        if not isinstance(results["img"], list):
+            time_ids = time_ids[0]
         results["time_ids"] = time_ids
         return results
 
@@ -394,8 +510,24 @@ class ComputePixArtImgInfo(BaseTransform):
             dict: 'time_ids' key is added as original image shape.
         """
         assert "ori_img_shape" in results
-        results["resolution"] = [float(s) for s in results["ori_img_shape"]]
-        results["aspect_ratio"] = results["img"].height / results["img"].width
+        if not isinstance(results["img"], list):
+            img = [results["img"]]
+            ori_img_shape = [results["ori_img_shape"]]
+        else:
+            img = results["img"]
+            ori_img_shape = results["ori_img_shape"]
+
+        resolution: list = []
+        aspect_ratio: list = []
+        for i in range(len(img)):
+            resolution.append([float(s) for s in ori_img_shape[i]])
+            aspect_ratio.append(img[i].height / img[i].width)
+
+        if not isinstance(results["img"], list):
+            resolution = resolution[0]
+            aspect_ratio = aspect_ratio[0]
+        results["resolution"] = resolution
+        results["aspect_ratio"] = aspect_ratio
         return results
 
 
@@ -427,6 +559,8 @@ class CLIPImageProcessor(BaseTransform):
         ----
             results (dict): The result dict.
         """
+        assert not isinstance(results[self.key], list), (
+            "CLIPImageProcessor only support single image.")
         # (1, 3, 224, 224) -> (3, 224, 224)
         results[self.output_key] = self.pipeline(
             images=results[self.key], return_tensors="pt").pixel_values[0]
@@ -668,6 +802,8 @@ class MaskToTensor(BaseTransform):
         ----
             results (dict): The result dict.
         """
+        assert not isinstance(results[self.key], list), (
+            "MaskToTensor only support single image.")
         # (1, 3, 224, 224) -> (3, 224, 224)
         results[self.key] = torch.Tensor(results[self.key]).permute(2, 0, 1)
         return results
@@ -693,6 +829,8 @@ class GetMaskedImage(BaseTransform):
         ----
             results (dict): The result dict.
         """
+        assert not isinstance(results["img"], list), (
+            "GetMaskedImage only support single image.")
         mask_threahold = 0.5
         results[self.key] = results["img"] * (results["mask"] < mask_threahold)
         return results
@@ -729,4 +867,32 @@ class AddConstantCaption(BaseTransform):
         """
         for k in self.keys:
             results[k] = results[k] + " " + self.constant_caption
+        return results
+
+
+@TRANSFORMS.register_module()
+class ConcatMultipleImgs(BaseTransform):
+    """ConcatMultipleImgs.
+
+    Args:
+    ----
+        keys (List[str], optional): `keys` to apply augmentation from results.
+            Defaults to None.
+    """
+
+    def __init__(self, keys: list[str] | None = None) -> None:
+        if keys is None:
+            keys = ["img"]
+        self.keys = keys
+
+    def transform(self,
+                  results: dict) -> dict | tuple[list, list] | None:
+        """Transform.
+
+        Args:
+        ----
+            results (dict): The result dict.
+        """
+        for k in self.keys:
+            results[k] = torch.cat(results[k], dim=0)
         return results
