@@ -896,3 +896,43 @@ class ConcatMultipleImgs(BaseTransform):
         for k in self.keys:
             results[k] = torch.cat(results[k], dim=0)
         return results
+
+
+@TRANSFORMS.register_module()
+class ComputeaMUSEdMicroConds(BaseTransform):
+    """Compute aMUSEd micro_conds as 'micro_conds' in results."""
+
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
+        """Transform.
+
+        Args:
+        ----
+            results (dict): The result dict.
+
+        Returns:
+        -------
+            dict: 'micro_conds' key is added as original image shape.
+        """
+        assert "ori_img_shape" in results
+        assert "crop_top_left" in results
+
+        micro_conds = []
+        if not isinstance(results["img"], list):
+            img = [results["img"]]
+            ori_img_shape = [results["ori_img_shape"]]
+            crop_top_left = [results["crop_top_left"]]
+        else:
+            img = results["img"]
+            ori_img_shape = results["ori_img_shape"]
+            crop_top_left = results["crop_top_left"]
+
+        for i in range(len(img)):
+            # ori_img_shape [H, W] -> [W, H]
+            aesthetic_score = 6.0
+            micro_conds.append(
+                ori_img_shape[i][::-1] + crop_top_left[i] + [aesthetic_score])
+
+        if not isinstance(results["img"], list):
+            micro_conds = micro_conds[0]
+        results["micro_conds"] = micro_conds
+        return results

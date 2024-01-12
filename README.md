@@ -283,6 +283,22 @@ For detailed user guides and advanced guides, please refer to our [Documentation
 </td>
     </tr>
   </tbody>
+  <tbody>
+    <tr align="center" valign="bottom">
+      <td>
+        <b>aMUSEd</b>
+      </td>
+    </tr>
+    <tr valign="top">
+      <td>
+        <ul>
+            <li><a href="diffengine/configs/amused/README.md">aMUSEd (2024)</a></li>
+      </ul>
+      </td>
+    </tr>
+</td>
+    </tr>
+  </tbody>
 </table>
 </details>
 

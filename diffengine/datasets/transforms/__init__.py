@@ -7,6 +7,7 @@ from .processing import (
     AddConstantCaption,
     CenterCrop,
     CLIPImageProcessor,
+    ComputeaMUSEdMicroConds,
     ComputePixArtImgInfo,
     ComputeTimeIds,
     ConcatMultipleImgs,
@@ -45,4 +46,5 @@ __all__ = [
     "DumpMaskedImage",
     "TorchVisonTransformWrapper",
     "ConcatMultipleImgs",
+    "ComputeaMUSEdMicroConds",
 ]

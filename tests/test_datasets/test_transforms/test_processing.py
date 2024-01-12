@@ -874,3 +874,34 @@ class TestConcatMultipleImgs(TestCase):
         trans = TRANSFORMS.build(dict(type="ConcatMultipleImgs"))
         data = trans(data)
         assert data["img"].shape == (6, 32, 32)  # type: ignore[attr-defined]
+
+
+class TestComputeaMUSEdMicroConds(TestCase):
+
+    def test_register(self):
+        assert "ComputeaMUSEdMicroConds" in TRANSFORMS
+
+    def test_transform(self):
+        img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
+        img = Image.open(img_path)
+        data = {"img": img, "ori_img_shape": [32, 32], "crop_top_left": [0, 0]}
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="ComputeaMUSEdMicroConds"))
+        data = trans(data)
+        self.assertListEqual(data["micro_conds"],
+                             [32, 32, 0, 0, 6.0])
+
+    def test_transform_list(self):
+        img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
+        img = Image.open(img_path)
+        data = {"img": [img, img],
+                "ori_img_shape": [[32, 32], [48, 48]],
+                "crop_top_left": [[0, 0], [10, 10]]}
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="ComputeaMUSEdMicroConds"))
+        data = trans(data)
+        self.assertListEqual(data["micro_conds"],
+                             [[32, 32, 0, 0, 6.0],
+                              [48, 48, 10, 10, 6.0]])
