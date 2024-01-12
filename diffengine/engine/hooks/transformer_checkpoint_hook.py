@@ -7,7 +7,7 @@ from mmengine.runner import Runner
 
 
 @HOOKS.register_module()
-class PixArtCheckpointHook(Hook):
+class TransformerCheckpointHook(Hook):
     """Delete 'vae' from checkpoint for efficient save."""
 
     priority = "VERY_LOW"

@@ -6,7 +6,7 @@ from mmengine.testing import RunnerTestCase
 from mmengine.testing.runner_test_case import ToyModel
 from torch import nn
 
-from diffengine.engine.hooks import PixArtCheckpointHook
+from diffengine.engine.hooks import TransformerCheckpointHook
 
 
 class DummyWrapper(BaseModel):
@@ -33,7 +33,7 @@ class ToyModel2(ToyModel):
         return super().forward(*args, **kwargs)
 
 
-class TestPixArtCheckpointHook(RunnerTestCase):
+class TestTransformerCheckpointHook(RunnerTestCase):
 
     def setUp(self) -> None:
         MODELS.register_module(name="DummyWrapper", module=DummyWrapper)
@@ -46,14 +46,14 @@ class TestPixArtCheckpointHook(RunnerTestCase):
         return super().tearDown()
 
     def test_init(self):
-        PixArtCheckpointHook()
+        TransformerCheckpointHook()
 
     def test_before_save_checkpoint(self):
         cfg = copy.deepcopy(self.epoch_based_cfg)
         cfg.model.type = "ToyModel2"
         runner = self.build_runner(cfg)
         checkpoint = dict(state_dict=ToyModel2().state_dict())
-        hook = PixArtCheckpointHook()
+        hook = TransformerCheckpointHook()
         hook.before_save_checkpoint(runner, checkpoint)
 
         for key in checkpoint["state_dict"]:
