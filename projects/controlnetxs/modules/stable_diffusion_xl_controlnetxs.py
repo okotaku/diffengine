@@ -1,12 +1,15 @@
 import numpy as np
 import torch
-from diffusers import ControlNetXSModel, StableDiffusionXLControlNetXSPipeline
 from diffusers.utils import load_image
 from mmengine import print_log
 from PIL import Image
 
 from diffengine.models.editors import StableDiffusionXLControlNet
 from diffengine.registry import MODELS
+from projects.controlnetxs.modules.controlnetxs import ControlNetXSModel
+from projects.controlnetxs.modules.pipeline_controlnet_xs_sd_xl import (
+    StableDiffusionXLControlNetXSPipeline,
+)
 
 
 @MODELS.register_module()
