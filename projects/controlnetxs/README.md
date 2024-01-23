@@ -26,7 +26,7 @@ $ diffengine train ${CONFIG_FILE}
 $ NPROC_PER_NODE=${GPU_NUM} diffengine train ${CONFIG_FILE}
 
 # Example.
-$ diffengine train stable_diffusion_xl_controlnetxs_fill50k
+$ diffengine train projects/controlnetxs/stable_diffusion_xl_controlnetxs_fill50k.py
 ```
 
 ## Inference with diffusers
@@ -35,7 +35,11 @@ Once you have trained a model, specify the path to where the model is saved, and
 
 ```py
 import torch
-from diffusers import StableDiffusionXLControlNetXSPipeline, ControlNetXSModel, AutoencoderKL
+from diffusers import AutoencoderKL
+from projects.controlnetxs.modules.controlnetxs import ControlNetXSModel
+from projects.controlnetxs.modules.pipeline_controlnet_xs_sd_xl import (
+    StableDiffusionXLControlNetXSPipeline,
+)
 from diffusers.utils import load_image
 
 checkpoint = 'work_dirs/stable_diffusion_xl_controlnetxs_fill50k/step37500'

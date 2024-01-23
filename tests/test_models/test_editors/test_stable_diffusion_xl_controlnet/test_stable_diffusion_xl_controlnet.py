@@ -3,7 +3,7 @@ from unittest import TestCase
 import pytest
 import torch
 from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel
-from diffusers.models.unet_2d_blocks import CrossAttnDownBlock2D, DownBlock2D
+from diffusers.models.unets.unet_2d_blocks import CrossAttnDownBlock2D, DownBlock2D
 from mmengine.optim import OptimWrapper
 from torch.optim import SGD
 from transformers import AutoTokenizer, CLIPTextModel, CLIPTextModelWithProjection

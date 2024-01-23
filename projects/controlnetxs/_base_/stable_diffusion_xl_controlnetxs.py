@@ -5,7 +5,7 @@ from transformers import (
     CLIPTextModelWithProjection,
 )
 
-from projects.controlnetxs.stable_diffusion_xl_controlnetxs import (
+from projects.controlnetxs.modules.stable_diffusion_xl_controlnetxs import (
     StableDiffusionXLControlNetXS,
 )
 
