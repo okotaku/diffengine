@@ -212,7 +212,7 @@ For detailed user guides and advanced guides, please refer to our [Documentation
           <li><a href="diffengine/configs/loha/README.md">LoHa (ICLR'2022)</a></li>
           <li><a href="diffengine/configs/lokr/README.md">LoKr (2022)</a></li>
           <li><a href="diffengine/configs/oft/README.md">OFT (NeurIPS'2023)</a></li>
-          <li><a href="diffengine/configs/stable_diffusion_xl_controlnetxs/README.md">ControlNet-XS (2023)</a></li>
+          <li><a href="projects/controlnetxs/README.md">ControlNet-XS (2023)</a></li>
           <li><a href="diffengine/configs/stable_diffusion_xl_inpaint/README.md">Inpaint</a></li>
         </ul>
       </td>
