@@ -14,6 +14,7 @@ from diffusers.utils import is_bs4_available, is_ftfy_available
 from mmengine.dataset.base_dataset import Compose
 from torchvision.transforms.functional import crop
 from torchvision.transforms.transforms import InterpolationMode
+from transformers import AutoImageProcessor
 from transformers import CLIPImageProcessor as HFCLIPImageProcessor
 
 from diffengine.datasets.transforms.base import BaseTransform
@@ -935,4 +936,36 @@ class ComputeaMUSEdMicroConds(BaseTransform):
         if not isinstance(results["img"], list):
             micro_conds = micro_conds[0]
         results["micro_conds"] = micro_conds
+        return results
+
+
+@TRANSFORMS.register_module()
+class TransformersImageProcessor(BaseTransform):
+    """TransformersImageProcessor.
+
+    Args:
+    ----
+        key (str): `key` to apply augmentation from results. Defaults to 'img'.
+        output_key (str): `output_key` after applying augmentation from
+            results. Defaults to 'clip_img'.
+    """
+
+    def __init__(self, key: str = "img", output_key: str = "clip_img",
+                 pretrained: str | None = None) -> None:
+        self.key = key
+        self.output_key = output_key
+        self.pipeline = AutoImageProcessor.from_pretrained(pretrained)
+
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
+        """Transform.
+
+        Args:
+        ----
+            results (dict): The result dict.
+        """
+        assert not isinstance(results[self.key], list), (
+            "CLIPImageProcessor only support single image.")
+        # (1, 3, 224, 224) -> (3, 224, 224)
+        results[self.output_key] = self.pipeline(
+            images=results[self.key], return_tensors="pt").pixel_values[0]
         return results

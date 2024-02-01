@@ -20,6 +20,7 @@ from .processing import (
     SaveImageShape,
     T5TextPreprocess,
     TorchVisonTransformWrapper,
+    TransformersImageProcessor,
 )
 from .wrappers import RandomChoice
 
@@ -47,4 +48,5 @@ __all__ = [
     "TorchVisonTransformWrapper",
     "ConcatMultipleImgs",
     "ComputeaMUSEdMicroConds",
+    "TransformersImageProcessor",
 ]

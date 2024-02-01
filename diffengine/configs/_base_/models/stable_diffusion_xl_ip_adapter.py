@@ -2,6 +2,7 @@ from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel
 from diffusers.models.embeddings import ImageProjection
 from transformers import (
     AutoTokenizer,
+    CLIPImageProcessor,
     CLIPTextModel,
     CLIPTextModelWithProjection,
     CLIPVisionModelWithProjection,
@@ -34,4 +35,5 @@ model = dict(type=IPAdapterXL,
                                 subfolder="sdxl_models/image_encoder"),
              image_projection=dict(type=ImageProjection,
                                    num_image_text_embeds=4),
+             feature_extractor=dict(type=CLIPImageProcessor),
              gradient_checkpointing=True)

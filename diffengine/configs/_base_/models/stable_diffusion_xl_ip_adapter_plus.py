@@ -2,6 +2,7 @@ from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel
 from diffusers.models.embeddings import IPAdapterPlusImageProjection
 from transformers import (
     AutoTokenizer,
+    CLIPImageProcessor,
     CLIPTextModel,
     CLIPTextModelWithProjection,
     CLIPVisionModelWithProjection,
@@ -39,4 +40,5 @@ model = dict(type=IPAdapterXLPlus,
                                     heads=20,
                                     num_queries=16,
                                     ffn_ratio=4),
+             feature_extractor=dict(type=CLIPImageProcessor),
              gradient_checkpointing=True)
