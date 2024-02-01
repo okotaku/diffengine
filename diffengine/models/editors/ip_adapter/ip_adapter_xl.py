@@ -272,7 +272,7 @@ class IPAdapterXL(StableDiffusionXL):
             ]),
             len(image_embeds),
             replacement=True).to(image_embeds)
-        image_embeds = (image_embeds * mask.view(-1, 1)).view(num_batches,1,1,-1)
+        image_embeds = (image_embeds * mask.view(-1, 1)).view(num_batches, 1, 1, -1)
 
         # TODO(takuoko): drop image  # noqa
         ip_tokens = self.image_projection(image_embeds)
