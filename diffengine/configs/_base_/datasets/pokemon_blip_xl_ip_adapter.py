@@ -51,7 +51,7 @@ custom_hooks = [
         type=VisualizationHook,
         prompt=["a drawing of a green pokemon with red eyes"] * 2 + [""] * 2,
         example_image=[
-            'https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg'  # noqa
+            'https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true'  # noqa
         ] * 4,
         height=1024,
         width=1024),
