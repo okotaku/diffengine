@@ -43,6 +43,20 @@ class VisualizationHook(Hook):
         self.height = height
         self.width = width
 
+    def before_train(self, runner: Runner) -> None:
+        """Before train hook."""
+        model = runner.model
+        if is_model_wrapper(model):
+            model = model.module
+        images = model.infer(
+            self.prompt,
+            height=self.height,
+            width=self.width,
+            **self.kwargs)
+        for i, image in enumerate(images):
+            runner.visualizer.add_image(
+                f"image{i}_step", image, step=runner.iter)
+
     def after_train_iter(
             self,
             runner: Runner,

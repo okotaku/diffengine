@@ -1,3 +1,4 @@
+import copy
 from collections import OrderedDict
 
 import torch
@@ -55,7 +56,7 @@ def set_unet_ip_adapter(unet: nn.Module) -> None:
     unet.set_attn_processor(attn_procs)
 
 
-def load_ip_adapter(  # noqa: PLR0915, C901, PLR0912
+def load_ip_adapter(  # noqa: C901, PLR0912
     unet: nn.Module,
                     image_projection: nn.Module,
                     pretrained_adapter: str,
@@ -101,70 +102,59 @@ def load_ip_adapter(  # noqa: PLR0915, C901, PLR0912
         if cross_attention_dim is None or "motion_modules" in name:
             continue
         value_dict = {}
-        for k in attn_proc.state_dict():
-            value_dict.update({f"{k}": state_dict["ip_adapter"][f"{key_id}.{k}"]})
+        value_dict.update(
+            {"to_k_ip.0.weight":
+                state_dict["ip_adapter"][f"{key_id}.to_k_ip.weight"]})
+        value_dict.update(
+            {"to_v_ip.0.weight":
+                state_dict["ip_adapter"][f"{key_id}.to_v_ip.weight"]})
 
         attn_proc.load_state_dict(value_dict)
         key_id += 2
 
+    image_proj_state_dict = {}
     if "proj.weight" in state_dict["image_proj"]:
         # IP-Adapter
-        image_proj_state_dict = {}
-        image_proj_state_dict.update(
-            {
-                "image_embeds.weight": state_dict["image_proj"]["proj.weight"],
-                "image_embeds.bias": state_dict["image_proj"]["proj.bias"],
-                "norm.weight": state_dict["image_proj"]["norm.weight"],
-                "norm.bias": state_dict["image_proj"]["norm.bias"],
-            },
-        )
-        image_projection.load_state_dict(image_proj_state_dict)
-        del image_proj_state_dict
+        for key, value in state_dict["image_proj"].items():
+            diffusers_name = key.replace("proj", "image_embeds")
+            image_proj_state_dict[diffusers_name] = value
     elif "proj.3.weight" in state_dict["image_proj"]:
-        image_proj_state_dict = {}
-        image_proj_state_dict.update(
-            {
-                "ff.net.0.proj.weight": state_dict["image_proj"]["proj.0.weight"],
-                "ff.net.0.proj.bias": state_dict["image_proj"]["proj.0.bias"],
-                "ff.net.2.weight": state_dict["image_proj"]["proj.2.weight"],
-                "ff.net.2.bias": state_dict["image_proj"]["proj.2.bias"],
-                "norm.weight": state_dict["image_proj"]["proj.3.weight"],
-                "norm.bias": state_dict["image_proj"]["proj.3.bias"],
-            },
-        )
-        image_projection.load_state_dict(image_proj_state_dict)
-        del image_proj_state_dict
+        # IP-Adapter Full
+        for key, value in state_dict["image_proj"].items():
+            diffusers_name = key.replace("proj.0", "ff.net.0.proj")
+            diffusers_name = diffusers_name.replace("proj.2", "ff.net.2")
+            diffusers_name = diffusers_name.replace("proj.3", "norm")
+            image_proj_state_dict[diffusers_name] = value
     else:
         # IP-Adapter Plus
-        new_sd = OrderedDict()
-        for k, v in state_dict["image_proj"].items():
-            if "0.to" in k:
-                new_k = k.replace("0.to", "2.to")
-            elif "1.0.weight" in k:
-                new_k = k.replace("1.0.weight", "3.0.weight")
-            elif "1.0.bias" in k:
-                new_k = k.replace("1.0.bias", "3.0.bias")
-            elif "1.1.weight" in k:
-                new_k = k.replace("1.1.weight", "3.1.net.0.proj.weight")
-            elif "1.3.weight" in k:
-                new_k = k.replace("1.3.weight", "3.1.net.2.weight")
-            else:
-                new_k = k
+        for key, value in state_dict["image_proj"].items():
+            diffusers_name = key.replace("0.to", "2.to")
+            diffusers_name = diffusers_name.replace("1.0.weight", "3.0.weight")
+            diffusers_name = diffusers_name.replace("1.0.bias", "3.0.bias")
+            diffusers_name = diffusers_name.replace(
+                "1.1.weight", "3.1.net.0.proj.weight")
+            diffusers_name = diffusers_name.replace("1.3.weight", "3.1.net.2.weight")
 
-            if "norm1" in new_k:
-                new_sd[new_k.replace("0.norm1", "0")] = v
-            elif "norm2" in new_k:
-                new_sd[new_k.replace("0.norm2", "1")] = v
-            elif "to_kv" in new_k:
-                v_chunk = v.chunk(2, dim=0)
-                new_sd[new_k.replace("to_kv", "to_k")] = v_chunk[0]
-                new_sd[new_k.replace("to_kv", "to_v")] = v_chunk[1]
-            elif "to_out" in new_k:
-                new_sd[new_k.replace("to_out", "to_out.0")] = v
+            if "norm1" in diffusers_name:
+                image_proj_state_dict[
+                    diffusers_name.replace("0.norm1", "0")] = value
+            elif "norm2" in diffusers_name:
+                image_proj_state_dict[
+                    diffusers_name.replace("0.norm2", "1")] = value
+            elif "to_kv" in diffusers_name:
+                v_chunk = value.chunk(2, dim=0)
+                image_proj_state_dict[
+                    diffusers_name.replace("to_kv", "to_k")] = v_chunk[0]
+                image_proj_state_dict[
+                    diffusers_name.replace("to_kv", "to_v")] = v_chunk[1]
+            elif "to_out" in diffusers_name:
+                image_proj_state_dict[
+                    diffusers_name.replace("to_out", "to_out.0")] = value
             else:
-                new_sd[new_k] = v
-        image_projection.load_state_dict(new_sd)
-    del state_dict
+                image_proj_state_dict[diffusers_name] = value
+
+    image_projection.load_state_dict(image_proj_state_dict)
+    del image_proj_state_dict, state_dict
     torch.cuda.empty_cache()
 
 
@@ -173,7 +163,11 @@ def process_ip_adapter_state_dict(  # noqa: PLR0915, C901, PLR0912
     """Process IP-Adapter state dict."""
     adapter_modules = torch.nn.ModuleList([
         v if isinstance(v, nn.Module) else nn.Identity(
-            ) for v in unet.attn_processors.values()])
+            ) for v in copy.deepcopy(unet.attn_processors).values()])
+    adapter_state_dict = OrderedDict()
+    for k, v in adapter_modules.state_dict().items():
+        new_k = k.replace(".0.weight", ".weight")
+        adapter_state_dict[new_k] = v
 
     # not save no grad key
     ip_image_projection_state_dict = OrderedDict()
@@ -234,4 +228,4 @@ def process_ip_adapter_state_dict(  # noqa: PLR0915, C901, PLR0912
                 ip_image_projection_state_dict[new_k] = v
 
     return {"image_proj": ip_image_projection_state_dict,
-            "ip_adapter": adapter_modules.state_dict()}
+            "ip_adapter": adapter_state_dict}

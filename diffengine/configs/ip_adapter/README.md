@@ -63,7 +63,7 @@ pipe = DiffusionPipeline.from_pretrained(
 pipe.to('cuda')
 pipe.load_ip_adapter("work_dirs/stable_diffusion_xl_pokemon_blip_ip_adapter/step41650", subfolder="", weight_name="ip_adapter.bin")
 
-image = load_image("https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg")
+image = load_image("https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true")
 
 image = pipe(
     prompt,
@@ -80,18 +80,18 @@ You can see more details on [`docs/source/run_guides/run_ip_adapter.md`](../../d
 
 #### stable_diffusion_xl_pokemon_blip_ip_adapter
 
-![input1](https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg)
+![input1](https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/6137ffb4-dff9-41de-aa6e-2910d95e6d21)
 
 #### stable_diffusion_xl_pokemon_blip_ip_adapter_plus
 
-![input1](https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg)
+![input1](https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/723ad39d-9e0f-441b-80f7-cf9bcfd12853)
 
 #### stable_diffusion_xl_pokemon_blip_ip_adapter_plus_pretrained
 
-![input1](https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg)
+![input1](https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/ace81220-010b-44a5-aa8f-3acdf3f54433)

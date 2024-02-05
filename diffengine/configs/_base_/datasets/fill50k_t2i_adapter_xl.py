@@ -55,7 +55,7 @@ custom_hooks = [
         type=VisualizationHook,
         prompt=["cyan circle with brown floral background"] * 4,
         condition_image=[
-            'https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg'  # noqa
+            'https://github.com/okotaku/diffengine/assets/24734142/1af9dbb0-b056-435c-bc4b-62a823889191'  # noqa
         ] * 4,
         height=1024,
         width=1024),

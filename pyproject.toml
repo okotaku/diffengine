@@ -6,16 +6,16 @@ version = "1.0.0"
 requires-python = ">= 3.10"
 readme = "README.md"
 dependencies = [
-    "torch>=2.0.1",
-    "torchvision>=0.15.2",
-    "datasets>=2.14.6",
-    "diffusers>=0.25.0",
-    "mmengine>=0.10.1",
+    "torch>=2.1.2",
+    "torchvision>=0.16.2",
+    "datasets>=2.16.1",
+    "diffusers@git+https://github.com/huggingface/diffusers@ec9840a#egg=diffusers",
+    "mmengine>=0.10.3",
     "sentencepiece>=0.1.99",
     "tqdm",
-    "transformers>=4.35.2",
+    "transformers>=4.37.2",
     "ujson",
-    "peft>=0.7.0",
+    "peft>=0.8.1",
     "joblib",
 ]
 license = { file = "LICENSE" }

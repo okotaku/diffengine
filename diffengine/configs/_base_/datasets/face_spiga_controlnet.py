@@ -49,7 +49,7 @@ custom_hooks = [
         type=VisualizationHook,
         prompt=["a close up of a man with a mohawkcut and a purple shirt"] * 4,
         condition_image=[
-            'https://datasets-server.huggingface.co/assets/multimodalart/facesyntheticsspigacaptioned/--/multimodalart--facesyntheticsspigacaptioned/train/1/spiga_seg/image.jpg'  # noqa
+            'https://github.com/okotaku/diffengine/assets/24734142/73da6604-e4e6-4789-a9af-7f71ae2ba750'  # noqa
         ] * 4),
     dict(type=ControlNetSaveHook),
 ]
