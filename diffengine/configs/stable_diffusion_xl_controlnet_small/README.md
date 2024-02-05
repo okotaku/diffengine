@@ -33,7 +33,7 @@ from diffusers.utils import load_image
 checkpoint = 'work_dirs/stable_diffusion_xl_controlnet_small_fill50k/step37500'
 prompt = 'cyan circle with brown floral background'
 condition_image = load_image(
-    'https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg'
+    'https://github.com/okotaku/diffengine/assets/24734142/1af9dbb0-b056-435c-bc4b-62a823889191'
 ).resize((1024, 1024))
 
 controlnet = ControlNetModel.from_pretrained(
@@ -61,13 +61,13 @@ You can see more details on [`docs/source/run_guides/run_controlnet_xl.md`](../.
 
 #### stable_diffusion_xl_controlnet_small_fill50k
 
-![input1](https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg)
+![input1](https://github.com/okotaku/diffengine/assets/24734142/1af9dbb0-b056-435c-bc4b-62a823889191)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/8556346f-bdc4-45be-b1fd-1467d9147c1d)
 
 #### stable_diffusion_xl_controlnet_mid_fill50k
 
-![input1](https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg)
+![input1](https://github.com/okotaku/diffengine/assets/24734142/1af9dbb0-b056-435c-bc4b-62a823889191)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/74be361b-ec28-465a-8e7e-55b1a6210e80)
 
