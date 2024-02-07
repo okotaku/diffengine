@@ -3,7 +3,6 @@ from diffusers import (
     DDPMScheduler,
     UNet2DConditionModel,
 )
-from diffusers.models.embeddings import ImageProjection
 from transformers import (
     AutoTokenizer,
     CLIPTextModel,
@@ -12,6 +11,7 @@ from transformers import (
 )
 
 from diffengine.models.editors import IPAdapterXL, IPAdapterXLDataPreprocessor
+from diffengine.models.editors.ip_adapter.image_projection import ImageProjModel
 from diffengine.models.losses import L2Loss
 
 base_model = "hf-internal-testing/tiny-stable-diffusion-xl-pipe"
@@ -37,7 +37,7 @@ model = dict(type=IPAdapterXL,
              image_encoder=dict(type=CLIPVisionModelWithProjection.from_pretrained,
                                 pretrained_model_name_or_path="hf-internal-testing/unidiffuser-diffusers-test",
                                 subfolder="image_encoder"),
-             image_projection=dict(type=ImageProjection,
-                                   num_image_text_embeds=4),
+             image_projection=dict(type=ImageProjModel,
+                                   clip_extra_context_tokens=4),
             data_preprocessor=dict(type=IPAdapterXLDataPreprocessor),
             loss=dict(type=L2Loss))

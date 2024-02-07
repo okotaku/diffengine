@@ -2,7 +2,6 @@ from typing import Any
 
 import pytest
 from diffusers import UNet2DConditionModel
-from diffusers.models.embeddings import ImageProjection, IPAdapterPlusImageProjection
 from peft import LoHaConfig, LoKrConfig, LoraConfig, OFTConfig
 
 from diffengine.models.archs import (
@@ -10,13 +9,15 @@ from diffengine.models.archs import (
     process_ip_adapter_state_dict,
     set_unet_ip_adapter,
 )
+from diffengine.models.editors.ip_adapter.image_projection import ImageProjModel
+from diffengine.models.editors.ip_adapter.resampler import Resampler
 
 
 def test_set_unet_ip_adapter():
     unet = UNet2DConditionModel.from_pretrained(
         "hf-internal-testing/tiny-stable-diffusion-xl-pipe", subfolder="unet")
     assert not any("processor" in k for k in unet.state_dict())
-    set_unet_ip_adapter(unet)
+    set_unet_ip_adapter(unet, num_tokens=4)
     assert any("processor.to_k_ip" in k for k in unet.state_dict())
     assert any("processor.to_v_ip" in k for k in unet.state_dict())
 
@@ -68,24 +69,24 @@ def test_create_peft_config():
 def test_process_ip_adapter_state_dict():
     unet = UNet2DConditionModel.from_pretrained(
         "hf-internal-testing/tiny-stable-diffusion-xl-pipe", subfolder="unet")
-    set_unet_ip_adapter(unet)
-    proj = ImageProjection(
+    set_unet_ip_adapter(unet, num_tokens=4)
+    proj = ImageProjModel(
         cross_attention_dim=128,
-        image_embed_dim=128,
-        num_image_text_embeds=4,
+        clip_embeddings_dim=128,
+        clip_extra_context_tokens=4,
     )
     proj_state_dict = process_ip_adapter_state_dict(unet, proj)
     assert list(proj_state_dict.keys()) == ["image_proj", "ip_adapter"]
     assert "proj.weight" in proj_state_dict["image_proj"]
     assert len(proj_state_dict["ip_adapter"]) == 24
 
-    resampler = IPAdapterPlusImageProjection(
+    resampler = Resampler(
         embed_dims=32,
         output_dims=32,
         hidden_dims=128,
         depth=1,
-        dim_head=2,
-        heads=2,
+        head_dims=2,
+        num_heads=2,
         num_queries=4,
         ffn_ratio=1,
     )

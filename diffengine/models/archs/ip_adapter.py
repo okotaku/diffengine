@@ -3,27 +3,171 @@ from collections import OrderedDict
 
 import torch
 import torch.nn.functional as F  # noqa
-from diffusers.models.attention_processor import (
-    AttnProcessor,
-    AttnProcessor2_0,
-    IPAdapterAttnProcessor,
-    IPAdapterAttnProcessor2_0,
-)
-from diffusers.models.embeddings import ImageProjection, IPAdapterPlusImageProjection
+from diffusers.models.attention_processor import Attention, AttnProcessor2_0
 from diffusers.utils import _get_model_file
 from safetensors import safe_open
 from torch import nn
 
 
-def set_unet_ip_adapter(unet: nn.Module) -> None:
+class IPAttnProcessor2_0(nn.Module):  # noqa
+    """Attention processor for IP-Adapater for PyTorch 2.0.
+
+    Args:
+    ----
+        hidden_size (`int`):
+            The hidden size of the attention layer.
+        cross_attention_dim (`int`):
+            The number of channels in the `encoder_hidden_states`.
+        scale (`float`, defaults to 1.0):
+            the weight scale of image prompt.
+        num_tokens (`int`, defaults to 4 when do ip_adapter_plus it should be 16):
+            The context length of the image features.
+    """
+
+    def __init__(self, hidden_size: int,
+                 cross_attention_dim: int | None = None,
+                 scale: float = 1.0,
+                 num_tokens: int = 4) -> None:
+        super().__init__()
+
+        if not hasattr(F, "scaled_dot_product_attention"):
+            msg = ("AttnProcessor2_0 requires PyTorch 2.0, to use it, please "
+                   "upgrade PyTorch to 2.0.")
+            raise ImportError(
+                msg)
+
+        self.hidden_size = hidden_size
+        self.cross_attention_dim = cross_attention_dim
+        self.scale = scale
+        self.num_tokens = num_tokens
+
+        self.to_k_ip = nn.Linear(cross_attention_dim or hidden_size,
+                                 hidden_size, bias=False)
+        self.to_v_ip = nn.Linear(cross_attention_dim or hidden_size,
+                                 hidden_size, bias=False)
+
+    def __call__(
+        self,
+        attn: Attention,
+        hidden_states: torch.Tensor,
+        encoder_hidden_states: torch.Tensor | None = None,
+        attention_mask: torch.Tensor | None = None,
+        temb: torch.Tensor | None = None,
+        **kwargs,  # noqa
+    ) -> torch.Tensor:
+        """Forward pass."""
+        residual = hidden_states
+
+        if attn.spatial_norm is not None:
+            hidden_states = attn.spatial_norm(hidden_states, temb)
+
+        input_ndim = hidden_states.ndim
+
+        if input_ndim == 4:  # noqa
+            batch_size, channel, height, width = hidden_states.shape
+            hidden_states = hidden_states.view(
+                batch_size, channel, height * width).transpose(1, 2)
+
+        batch_size, sequence_length, _ = (
+            hidden_states.shape if (
+                encoder_hidden_states is None
+            )else encoder_hidden_states.shape
+        )
+
+        if attention_mask is not None:
+            attention_mask = attn.prepare_attention_mask(
+                attention_mask, sequence_length, batch_size)
+            # scaled_dot_product_attention expects attention_mask shape to
+            attention_mask = attention_mask.view(
+                batch_size, attn.heads, -1, attention_mask.shape[-1])
+
+        if attn.group_norm is not None:
+            hidden_states = attn.group_norm(
+                hidden_states.transpose(1, 2)).transpose(1, 2)
+
+        query = attn.to_q(hidden_states)
+
+        if encoder_hidden_states is None:
+            encoder_hidden_states = hidden_states
+        else:
+            # get encoder_hidden_states, ip_hidden_states
+            end_pos = encoder_hidden_states.shape[1] - self.num_tokens
+            encoder_hidden_states, ip_hidden_states = (
+                encoder_hidden_states[:, :end_pos, :],
+                encoder_hidden_states[:, end_pos:, :],
+            )
+            if attn.norm_cross:
+                encoder_hidden_states = attn.norm_encoder_hidden_states(
+                    encoder_hidden_states)
+
+        key = attn.to_k(encoder_hidden_states)
+        value = attn.to_v(encoder_hidden_states)
+
+        inner_dim = key.shape[-1]
+        head_dim = inner_dim // attn.heads
+
+        query = query.view(batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+
+        key = key.view(batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+        value = value.view(batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+
+        # the output of sdp = (batch, num_heads, seq_len, head_dim)
+        hidden_states = F.scaled_dot_product_attention(
+            query, key, value, attn_mask=attention_mask, dropout_p=0.0,
+            is_causal=False,
+        )
+
+        hidden_states = hidden_states.transpose(1, 2).reshape(
+            batch_size, -1, attn.heads * head_dim)
+        hidden_states = hidden_states.to(query.dtype)
+
+        # for ip-adapter
+        ip_key = self.to_k_ip(ip_hidden_states)
+        ip_value = self.to_v_ip(ip_hidden_states)
+
+        ip_key = ip_key.view(
+            batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+        ip_value = ip_value.view(
+            batch_size, -1, attn.heads, head_dim).transpose(1, 2)
+
+        # the output of sdp = (batch, num_heads, seq_len, head_dim)
+        ip_hidden_states = F.scaled_dot_product_attention(
+            query, ip_key, ip_value, attn_mask=None, dropout_p=0.0, is_causal=False,
+        )
+        with torch.no_grad():
+            self.attn_map = query @ ip_key.transpose(-2, -1).softmax(dim=-1)
+
+        ip_hidden_states = ip_hidden_states.transpose(1, 2).reshape(
+            batch_size, -1, attn.heads * head_dim)
+        ip_hidden_states = ip_hidden_states.to(query.dtype)
+
+        hidden_states = hidden_states + self.scale * ip_hidden_states
+
+        # linear proj
+        hidden_states = attn.to_out[0](hidden_states)
+        # dropout
+        hidden_states = attn.to_out[1](hidden_states)
+
+        if input_ndim == 4:  # noqa
+            hidden_states = hidden_states.transpose(-1, -2).reshape(
+                batch_size, channel, height, width)
+
+        if attn.residual_connection:
+            hidden_states = hidden_states + residual
+
+        return hidden_states / attn.rescale_output_factor
+
+
+
+def set_unet_ip_adapter(unet: nn.Module, num_tokens: int) -> None:
     """Set IP-Adapter for Unet.
 
     Args:
     ----
         unet (nn.Module): The unet to set IP-Adapter.
+        num_tokens (int): The number of tokens for IP-Adapter.
     """
     attn_procs = {}
-    key_id = 1
     for name in unet.attn_processors:
         cross_attention_dim = None if name.endswith(
             "attn1.processor") else unet.config.cross_attention_dim
@@ -36,27 +180,17 @@ def set_unet_ip_adapter(unet: nn.Module) -> None:
             block_id = int(name[len("down_blocks.")])
             hidden_size = unet.config.block_out_channels[block_id]
         if cross_attention_dim is None or "motion_modules" in name:
-            attn_processor_class = (
-                AttnProcessor2_0 if hasattr(
-                    F, "scaled_dot_product_attention") else AttnProcessor
-            )
-            attn_procs[name] = attn_processor_class()
+            attn_procs[name] = AttnProcessor2_0()
         else:
-            attn_processor_class = (
-                IPAdapterAttnProcessor2_0 if hasattr(
-                    F, "scaled_dot_product_attention",
-                    ) else IPAdapterAttnProcessor
-            )
-            attn_procs[name] = attn_processor_class(
+            attn_procs[name] = IPAttnProcessor2_0(
                 hidden_size=hidden_size,
-                cross_attention_dim=cross_attention_dim, scale=1.0,
+                cross_attention_dim=cross_attention_dim, num_tokens=num_tokens,
             ).to(dtype=unet.dtype, device=unet.device)
 
-            key_id += 2
     unet.set_attn_processor(attn_procs)
 
 
-def load_ip_adapter(  # noqa: C901, PLR0912
+def load_ip_adapter(
     unet: nn.Module,
                     image_projection: nn.Module,
                     pretrained_adapter: str,
@@ -103,62 +237,21 @@ def load_ip_adapter(  # noqa: C901, PLR0912
             continue
         value_dict = {}
         value_dict.update(
-            {"to_k_ip.0.weight":
+            {"to_k_ip.weight":
                 state_dict["ip_adapter"][f"{key_id}.to_k_ip.weight"]})
         value_dict.update(
-            {"to_v_ip.0.weight":
+            {"to_v_ip.weight":
                 state_dict["ip_adapter"][f"{key_id}.to_v_ip.weight"]})
 
         attn_proc.load_state_dict(value_dict)
         key_id += 2
 
-    image_proj_state_dict = {}
-    if "proj.weight" in state_dict["image_proj"]:
-        # IP-Adapter
-        for key, value in state_dict["image_proj"].items():
-            diffusers_name = key.replace("proj", "image_embeds")
-            image_proj_state_dict[diffusers_name] = value
-    elif "proj.3.weight" in state_dict["image_proj"]:
-        # IP-Adapter Full
-        for key, value in state_dict["image_proj"].items():
-            diffusers_name = key.replace("proj.0", "ff.net.0.proj")
-            diffusers_name = diffusers_name.replace("proj.2", "ff.net.2")
-            diffusers_name = diffusers_name.replace("proj.3", "norm")
-            image_proj_state_dict[diffusers_name] = value
-    else:
-        # IP-Adapter Plus
-        for key, value in state_dict["image_proj"].items():
-            diffusers_name = key.replace("0.to", "2.to")
-            diffusers_name = diffusers_name.replace("1.0.weight", "3.0.weight")
-            diffusers_name = diffusers_name.replace("1.0.bias", "3.0.bias")
-            diffusers_name = diffusers_name.replace(
-                "1.1.weight", "3.1.net.0.proj.weight")
-            diffusers_name = diffusers_name.replace("1.3.weight", "3.1.net.2.weight")
-
-            if "norm1" in diffusers_name:
-                image_proj_state_dict[
-                    diffusers_name.replace("0.norm1", "0")] = value
-            elif "norm2" in diffusers_name:
-                image_proj_state_dict[
-                    diffusers_name.replace("0.norm2", "1")] = value
-            elif "to_kv" in diffusers_name:
-                v_chunk = value.chunk(2, dim=0)
-                image_proj_state_dict[
-                    diffusers_name.replace("to_kv", "to_k")] = v_chunk[0]
-                image_proj_state_dict[
-                    diffusers_name.replace("to_kv", "to_v")] = v_chunk[1]
-            elif "to_out" in diffusers_name:
-                image_proj_state_dict[
-                    diffusers_name.replace("to_out", "to_out.0")] = value
-            else:
-                image_proj_state_dict[diffusers_name] = value
-
-    image_projection.load_state_dict(image_proj_state_dict)
-    del image_proj_state_dict, state_dict
+    image_projection.load_state_dict(state_dict["image_proj"])
+    del state_dict
     torch.cuda.empty_cache()
 
 
-def process_ip_adapter_state_dict(  # noqa: PLR0915, C901, PLR0912
+def process_ip_adapter_state_dict(
     unet: nn.Module, image_projection: nn.Module) -> dict:
     """Process IP-Adapter state dict."""
     adapter_modules = torch.nn.ModuleList([
@@ -169,63 +262,5 @@ def process_ip_adapter_state_dict(  # noqa: PLR0915, C901, PLR0912
         new_k = k.replace(".0.weight", ".weight")
         adapter_state_dict[new_k] = v
 
-    # not save no grad key
-    ip_image_projection_state_dict = OrderedDict()
-    if isinstance(image_projection, ImageProjection):
-        for k, v in image_projection.state_dict().items():
-            new_k = k.replace("image_embeds.", "proj.")
-            ip_image_projection_state_dict[new_k] = v
-    elif isinstance(image_projection, IPAdapterPlusImageProjection):
-        for k, v in image_projection.state_dict().items():
-            if "2.to" in k:
-                new_k = k.replace("2.to", "0.to")
-            elif "layers.3.0.weight" in k:
-                new_k = k.replace("layers.3.0.weight", "layers.3.0.norm1.weight")
-            elif "layers.3.0.bias" in k:
-                new_k = k.replace("layers.3.0.bias", "layers.3.0.norm1.bias")
-            elif "layers.3.1.weight" in k:
-                new_k = k.replace("layers.3.1.weight", "layers.3.0.norm2.weight")
-            elif "layers.3.1.bias" in k:
-                new_k = k.replace("layers.3.1.bias", "layers.3.0.norm2.bias")
-            elif "3.0.weight" in k:
-                new_k = k.replace("3.0.weight", "1.0.weight")
-            elif "3.0.bias" in k:
-                new_k = k.replace("3.0.bias", "1.0.bias")
-            elif "3.0.weight" in k:
-                new_k = k.replace("3.0.weight", "1.0.weight")
-            elif "3.1.net.0.proj.weight" in k:
-                new_k = k.replace("3.1.net.0.proj.weight", "1.1.weight")
-            elif "3.1.net.2.weight" in k:
-                new_k = k.replace("3.1.net.2.weight", "1.3.weight")
-            elif "layers.0.0" in k:
-                new_k = k.replace("layers.0.0", "layers.0.0.norm1")
-            elif "layers.0.1" in k:
-                new_k = k.replace("layers.0.1", "layers.0.0.norm2")
-            elif "layers.1.0" in k:
-                new_k = k.replace("layers.1.0", "layers.1.0.norm1")
-            elif "layers.1.1" in k:
-                new_k = k.replace("layers.1.1", "layers.1.0.norm2")
-            elif "layers.2.0" in k:
-                new_k = k.replace("layers.2.0", "layers.2.0.norm1")
-            elif "layers.2.1" in k:
-                new_k = k.replace("layers.2.1", "layers.2.0.norm2")
-            else:
-                new_k = k
-
-            if "norm_cross" in new_k:
-                ip_image_projection_state_dict[new_k.replace("norm_cross", "norm1")] = v
-            elif "layer_norm" in new_k:
-                ip_image_projection_state_dict[new_k.replace("layer_norm", "norm2")] = v
-            elif "to_k" in new_k:
-                ip_image_projection_state_dict[
-                    new_k.replace("to_k", "to_kv")] = torch.cat([
-                    v, image_projection.state_dict()[k.replace("to_k", "to_v")]], dim=0)
-            elif "to_v" in new_k:
-                continue
-            elif "to_out.0" in new_k:
-                ip_image_projection_state_dict[new_k.replace("to_out.0", "to_out")] = v
-            else:
-                ip_image_projection_state_dict[new_k] = v
-
-    return {"image_proj": ip_image_projection_state_dict,
+    return {"image_proj": image_projection.state_dict(),
             "ip_adapter": adapter_state_dict}

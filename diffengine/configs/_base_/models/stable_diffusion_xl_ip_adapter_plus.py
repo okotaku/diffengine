@@ -1,5 +1,4 @@
 from diffusers import AutoencoderKL, DDPMScheduler, UNet2DConditionModel
-from diffusers.models.embeddings import IPAdapterPlusImageProjection
 from transformers import (
     AutoTokenizer,
     CLIPTextModel,
@@ -8,6 +7,7 @@ from transformers import (
 )
 
 from diffengine.models.editors import IPAdapterXLPlus
+from diffengine.models.editors.ip_adapter.resampler import Resampler
 
 base_model = "stabilityai/stable-diffusion-xl-base-1.0"
 model = dict(type=IPAdapterXLPlus,
@@ -32,11 +32,11 @@ model = dict(type=IPAdapterXLPlus,
              image_encoder=dict(type=CLIPVisionModelWithProjection.from_pretrained,
                                 pretrained_model_name_or_path="h94/IP-Adapter",
                                 subfolder="sdxl_models/image_encoder"),
-             image_projection=dict(type=IPAdapterPlusImageProjection,
+             image_projection=dict(type=Resampler,
                                    hidden_dims=1280,
-                                    depth=4,
-                                    dim_head=64,
-                                    heads=20,
-                                    num_queries=16,
-                                    ffn_ratio=4),
+                                   depth=4,
+                                   head_dims=64,
+                                   num_heads=20,
+                                   num_queries=16,
+                                   ffn_ratio=4),
              gradient_checkpointing=True)
