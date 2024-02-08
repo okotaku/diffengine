@@ -65,7 +65,7 @@ pipe = DiffusionPipeline.from_pretrained(
 pipe.to('cuda')
 pipe.load_ip_adapter("work_dirs/stable_diffusion_xl_pokemon_blip_ip_adapter/step41650", subfolder="", weight_name="ip_adapter.bin")
 
-image = load_image("https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg")
+image = load_image("https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true")
 
 image = pipe(
     prompt,
@@ -80,6 +80,6 @@ image.save('demo.png')
 
 #### stable_diffusion_xl_pokemon_blip_ip_adapter
 
-![input1](https://datasets-server.huggingface.co/assets/lambdalabs/pokemon-blip-captions/--/default/train/0/image/image.jpg)
+![input1](https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/6137ffb4-dff9-41de-aa6e-2910d95e6d21)

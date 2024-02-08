@@ -22,6 +22,25 @@ class TestVisualizationHook(RunnerTestCase):
         MODELS.module_dict.pop("TimeSteps")
         return super().tearDown()
 
+    def test_before_train(self):
+        runner = MagicMock()
+
+        # test epoch-based
+        runner.train_loop = MagicMock(spec=EpochBasedTrainLoop)
+        runner.epoch = 5
+        hook = VisualizationHook(prompt=["a dog"])
+        hook.before_train(runner)
+
+    def test_before_train_with_condition(self):
+        runner = MagicMock()
+
+        # test epoch-based
+        runner.train_loop = MagicMock(spec=EpochBasedTrainLoop)
+        runner.epoch = 5
+        hook = VisualizationHook(
+            prompt=["a dog"], condition_image=["testdata/color.jpg"])
+        hook.before_train(runner)
+
     def test_after_train_epoch(self):
         runner = MagicMock()
 

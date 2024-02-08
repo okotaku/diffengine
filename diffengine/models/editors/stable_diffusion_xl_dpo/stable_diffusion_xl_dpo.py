@@ -135,8 +135,7 @@ class StableDiffusionXLDPO(StableDiffusionXL):
         # num_batches is divided by 2 because we have two images per sample
         num_batches = len(inputs["img"]) // 2
 
-        latents = self.vae.encode(inputs["img"]).latent_dist.sample()
-        latents = latents * self.vae.config.scaling_factor
+        latents = self._forward_vae(inputs["img"], num_batches)
 
         noise = self.noise_generator(latents[:num_batches])
         # repeat noise for each sample set

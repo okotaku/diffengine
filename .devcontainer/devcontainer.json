@@ -4,7 +4,7 @@
   ],
   "service": "diffengine",
   "workspaceFolder": "/workspace",
-  "postCreateCommand": "pre-commit install",
+  "postCreateCommand": "pre-commit install && gh auth login && gh extension install github/gh-copilot",
   "customizations": {
     "vscode": {
       "extensions": [

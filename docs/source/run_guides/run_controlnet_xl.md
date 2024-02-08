@@ -72,7 +72,7 @@ from diffusers.utils import load_image
 checkpoint = 'work_dirs/stable_diffusion_xl_controlnet_fill50k/step25000'
 prompt = 'cyan circle with brown floral background'
 condition_image = load_image(
-    'https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg'
+    'https://github.com/okotaku/diffengine/assets/24734142/1af9dbb0-b056-435c-bc4b-62a823889191'
 ).resize((1024, 1024))
 
 controlnet = ControlNetModel.from_pretrained(
@@ -98,7 +98,7 @@ image.save('demo.png')
 
 #### stable_diffusion_xl_controlnet_fill50k
 
-![input1](https://datasets-server.huggingface.co/assets/fusing/fill50k/--/default/train/74/conditioning_image/image.jpg)
+![input1](https://github.com/okotaku/diffengine/assets/24734142/1af9dbb0-b056-435c-bc4b-62a823889191)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/a331a413-a9e7-4b9a-aa75-72279c4cc77a)
 

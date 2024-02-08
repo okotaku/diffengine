@@ -6,7 +6,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v3
         with:
           python-version: '3.11'
@@ -24,11 +24,11 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     container:
-      image: pytorch/pytorch:2.0.0-cuda11.7-cudnn8-devel
+      image: pytorch/pytorch:2.2.0-cuda12.1-cudnn8-runtime
       options: --tty --ipc host
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v3
         with:
           python-version: '3.11'

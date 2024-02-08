@@ -44,6 +44,7 @@ class AMUSEd(BaseModel):
             It works when training dreambooth with class images.
         data_preprocessor (dict, optional): The pre-process config of
             :class:`SDDataPreprocessor`.
+        vae_batch_size (int): The batch size of vae. Defaults to 8.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. Defaults to False.
         gradient_checkpointing (bool): Whether or not to use gradient
@@ -65,6 +66,7 @@ class AMUSEd(BaseModel):
         text_encoder_lora_config: dict | None = None,
         prior_loss_weight: float = 1.,
         data_preprocessor: dict | nn.Module | None = None,
+        vae_batch_size: int = 8,
         *,
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
@@ -102,6 +104,7 @@ class AMUSEd(BaseModel):
         self.prior_loss_weight = prior_loss_weight
         self.gradient_checkpointing = gradient_checkpointing
         self.enable_xformers = enable_xformers
+        self.vae_batch_size = vae_batch_size
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(
@@ -261,6 +264,17 @@ class AMUSEd(BaseModel):
         msg = "test_step is not implemented now, please use infer."
         raise NotImplementedError(msg)
 
+    def _forward_vae(self, img: torch.Tensor, num_batches: int,
+                     ) -> torch.Tensor:
+        """Forward vae."""
+        latents = []
+        for i in range(0, num_batches, self.vae_batch_size):
+            latents_ = self.vae.encode(img[i : i + self.vae_batch_size]).latents
+            latents_ = self.vae.quantize(latents_)[2][2].reshape(
+                num_batches, -1)
+            latents.append(latents_)
+        return torch.cat(latents, dim=0)
+
     def forward(
             self,
             inputs: dict,
@@ -296,9 +310,7 @@ class AMUSEd(BaseModel):
         else:
             weight = None
 
-        latents = self.vae.encode(inputs["img"]).latents
-        latents = self.vae.quantize(latents)[2][2].reshape(
-            num_batches, -1)
+        latents = self._forward_vae(inputs["img"], num_batches)
 
         timesteps = torch.rand(num_batches, device=self.device)
 

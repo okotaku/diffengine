@@ -3,6 +3,7 @@ from typing import Optional
 import numpy as np
 import torch
 from diffusers import DiffusionPipeline
+from diffusers.models.embeddings import MultiIPAdapterImageProjection
 from diffusers.utils import load_image
 from PIL import Image
 from torch import nn
@@ -170,9 +171,21 @@ class IPAdapterXL(StableDiffusionXL):
         )
         adapter_state_dict = process_ip_adapter_state_dict(
             self.unet, self.image_projection)
-        pipeline.load_ip_adapter(
-            pretrained_model_name_or_path_or_dict=adapter_state_dict,
-            subfolder="", weight_name="")
+
+        # convert IP-Adapter Image Projection layers to diffusers
+        image_projection_layers = []
+        for state_dict in [adapter_state_dict]:
+            image_projection_layer = (
+                pipeline.unet._convert_ip_adapter_image_proj_to_diffusers(  # noqa
+                    state_dict["image_proj"]))
+            image_projection_layer.to(
+                device=pipeline.unet.device, dtype=pipeline.unet.dtype)
+            image_projection_layers.append(image_projection_layer)
+
+        pipeline.unet.encoder_hid_proj = MultiIPAdapterImageProjection(
+            image_projection_layers)
+        pipeline.unet.config.encoder_hid_dim_type = "ip_image_proj"
+
         if self.prediction_type is not None:
             # set prediction_type of scheduler if defined
             scheduler_args = {"prediction_type": self.prediction_type}
@@ -248,8 +261,7 @@ class IPAdapterXL(StableDiffusionXL):
         else:
             weight = None
 
-        latents = self.vae.encode(inputs["img"]).latent_dist.sample()
-        latents = latents * self.vae.config.scaling_factor
+        latents = self._forward_vae(inputs["img"], num_batches)
 
         noise = self.noise_generator(latents)
 
@@ -275,15 +287,14 @@ class IPAdapterXL(StableDiffusionXL):
             ]),
             len(image_embeds),
             replacement=True).to(image_embeds)
-        image_embeds = image_embeds * mask.view(-1, 1, 1, 1)
+        image_embeds = (image_embeds * mask.view(-1, 1)).view(num_batches, 1, 1, -1)
 
         ip_tokens = self.image_projection(image_embeds)
-        prompt_embeds = torch.cat([prompt_embeds, ip_tokens], dim=1)
 
         model_pred = self.unet(
             noisy_latents,
             timesteps,
-            prompt_embeds,
+            (prompt_embeds, ip_tokens),
             added_cond_kwargs=unet_added_conditions).sample
 
         return self.loss(model_pred, noise, latents, timesteps, weight)
@@ -348,8 +359,7 @@ class IPAdapterXLPlus(IPAdapterXL):
         else:
             weight = None
 
-        latents = self.vae.encode(inputs["img"]).latent_dist.sample()
-        latents = latents * self.vae.config.scaling_factor
+        latents = self._forward_vae(inputs["img"], num_batches)
 
         noise = self.noise_generator(latents)
 
@@ -380,12 +390,11 @@ class IPAdapterXLPlus(IPAdapterXL):
             clip_img, output_hidden_states=True).hidden_states[-2]
 
         ip_tokens = self.image_projection(image_embeds)
-        prompt_embeds = torch.cat([prompt_embeds, ip_tokens], dim=1)
 
         model_pred = self.unet(
             noisy_latents,
             timesteps,
-            prompt_embeds,
+            (prompt_embeds, ip_tokens),
             added_cond_kwargs=unet_added_conditions).sample
 
         return self.loss(model_pred, noise, latents, timesteps, weight)
