@@ -50,6 +50,7 @@ class KandinskyV22Decoder(BaseModel):
         input_perturbation_gamma (float): The gamma of input perturbation.
             The recommended value is 0.1 for Input Perturbation.
             Defaults to 0.0.
+        vae_batch_size (int): The batch size of vae. Defaults to 8.
         gradient_checkpointing (bool): Whether or not to use gradient
             checkpointing to save memory at the expense of slower backward
             pass. Defaults to False.
@@ -73,6 +74,7 @@ class KandinskyV22Decoder(BaseModel):
         noise_generator: dict | None = None,
         timesteps_generator: dict | None = None,
         input_perturbation_gamma: float = 0.0,
+        vae_batch_size: int = 8,
         *,
         gradient_checkpointing: bool = False,
         enable_xformers: bool = False,
@@ -93,6 +95,7 @@ class KandinskyV22Decoder(BaseModel):
         self.gradient_checkpointing = gradient_checkpointing
         self.input_perturbation_gamma = input_perturbation_gamma
         self.enable_xformers = enable_xformers
+        self.vae_batch_size = vae_batch_size
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(
@@ -303,6 +306,17 @@ class KandinskyV22Decoder(BaseModel):
             input_noise = noise
         return self.scheduler.add_noise(latents, input_noise, timesteps)
 
+    def _forward_vae(self, img: torch.Tensor, num_batches: int,
+                     ) -> torch.Tensor:
+        """Forward vae."""
+        latents = [
+            self.vae.encode(
+                img[i : i + self.vae_batch_size],
+            ).latents for i in range(
+                0, num_batches, self.vae_batch_size)
+        ]
+        return torch.cat(latents, dim=0)
+
     def forward(
             self,
             inputs: dict,
@@ -332,7 +346,7 @@ class KandinskyV22Decoder(BaseModel):
         else:
             weight = None
 
-        latents = self.vae.encode(inputs["img"]).latents
+        latents = self._forward_vae(inputs["img"], num_batches)
         image_embeds = self.image_encoder(inputs["clip_img"]).image_embeds
 
         noise = self.noise_generator(latents)

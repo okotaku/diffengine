@@ -182,11 +182,8 @@ class StableDiffusionInpaint(StableDiffusion):
         else:
             weight = None
 
-        latents = self.vae.encode(inputs["img"]).latent_dist.sample()
-        latents = latents * self.vae.config.scaling_factor
-
-        masked_latents = self.vae.encode(inputs["masked_image"]).latent_dist.sample()
-        masked_latents = masked_latents * self.vae.config.scaling_factor
+        latents = self._forward_vae(inputs["img"], num_batches)
+        masked_latents = self._forward_vae(inputs["imasked_imagemg"], num_batches)
 
         mask = F.interpolate(inputs["mask"],
                              size=(latents.shape[2], latents.shape[3]))

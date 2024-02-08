@@ -53,6 +53,7 @@ class StableDiffusion(BaseModel):
         input_perturbation_gamma (float): The gamma of input perturbation.
             The recommended value is 0.1 for Input Perturbation.
             Defaults to 0.0.
+        vae_batch_size (int): The batch size of vae. Defaults to 8.
         finetune_text_encoder (bool, optional): Whether to fine-tune text
             encoder. Defaults to False.
         gradient_checkpointing (bool): Whether or not to use gradient
@@ -79,6 +80,7 @@ class StableDiffusion(BaseModel):
         noise_generator: dict | None = None,
         timesteps_generator: dict | None = None,
         input_perturbation_gamma: float = 0.0,
+        vae_batch_size: int = 8,
         *,
         finetune_text_encoder: bool = False,
         gradient_checkpointing: bool = False,
@@ -121,6 +123,7 @@ class StableDiffusion(BaseModel):
         self.gradient_checkpointing = gradient_checkpointing
         self.input_perturbation_gamma = input_perturbation_gamma
         self.enable_xformers = enable_xformers
+        self.vae_batch_size = vae_batch_size
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(
@@ -336,6 +339,18 @@ class StableDiffusion(BaseModel):
             input_noise = noise
         return self.scheduler.add_noise(latents, input_noise, timesteps)
 
+    def _forward_vae(self, img: torch.Tensor, num_batches: int,
+                     ) -> torch.Tensor:
+        """Forward vae."""
+        latents = [
+            self.vae.encode(
+                img[i : i + self.vae_batch_size],
+            ).latent_dist.sample() for i in range(
+                0, num_batches, self.vae_batch_size)
+        ]
+        latents = torch.cat(latents, dim=0)
+        return latents * self.vae.config.scaling_factor
+
     def forward(
             self,
             inputs: dict,
@@ -371,8 +386,7 @@ class StableDiffusion(BaseModel):
         else:
             weight = None
 
-        latents = self.vae.encode(inputs["img"]).latent_dist.sample()
-        latents = latents * self.vae.config.scaling_factor
+        latents = self._forward_vae(inputs["img"], num_batches)
 
         noise = self.noise_generator(latents)
 

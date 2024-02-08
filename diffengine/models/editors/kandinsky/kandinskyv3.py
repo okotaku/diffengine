@@ -51,6 +51,7 @@ class KandinskyV3(BaseModel):
         input_perturbation_gamma (float): The gamma of input perturbation.
             The recommended value is 0.1 for Input Perturbation.
             Defaults to 0.0.
+        vae_batch_size (int): The batch size of vae. Defaults to 8.
         gradient_checkpointing (bool): Whether or not to use gradient
             checkpointing to save memory at the expense of slower backward
             pass. Defaults to False.
@@ -75,6 +76,7 @@ class KandinskyV3(BaseModel):
         noise_generator: dict | None = None,
         timesteps_generator: dict | None = None,
         input_perturbation_gamma: float = 0.0,
+        vae_batch_size: int = 8,
         *,
         gradient_checkpointing: bool = False,
         enable_xformers: bool = False,
@@ -98,6 +100,7 @@ class KandinskyV3(BaseModel):
         self.tokenizer_max_length = tokenizer_max_length
         self.input_perturbation_gamma = input_perturbation_gamma
         self.enable_xformers = enable_xformers
+        self.vae_batch_size = vae_batch_size
 
         if not isinstance(loss, nn.Module):
             loss = MODELS.build(
@@ -312,6 +315,17 @@ class KandinskyV3(BaseModel):
             input_noise = noise
         return self.scheduler.add_noise(latents, input_noise, timesteps)
 
+    def _forward_vae(self, img: torch.Tensor, num_batches: int,
+                     ) -> torch.Tensor:
+        """Forward vae."""
+        latents = [
+            self.vae.encode(
+                img[i : i + self.vae_batch_size],
+            ).latents.contiguous() for i in range(
+                0, num_batches, self.vae_batch_size)
+        ]
+        return torch.cat(latents, dim=0)
+
     def forward(
             self,
             inputs: dict,
@@ -349,7 +363,7 @@ class KandinskyV3(BaseModel):
         else:
             weight = None
 
-        latents = self.vae.encode(inputs["img"]).latents.contiguous()
+        latents = self._forward_vae(inputs["img"], num_batches)
 
         noise = self.noise_generator(latents)
 

@@ -196,8 +196,7 @@ class StableDiffusionXLInstructPix2Pix(StableDiffusionXL):
         else:
             weight = None
 
-        latents = self.vae.encode(inputs["img"]).latent_dist.sample()
-        latents = latents * self.vae.config.scaling_factor
+        latents = self._forward_vae(inputs["img"], num_batches)
 
         noise = self.noise_generator(latents)
 
@@ -230,7 +229,7 @@ class StableDiffusionXLInstructPix2Pix(StableDiffusionXL):
         }
 
         # condition
-        cond_latents = self.vae.encode(inputs["condition_img"]).latent_dist.sample()
+        cond_latents = self._forward_vae(inputs["condition_img"], num_batches)
         # random zeros cond latents
         mask = torch.multinomial(
             torch.Tensor([
