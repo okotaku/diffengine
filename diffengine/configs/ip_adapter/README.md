@@ -95,3 +95,15 @@ You can see more details on [`docs/source/run_guides/run_ip_adapter.md`](../../d
 ![input1](https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/ace81220-010b-44a5-aa8f-3acdf3f54433)
+
+#### stable_diffusion_xl_pokemon_blip_ip_adapter_plus_dinov2
+
+![input1](https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true)
+
+![example1](https://github.com/okotaku/diffengine/assets/24734142/5e1e2088-d00b-4909-9c64-61a7b5ac6b44)
+
+#### stable_diffusion_xl_pokemon_blip_ip_adapter_plus_dinov2_giant
+
+![input1](https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true)
+
+![example1](https://github.com/okotaku/diffengine/assets/24734142/f76c33ba-c1ac-4f6f-b256-d48de5e58bf8)

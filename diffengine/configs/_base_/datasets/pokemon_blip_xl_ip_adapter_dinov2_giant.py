@@ -17,7 +17,7 @@ from diffengine.engine.hooks import IPAdapterSaveHook, VisualizationHook
 train_pipeline = [
     dict(type=SaveImageShape),
     dict(type=TransformersImageProcessor,
-         pretrained="facebook/dinov2-base"),
+         pretrained="facebook/dinov2-giant"),
     dict(type=RandomTextDrop),
     dict(type=TorchVisonTransformWrapper,
          transform=torchvision.transforms.Resize,
