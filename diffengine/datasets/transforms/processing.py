@@ -964,7 +964,7 @@ class TransformersImageProcessor(BaseTransform):
             results (dict): The result dict.
         """
         assert not isinstance(results[self.key], list), (
-            "CLIPImageProcessor only support single image.")
+            "TransformersImageProcessor only support single image.")
         # (1, 3, 224, 224) -> (3, 224, 224)
         results[self.output_key] = self.pipeline(
             images=results[self.key], return_tensors="pt").pixel_values[0]
