@@ -905,3 +905,36 @@ class TestComputeaMUSEdMicroConds(TestCase):
         self.assertListEqual(data["micro_conds"],
                              [[32, 32, 0, 0, 6.0],
                               [48, 48, 10, 10, 6.0]])
+
+
+class TestTransformersImageProcessor(TestCase):
+
+    def test_register(self):
+        assert "TransformersImageProcessor" in TRANSFORMS
+
+    def test_transform(self):
+        img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
+        data = {
+            "img": Image.open(img_path),
+        }
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="TransformersImageProcessor",
+                                      pretrained="facebook/dinov2-small"))
+        data = trans(data)
+        assert "clip_img" in data
+        assert type(data["clip_img"]) == torch.Tensor
+        assert data["clip_img"].size() == (3, 224, 224)
+
+    def test_transform_list(self):
+        img_path = osp.join(osp.dirname(__file__), "../../testdata/color.jpg")
+        data = {
+            "img": [Image.open(img_path), Image.open(img_path)],
+        }
+
+        # test transform
+        trans = TRANSFORMS.build(dict(type="TransformersImageProcessor",
+                                      pretrained="facebook/dinov2-small"))
+        with pytest.raises(
+                AssertionError, match="TransformersImageProcessor only support"):
+            _ = trans(data)

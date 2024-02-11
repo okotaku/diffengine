@@ -7,7 +7,6 @@ from diffusers.models.embeddings import MultiIPAdapterImageProjection
 from diffusers.utils import load_image
 from PIL import Image
 from torch import nn
-from transformers import CLIPImageProcessor
 
 from diffengine.models.archs import (
     load_ip_adapter,
@@ -15,7 +14,7 @@ from diffengine.models.archs import (
     set_unet_ip_adapter,
 )
 from diffengine.models.editors.stable_diffusion_xl import StableDiffusionXL
-from diffengine.registry import MODELS
+from diffengine.registry import MODELS, TRANSFORMS
 
 
 @MODELS.register_module()
@@ -26,6 +25,7 @@ class IPAdapterXL(StableDiffusionXL):
     ----
         image_encoder (dict): The image encoder config.
         image_projection (dict): The image projection config.
+        feature_extractor (dict): The feature extractor config.
         pretrained_adapter (str, optional): Path to pretrained IP-Adapter.
             Defaults to None.
         pretrained_adapter_subfolder (str, optional): Sub folder of pretrained
@@ -55,6 +55,7 @@ class IPAdapterXL(StableDiffusionXL):
                  *args,
                  image_encoder: dict,
                  image_projection: dict,
+                 feature_extractor: dict,
                  pretrained_adapter: str | None = None,
                  pretrained_adapter_subfolder: str = "",
                  pretrained_adapter_weights_name: str = "",
@@ -79,6 +80,8 @@ class IPAdapterXL(StableDiffusionXL):
         self.pretrained_adapter_subfolder = pretrained_adapter_subfolder
         self.pretrained_adapter_weights_name = pretrained_adapter_weights_name
         self.zeros_image_embeddings_prob = zeros_image_embeddings_prob
+
+        self.feature_extractor = TRANSFORMS.build(feature_extractor)
 
         super().__init__(
             *args,
@@ -162,7 +165,7 @@ class IPAdapterXL(StableDiffusionXL):
             tokenizer_2=self.tokenizer_two,
             unet=self.unet,
             image_encoder=self.image_encoder,
-            feature_extractor=CLIPImageProcessor(),
+            feature_extractor=self.feature_extractor,
             torch_dtype=(torch.float16 if self.device != torch.device("cpu")
                          else torch.float32),
         )
@@ -286,7 +289,6 @@ class IPAdapterXL(StableDiffusionXL):
             replacement=True).to(image_embeds)
         image_embeds = (image_embeds * mask.view(-1, 1)).view(num_batches, 1, 1, -1)
 
-        # TODO(takuoko): drop image  # noqa
         ip_tokens = self.image_projection(image_embeds)
 
         model_pred = self.unet(
@@ -387,7 +389,6 @@ class IPAdapterXLPlus(IPAdapterXL):
         image_embeds = self.image_encoder(
             clip_img, output_hidden_states=True).hidden_states[-2]
 
-        # TODO(takuoko): drop image  # noqa
         ip_tokens = self.image_projection(image_embeds)
 
         model_pred = self.unet(
