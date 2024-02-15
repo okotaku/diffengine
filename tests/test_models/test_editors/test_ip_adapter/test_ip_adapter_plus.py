@@ -126,6 +126,19 @@ class TestIPAdapterXL(TestCase):
         assert type(result[0]) == torch.Tensor
         assert result[0].shape == (4, 32, 32)
 
+        # test infer with hidden_states_idx=-1
+        cfg = self._get_config()
+        cfg.update(hidden_states_idx=-1)
+        StableDiffuser = MODELS.build(cfg)
+        result = StableDiffuser.infer(
+            ["an insect robot preparing a delicious meal"],
+            ["tests/testdata/color.jpg"],
+            negative_prompt="noise",
+            height=64,
+            width=64)
+        assert len(result) == 1
+        assert result[0].shape == (64, 64, 3)
+
     def test_train_step(self):
         # test load with loss module
         cfg = self._get_config()
@@ -148,6 +161,25 @@ class TestIPAdapterXL(TestCase):
         # test load with loss module
         cfg = self._get_config()
         cfg.update(gradient_checkpointing=True)
+        StableDiffuser = MODELS.build(cfg)
+
+        # test train step
+        data = dict(
+            inputs=dict(
+                img=[torch.zeros((3, 64, 64))],
+                text=["a dog"],
+                clip_img=[torch.zeros((3, 32, 32))],
+                time_ids=[torch.zeros((1, 6))]))
+        optimizer = SGD(StableDiffuser.parameters(), lr=0.1)
+        optim_wrapper = OptimWrapper(optimizer)
+        log_vars = StableDiffuser.train_step(data, optim_wrapper)
+        assert log_vars
+        assert isinstance(log_vars["loss"], torch.Tensor)
+
+    def test_train_step_last_hidden(self):
+        # test load with loss module
+        cfg = self._get_config()
+        cfg.update(hidden_states_idx=-1)
         StableDiffuser = MODELS.build(cfg)
 
         # test train step
