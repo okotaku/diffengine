@@ -2,7 +2,6 @@ from typing import Optional
 
 import numpy as np
 import torch
-from diffusers import DiffusionPipeline
 from diffusers.models.embeddings import MultiIPAdapterImageProjection
 from diffusers.utils import load_image
 from PIL import Image
@@ -12,6 +11,9 @@ from diffengine.models.archs import (
     load_ip_adapter,
     process_ip_adapter_state_dict,
     set_unet_ip_adapter,
+)
+from diffengine.models.editors.ip_adapter.pipeline import (
+    StableDiffusionXLPipelineCustomIPAdapter,
 )
 from diffengine.models.editors.stable_diffusion_xl import StableDiffusionXL
 from diffengine.registry import MODELS, TRANSFORMS
@@ -49,6 +51,8 @@ class IPAdapterXL(StableDiffusionXL):
             generate zeros image embeddings. Defaults to 0.1.
         data_preprocessor (dict, optional): The pre-process config of
             :class:`SDControlNetDataPreprocessor`.
+        hidden_states_idx (int): Index of the hidden states to be used.
+            Defaults to -2.
     """
 
     def __init__(self,
@@ -64,6 +68,7 @@ class IPAdapterXL(StableDiffusionXL):
                  finetune_text_encoder: bool = False,
                  zeros_image_embeddings_prob: float = 0.1,
                  data_preprocessor: dict | nn.Module | None = None,
+                 hidden_states_idx: int = -2,
                  **kwargs) -> None:
         if data_preprocessor is None:
             data_preprocessor = {"type": "IPAdapterXLDataPreprocessor"}
@@ -80,6 +85,7 @@ class IPAdapterXL(StableDiffusionXL):
         self.pretrained_adapter_subfolder = pretrained_adapter_subfolder
         self.pretrained_adapter_weights_name = pretrained_adapter_weights_name
         self.zeros_image_embeddings_prob = zeros_image_embeddings_prob
+        self.hidden_states_idx = hidden_states_idx
 
         self.feature_extractor = TRANSFORMS.build(feature_extractor)
 
@@ -156,7 +162,7 @@ class IPAdapterXL(StableDiffusionXL):
         orig_encoder_hid_proj = self.unet.encoder_hid_proj
         orig_encoder_hid_dim_type = self.unet.config.encoder_hid_dim_type
 
-        pipeline = DiffusionPipeline.from_pretrained(
+        pipeline = StableDiffusionXLPipelineCustomIPAdapter.from_pretrained(
             self.model,
             vae=self.vae,
             text_encoder=self.text_encoder_one,
@@ -168,6 +174,7 @@ class IPAdapterXL(StableDiffusionXL):
             feature_extractor=self.feature_extractor,
             torch_dtype=(torch.float16 if self.device != torch.device("cpu")
                          else torch.float32),
+            hidden_states_idx=self.hidden_states_idx,
         )
         adapter_state_dict = process_ip_adapter_state_dict(
             self.unet, self.image_projection)
@@ -386,8 +393,14 @@ class IPAdapterXLPlus(IPAdapterXL):
             replacement=True).to(clip_img)
         clip_img = clip_img * mask.view(-1, 1, 1, 1)
         # encode image
-        image_embeds = self.image_encoder(
-            clip_img, output_hidden_states=True).hidden_states[-2]
+        if self.hidden_states_idx == -1:
+            image_embeds = self.image_encoder(
+                clip_img, output_hidden_states=True,
+                ).last_hidden_state
+        else:
+            image_embeds = self.image_encoder(
+                clip_img, output_hidden_states=True,
+                ).hidden_states[self.hidden_states_idx]
 
         ip_tokens = self.image_projection(image_embeds)
 
