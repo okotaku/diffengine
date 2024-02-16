@@ -6,7 +6,8 @@ from diffengine.engine.hooks import PriorSaveHook, VisualizationHook
 
 train_pipeline = [
     dict(type=CLIPImageProcessor, output_key="img",
-         pretrained="kandinsky-community/kandinsky-2-2-prior"),
+         pretrained="kandinsky-community/kandinsky-2-2-prior",
+         subfolder="image_processor"),
     dict(type=PackInputs),
 ]
 train_dataloader = dict(
