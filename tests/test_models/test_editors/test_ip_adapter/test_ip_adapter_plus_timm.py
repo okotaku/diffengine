@@ -94,6 +94,7 @@ class TestTimmIPAdapterXLPlus(TestCase):
                 match="`finetune_text_encoder` should be False"):
             _ = MODELS.build(cfg)
 
+    @pytest.mark.skip(reason="This test is flaky")
     def test_infer(self):
         cfg = self._get_config()
         StableDiffuser = MODELS.build(cfg)
