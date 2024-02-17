@@ -17,6 +17,7 @@ dependencies = [
     "ujson",
     "peft>=0.8.1",
     "joblib",
+    "timm>=0.9.12",
 ]
 license = { file = "LICENSE" }
 keywords = ["computer vision", "diffusion models"]

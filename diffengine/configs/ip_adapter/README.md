@@ -119,3 +119,9 @@ You can see more details on [`docs/source/run_guides/run_ip_adapter.md`](../../d
 ![input1](https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true)
 
 ![example1](https://github.com/okotaku/diffengine/assets/24734142/61e9279e-bd50-42b7-8a6f-1156a70466ea)
+
+#### stable_diffusion_xl_pokemon_blip_ip_adapter_plus_eva02
+
+![input1](https://github.com/LambdaLabsML/examples/blob/main/stable-diffusion-finetuning/README_files/README_2_0.png?raw=true)
+
+![example1](https://github.com/okotaku/diffengine/assets/24734142/fb93cc7d-dc74-409d-9eb7-888d2ed9870f)

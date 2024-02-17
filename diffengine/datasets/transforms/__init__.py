@@ -19,6 +19,7 @@ from .processing import (
     RandomTextDrop,
     SaveImageShape,
     T5TextPreprocess,
+    TimmImageProcessor,
     TorchVisonTransformWrapper,
     TransformersImageProcessor,
 )
@@ -49,4 +50,5 @@ __all__ = [
     "ConcatMultipleImgs",
     "ComputeaMUSEdMicroConds",
     "TransformersImageProcessor",
+    "TimmImageProcessor",
 ]
