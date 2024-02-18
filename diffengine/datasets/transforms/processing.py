@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from enum import EnumMeta
 
 import numpy as np
+import timm
 import torch
 import torchvision
 from diffusers.utils import is_bs4_available, is_ftfy_available
@@ -970,4 +971,38 @@ class TransformersImageProcessor(BaseTransform):
         # (1, 3, 224, 224) -> (3, 224, 224)
         results[self.output_key] = self.pipeline(
             images=results[self.key], return_tensors="pt").pixel_values[0]
+        return results
+
+
+class TimmImageProcessor(BaseTransform):
+    """TransformersImageProcessor.
+
+    Args:
+    ----
+        pretrained (str): pretrained model name.
+        key (str): `key` to apply augmentation from results. Defaults to 'img'.
+        output_key (str): `output_key` after applying augmentation from
+            results. Defaults to 'clip_img'.
+    """
+
+    def __init__(self, pretrained: str,
+                 key: str = "img", output_key: str = "clip_img") -> None:
+        self.key = key
+        self.output_key = output_key
+        _, model_name = timm.models.parse_model_name(pretrained)
+        pretrained_cfg, _, _ = timm.models.load_model_config_from_hf(
+            "timm/" + model_name)
+        data_config = timm.data.resolve_data_config(pretrained_cfg=pretrained_cfg)
+        self.pipeline = timm.data.create_transform(**data_config, is_training=False)
+
+    def transform(self, results: dict) -> dict | tuple[list, list] | None:
+        """Transform.
+
+        Args:
+        ----
+            results (dict): The result dict.
+        """
+        assert not isinstance(results[self.key], list), (
+            "TransformersImageProcessor only support single image.")
+        results[self.output_key] = self.pipeline(results[self.key])
         return results
